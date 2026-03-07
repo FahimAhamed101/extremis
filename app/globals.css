@@ -1,26 +1,84 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  margin: 0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@media screen and (max-width: 990px) {
+  html,
+  body,
+  .theme-layout {
+    overflow-x: hidden;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body.mobile-nav-open {
+    overflow: hidden;
+  }
+
+  body.mobile-nav-open::before {
+    background: rgba(0, 0, 0, 0.45);
+    content: "";
+    inset: 0;
+    position: fixed;
+    z-index: 98;
+  }
+
+  .responsive-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  nav.sidebar {
+    left: -280px !important;
+    max-width: 270px;
+    padding-top: 72px !important;
+    transition: left 0.25s ease !important;
+    width: min(84vw, 270px) !important;
+    z-index: 99 !important;
+  }
+
+  body.mobile-nav-open nav.sidebar {
+    left: 0 !important;
+  }
+
+  .white-bg,
+  header {
+    display: none !important;
+  }
+
+  .menu-caro .page-caro {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .menu-caro .link-item {
+    display: inline-block;
+    float: none;
+  }
+
+  .post-new-popup .popup,
+  .new-question-popup .popup,
+  .popup-wraper .popup,
+  .wraper-invite .popup,
+  .createroom-popup .popup {
+    margin: 0 auto;
+    max-width: calc(100vw - 20px) !important;
+    width: calc(100vw - 20px) !important;
+  }
+
+  img,
+  iframe,
+  video {
+    max-width: 100%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media screen and (max-width: 575px) {
+  .user-avatar.mobile {
+    display: none !important;
+  }
+
+  .logo.res,
+  .right-compact {
+    width: auto !important;
+  }
 }
