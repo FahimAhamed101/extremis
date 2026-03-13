@@ -1,7 +1,11 @@
+import Link from "next/link";
 import Script from "next/script";
+import RequireAuth from "@/components/auth/RequireAuth";
+import HomeHeader from "@/components/layout/HomeHeader";
 
 export default function Home() {
   return (
+    <RequireAuth>
     <>
 
 <div className="page-loader" id="page-loader">
@@ -11,151 +15,7 @@ export default function Home() {
 </div>
 <div className="theme-layout">
 
-	<div className="responsive-header">
-		<div className="logo res"><img src="/images/logo.png" alt="" /><span>Socimo</span></div>
-		<div className="user-avatar mobile">
-			<a href="profile.html" title="View Profile"><img alt="" src="/images/resources/user.jpg" /></a>
-			<div className="name">
-				<h4>Danial Cardos</h4>
-				<span>Ontario, Canada</span>
-			</div>
-		</div>
-		<div className="right-compact">
-			<div className="sidemenu">
-				<i>
-<svg id="side-menu2" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></i>
-			</div>
-			<div className="res-search">
-				<span>
-<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-			</div>
-
-		</div>
-		<div className="restop-search">
-			<span className="hide-search"><i className="icofont-close-circled"></i></span>
-			<form method="post">
-				<input type="text" placeholder="Search..." />
-			</form>
-		</div>
-	</div>
-
-	<header className="">
-		<div className="topbar stick">
-			<div className="logo"><img src="/images/logo.png" alt="" /><span>Socimo</span></div>
-			<div className="searches">
-				<form method="post">
-					<input type="text" placeholder="Search..." />
-					<button type="submit"><i className="icofont-search"></i></button>
-					<span className="cancel-search"><i className="icofont-close"></i></span>
-					<div className="recent-search">
-						<h4 className="recent-searches">Your's Recent Search</h4>
-						<ul className="so-history">
-							<li>
-								<div className="searched-user">
-									<figure><img src="/images/resources/user1.jpg" alt="" /></figure>
-									<span>Danial Carabal</span>
-								</div>
-								<span className="trash"><i className="icofont-close-circled"></i></span>
-							</li>
-							<li>
-								<div className="searched-user">
-									<figure><img src="/images/resources/user2.jpg" alt="" /></figure>
-									<span>Maria K</span>
-								</div>
-								<span className="trash"><i className="icofont-close-circled"></i></span>
-							</li>
-							<li>
-								<div className="searched-user">
-									<figure><img src="/images/resources/user3.jpg" alt="" /></figure>
-									<span>Fawad Khan</span>
-								</div>
-								<span className="trash"><i className="icofont-close-circled"></i></span>
-							</li>
-							<li>
-								<div className="searched-user">
-									<figure><img src="/images/resources/user4.jpg" alt="" /></figure>
-									<span>Danial Sandos</span>
-								</div>
-								<span className="trash"><i className="icofont-close-circled"></i></span>
-							</li>
-							<li>
-								<div className="searched-user">
-									<figure><img src="/images/resources/user5.jpg" alt="" /></figure>
-									<span>Jack Carter</span>
-								</div>
-								<span className="trash"><i className="icofont-close-circled"></i></span>
-							</li>
-						</ul>
-					</div>
-				</form>
-			</div>
-
-			<ul className="web-elements">
-				<li>
-					<div className="user-dp">
-						<a href="profile-page2.html" title="">
-							<img alt="" src="/images/resources/user.jpg" />
-							<div className="name">
-								<h4>Danial Cardos</h4>
-							</div>
-						</a>
-					</div>
-				</li>
-				<li className="go-live">
-					<a href="live-stream.html" title="Go Live" data-toggle="tooltip">
-						<i>
-<svg fill="#f00" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 32 32" width="18px" height="18px"><path d="M 6.1015625 6.1015625 C 3.5675625 8.6345625 2 12.134 2 16 C 2 19.866 3.5675625 23.365437 6.1015625 25.898438 L 7.5195312 24.480469 C 5.3465312 22.307469 4 19.308 4 16 C 4 12.692 5.3465312 9.6925313 7.5195312 7.5195312 L 6.1015625 6.1015625 z M 25.898438 6.1015625 L 24.480469 7.5195312 C 26.653469 9.6925312 28 12.692 28 16 C 28 19.308 26.653469 22.307469 24.480469 24.480469 L 25.898438 25.898438 C 28.432437 23.365437 30 19.866 30 16 C 30 12.134 28.432437 8.6345625 25.898438 6.1015625 z M 9.6367188 9.6367188 C 8.0077188 11.265719 7 13.515 7 16 C 7 18.485 8.0077187 20.734281 9.6367188 22.363281 L 11.052734 20.947266 C 9.7847344 19.680266 9 17.93 9 16 C 9 14.07 9.7847344 12.319734 11.052734 11.052734 L 9.6367188 9.6367188 z M 22.363281 9.6367188 L 20.947266 11.052734 C 22.215266 12.319734 23 14.07 23 16 C 23 17.93 22.215266 19.680266 20.947266 20.947266 L 22.363281 22.363281 C 23.992281 20.734281 25 18.485 25 16 C 25 13.515 23.992281 11.265719 22.363281 9.6367188 z M 16 12 A 4 4 0 0 0 16 20 A 4 4 0 0 0 16 12 z"/></svg></i>
-					</a>
-				</li>
-				<li>
-					<a href="index.html" title="Home" data-toggle="tooltip">
-						<i>
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></i>
-					</a>
-				</li>
-				<li>
-					<a className="mesg-notif" href="#" title="Messages" data-toggle="tooltip">
-						<i>
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></i>
-					</a>
-					<span></span>
-				</li>
-				<li>
-					<a className="mesg-notif" href="#" title="Notifications" data-toggle="tooltip">
-						<i>
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-bell"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></i>
-					</a>
-					<span></span>
-				</li>
-				<li>
-					<a className="create" href="#" title="Add New" data-toggle="tooltip">
-						<i>
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></i>
-					</a>
-				</li>
-				<li>
-					<a href="#" title="">
-						<i>
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-						</i>
-					</a>
-					<ul className="dropdown">
-						<li><a href="profile.html" title=""><i className="icofont-user-alt-3"></i> Your Profile</a></li>
-						<li><a href="add-new-course.html" title=""><i className="icofont-plus"></i> New Course</a></li>
-						<li><a className="invite-new" href="#" title=""><i className="icofont-brand-slideshare"></i> Invite Collegue</a></li>
-						<li><a href="pay-out.html" title=""><i className="icofont-price"></i> Payout</a></li>
-						<li><a href="price-plan.html" title=""><i className="icofont-flash"></i> Upgrade</a></li>
-						<li><a href="help-faq.html" title=""><i className="icofont-question-circle"></i> Help</a></li>
-						<li><a href="settings.html" title=""><i className="icofont-gear"></i> Setting</a></li>
-						<li><a href="privacy-n-policy.html" title=""><i className="icofont-notepad"></i> Privacy</a></li>
-						<li><a className="dark-mod" href="#" title=""><i className="icofont-moon"></i> Dark Mode</a></li>
-						<li className="logout"><a href="sign-in.html" title=""><i className="icofont-power"></i> Logout</a></li>
-					</ul>
-				</li>
-			</ul>
-		</div>
-
-	</header>
+	<HomeHeader />
 
 	<nav className="sidebar">
 		<ul className="menu-slide">
@@ -164,10 +24,10 @@ export default function Home() {
 					<i><svg id="icon-home" className="feather feather-home" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="14" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></i> Home
 				</a>
 				<ul className="submenu">
-					<li><a href="index.html" title="">Newsfeed</a></li>
+					<li><Link href="/" title="">Newsfeed</Link></li>
 					<li><a href="company-home.html" title="">Company Home</a></li>
-					<li><a href="profile-page2.html" title="">User Profile</a></li>
-					<li><a href="profile.html" title="">Student User Profile</a></li>
+					<li><a href="/profile" title="">User Profile</a></li>
+					<li><a href="/profile" title="">Student User Profile</a></li>
 					<li><a href="groups.html" title="">Groups</a></li>
 					<li><a href="group-detail.html" title="">Group Detail</a></li>
 					<li><a href="post-detail.html" title="">Social Post Detail</a></li>
@@ -240,8 +100,8 @@ export default function Home() {
 					<svg id="ab9" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-lock"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></i> Authentications
 				</a>
 				<ul className="submenu">
-					<li><a href="sign-in.html" title="">Sign In</a></li>
-					<li><a href="signup.html" title="">Sign Up</a></li>
+					<li><a href="/login" title="">Sign In</a></li>
+					<li><a href="/signup" title="">Sign Up</a></li>
 					<li><a href="forgot-password.html" title="">Forgot Password</a></li>
 				</ul>
 			</li>
@@ -282,84 +142,6 @@ export default function Home() {
 
 		</ul>
 	</nav>
-
-	<section>
-		<div className="white-bg">
-			<div className="container-fluid">
-				<div className="menu-caro">
-					<div className="row">
-						<div className="col-lg-2">
-							<div className="sidemenu">
-								<i>
-	<svg id="side-menu" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></i>
-							</div>
-						</div>
-						<div className="col-lg-8">
-							<div className="page-caro">
-								<div className="link-item">
-									<a className="active" href="feed.html" title="">
-										<i className="">
-											<svg className="feather feather-zap" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-										</i>
-										<p>Newsfeed</p>
-									</a>
-								</div>
-								<div className="link-item">
-									<a href="videos.html" title="">
-										<i className="">
-											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-youtube"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
-										</i>
-										<p>Videos</p>
-									</a>
-								</div>
-								<div className="link-item">
-									<a href="courses.html" title="">
-										<i className="">
-											<svg className="feather feather-airplay" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"/><polygon points="12 15 17 21 7 21 12 15"/></svg></i>
-										<p>Courses</p>
-									</a>
-								</div>
-								<div className="link-item">
-									<a href="books.html" title="">
-										<i className="">
-											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-book"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></i>
-										<p>Books</p>
-									</a>
-								</div>
-								<div className="link-item">
-									<a href="blog.html" title="">
-										<i className=""><svg className="feather feather-layout" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><rect ry="2" rx="2" height="18" width="18" y="3" x="3"/><line y2="9" x2="21" y1="9" x1="3"/><line y2="9" x2="9" y1="21" x1="9"/></svg></i>
-										<p>Blog</p>
-									</a>
-								</div>
-								<div className="link-item">
-									<a href="groups.html" title="">
-										<i className="">
-											<svg className="feather feather-users" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle r="4" cy="7" cx="9"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-										</i>
-										<p>Groups</p>
-									</a>
-								</div>
-							</div>
-						</div>
-						<div className="col-lg-2">
-							<div className="user-inf">
-								<div className="folowerz">Followers: 204</div>
-								<ul className="stars">
-									<li><i className="icofont-star"></i></li>
-									<li><i className="icofont-star"></i></li>
-									<li><i className="icofont-star"></i></li>
-									<li><i className="icofont-star"></i></li>
-									<li><i className="icofont-star"></i></li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-
 	<section>
 		<div className="gap">
 			<div className="container">
@@ -430,7 +212,7 @@ export default function Home() {
 											<li>
 												<figure><img alt="" src="/images/resources/recentlink-1.jpg" /></figure>
 												<div className="re-links-meta">
-													<h6><a title="" href="#">Moira's fade reach much farther...</a></h6>
+													<h6><a title="" href="#">Moira&apos;s fade reach much farther...</a></h6>
 													<span>2 weeks ago </span>
 												</div>
 											</li>
@@ -455,7 +237,7 @@ export default function Home() {
 										<p>
 											Showcase your professional experience and education to help potential employers and collaborators find and contact you about career opportunities.
 										</p>
-										<a className="main-btn" href="profile.html" title="" data-ripple="">view profile</a>
+										<a className="main-btn" href="/profile" title="" data-ripple="">view profile</a>
 									</div>
 									<div className="widget web-links stick-widget">
 										<h4 className="widget-title">Useful Links <a title="" href="#" className="see-all">See All</a></h4>
@@ -564,7 +346,7 @@ export default function Home() {
 												<img src="/images/resources/user2.jpg" alt="" />
 												<span className="status online"></span>
 											</div>
-											<span>Sara's Room</span>
+											<span>Sara&apos;s Room</span>
 											<a className="join" href="#" title="Join Room">Join</a>
 											<a className="say-hi send-mesg" href="#" title="Send Message"><i className="icofont-facebook-messenger"></i></a>
 										</li>
@@ -573,7 +355,7 @@ export default function Home() {
 												<img src="/images/resources/user3.jpg" alt="" />
 												<span className="status offline"></span>
 											</div>
-											<span>jawad's Room</span>
+											<span>jawad&apos;s Room</span>
 											<a className="join" href="#" title="Join Room">Join</a>
 											<a className="say-hi send-mesg" href="#" title="Send Message"><i className="icofont-facebook-messenger"></i></a>
 										</li>
@@ -582,7 +364,7 @@ export default function Home() {
 												<img src="/images/resources/user4.jpg" alt="" />
 												<span className="status away"></span>
 											</div>
-											<span>Jack's Room</span>
+											<span>Jack&apos;s Room</span>
 											<a className="join" href="#" title="Join Room">Join</a>
 											<a className="say-hi send-mesg" href="#" title="Send Message"><i className="icofont-facebook-messenger"></i></a>
 										</li>
@@ -591,7 +373,7 @@ export default function Home() {
 												<img src="/images/resources/user5.jpg" alt="" />
 												<span className="status online"></span>
 											</div>
-											<span>jobidn's Room</span>
+											<span>jobidn&apos;s Room</span>
 											<a className="join" href="#" title="Join Room">Join</a>
 											<a className="say-hi send-mesg" href="#" title="Send Message"><i className="icofont-facebook-messenger"></i></a>
 										</li>
@@ -600,7 +382,7 @@ export default function Home() {
 												<img src="/images/resources/user6.jpg" alt="" />
 												<span className="status offline"></span>
 											</div>
-											<span>Emily's Room</span>
+											<span>Emily&apos;s Room</span>
 											<a className="join" href="#" title="Join Room">Join</a>
 											<a className="say-hi send-mesg" href="#" title="Send Message"><i className="icofont-facebook-messenger"></i></a>
 										</li>
@@ -3060,7 +2842,7 @@ export default function Home() {
 										</ul>
 									</div>
 									<div className="widget stick-widget">
-										<h4 className="widget-title">Who's follownig</h4>
+										<h4 className="widget-title">Who&apos;s follownig</h4>
 										<ul className="followers" >
 											<li>
 												<figure><img alt="" src="/images/resources/friend-avatar.jpg" /></figure>
@@ -3748,7 +3530,7 @@ export default function Home() {
 							<i className="icofont-hand"></i>
 							<div>
 								<h6>Room Activity</h6>
-								<span>Jack's Room</span>
+								<span>Jack&apos;s Room</span>
 							</div>
 							<div className="checkbox">
 								<input type="checkbox" id="checkbox3" />
@@ -3778,7 +3560,7 @@ export default function Home() {
 							</div>
 						</li>
 					</ul>
-					<span>Your room isn't visible until you invite people after you've created it.</span>
+					<span>Your room isn&apos;t visible until you invite people after you&apos;ve created it.</span>
 					<a href="#" title="" className="main-btn full-width">Create Room</a>
 				</div>
 			</div>
@@ -4077,7 +3859,7 @@ export default function Home() {
             var nav = document.querySelector("nav.sidebar");
             if (!body || !nav) return;
 
-            var triggerSelector = ".responsive-header .sidemenu, .white-bg .sidemenu";
+            var triggerSelector = ".responsive-header .sidemenu, .header-shortcuts .sidemenu";
             var isMobile = function () {
               return window.matchMedia("(max-width: 990px)").matches;
             };
@@ -4141,5 +3923,8 @@ export default function Home() {
         `}
       </Script>
     </>
+    </RequireAuth>
   );
 }
+
+

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import SignupForm from "@/components/auth/SignupForm";
 
 export const metadata: Metadata = {
   title: "Extremis | Signup",
@@ -56,71 +57,7 @@ export default function SignupPage() {
               <p style={{ marginBottom: "10px" }}>
                 Already have an account? <Link href="/login">Login</Link>
               </p>
-              <form method="post" className="c-form">
-                <div className="row merged-10">
-                  <div className="col-lg-12">
-                    <h4>What type of researcher are you?</h4>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="text" placeholder="First Name" />
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="text" placeholder="Last Name" />
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="text" placeholder="Email@" />
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="password" placeholder="Password" />
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="radio" id="student" name="acdamic" value="student" />
-                    <label htmlFor="student">Academic Or Student</label>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="radio" id="ngo" name="acdamic" value="ngo" />
-                    <label htmlFor="ngo">Corporate, Govt, Or NGO Person</label>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="radio" id="medical" name="acdamic" value="medical" />
-                    <label htmlFor="medical">Medical</label>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="radio" id="other" name="acdamic" value="other" />
-                    <label htmlFor="other">Not a Rsearcher</label>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="text" placeholder="Institute, Company" />
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-md-6">
-                    <input type="text" placeholder="Department" />
-                  </div>
-                  <div className="col-lg-12">
-                    <input type="text" placeholder="Your Position" />
-                  </div>
-                  <div className="col-lg-12">
-                    <div className="gender">
-                      <input type="radio" id="male" name="gender" value="male" />
-                      <label htmlFor="male">Male</label>
-                      <input type="radio" id="female" name="gender" value="female" />
-                      <label htmlFor="female">Female</label>
-                    </div>
-                  </div>
-                  <div className="col-lg-12">
-                    <div className="checkbox">
-                      <input type="checkbox" id="terms" defaultChecked />
-                      <label htmlFor="terms">
-                        <span>
-                          I agree the terms of Services and acknowledge the privacy policy
-                        </span>
-                      </label>
-                    </div>
-                    <button className="main-btn" type="submit">
-                      <i className="icofont-key"></i> Signup
-                    </button>
-                  </div>
-                </div>
-              </form>
+              <SignupForm />
             </div>
           </div>
         </div>

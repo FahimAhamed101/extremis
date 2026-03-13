@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "./providers";
 
 export const metadata: Metadata = {
   title: "Extremis | Social Media Network Template",
@@ -20,7 +21,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="/css/color.css" />
         <link rel="stylesheet" href="/css/responsive.css" />
       </head>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

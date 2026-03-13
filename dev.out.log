@@ -1,0 +1,19 @@
+
+> extremis@0.1.0 dev
+> next dev --port 3010
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3010
+- Network:       http://10.10.11.82:3010
+- Environments: .env
+
+✓ Starting...
+Creating turbopack project {
+  dir: 'C:\\Users\\Fahim\\Desktop\\socimo-html-files\\extremis',
+  testMode: true
+}
+✓ Ready in 1095ms
+ GET / 200 in 37.0s (compile: 826ms, render: 36.2s)
+ GET /login 200 in 235ms (compile: 120ms, render: 115ms)
+ GET /signup 200 in 122ms (compile: 68ms, render: 54ms)
+ GET / 200 in 925ms (compile: 4ms, render: 922ms)

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
   title: "Extremis | Login",
@@ -71,19 +72,7 @@ export default function LoginPage() {
               <h4>
                 <i className="icofont-key-hole"></i> Login
               </h4>
-              <form method="post" className="c-form">
-                <input type="text" placeholder="User Name @" />
-                <input type="password" placeholder="xxxxxxxxxx" />
-                <div className="checkbox">
-                  <input type="checkbox" id="remember-me" defaultChecked />
-                  <label htmlFor="remember-me">
-                    <span>Remember Me</span>
-                  </label>
-                </div>
-                <button className="main-btn" type="submit">
-                  <i className="icofont-key"></i> Login
-                </button>
-              </form>
+              <LoginForm />
               <p style={{ marginTop: "12px" }}>
                 No account? <Link href="/signup">Signup</Link>
               </p>
