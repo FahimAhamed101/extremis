@@ -51,6 +51,38 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    bio: {
+      type: String,
+      default: null,
+    },
+    location: {
+      type: String,
+      default: null,
+    },
+    website: {
+      type: String,
+      default: null,
+    },
+    phoneNumber: {
+      type: String,
+      default: null,
+    },
+    skypeId: {
+      type: String,
+      default: null,
+    },
+    localTime: {
+      type: String,
+      default: null,
+    },
+    disciplines: {
+      type: [String],
+      default: [],
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

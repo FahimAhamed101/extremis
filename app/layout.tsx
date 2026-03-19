@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./providers";
+import PageLoader from "@/components/layout/PageLoader";
+import GlobalShellScripts from "@/components/layout/GlobalShellScripts";
 
 export const metadata: Metadata = {
   title: "Extremis | Social Media Network Template",
@@ -22,7 +24,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="/css/responsive.css" />
       </head>
       <body>
+        <PageLoader />
         <Providers>{children}</Providers>
+        <GlobalShellScripts />
       </body>
     </html>
   );

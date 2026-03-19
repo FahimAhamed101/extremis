@@ -1,6 +1,8 @@
 const cors = require("cors");
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
+const postRoutes = require("./routes/postRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
@@ -41,6 +43,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/uploads", uploadRoutes);
 
 app.use(notFound);

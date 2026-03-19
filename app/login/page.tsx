@@ -1,31 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
   title: "Extremis | Login",
-  description: "Socimo style login page",
+  description: "Extremis login page",
 };
 
 export default function LoginPage() {
   return (
     <>
-      <div className="page-loader" id="page-loader">
-        <div className="loader">
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-          <span className="loader-item"></span>
-        </div>
-      </div>
-
       <div className="theme-layout">
         <div className="authtication bluesh high-opacity">
           <div
@@ -47,14 +31,14 @@ export default function LoginPage() {
                 <img src="/images/resources/login-2.png" alt="" />
               </figure>
               <h4>Find New Researchers or Friends</h4>
-              <p>Join Socimo and make your network of university or college fellows.</p>
+              <p>Join Extremis and make your network of university or college fellows.</p>
             </li>
             <li className="welcome-box">
               <figure>
                 <img src="/images/resources/login-3.png" alt="" />
               </figure>
               <h4>Sell Your Online paid Content</h4>
-              <p>Sell your online lectures, videos, books and many more with Socimo.</p>
+              <p>Sell your online lectures, videos, books and many more with Extremis.</p>
             </li>
           </ul>
         </div>
@@ -62,7 +46,7 @@ export default function LoginPage() {
         <div className="auth-login">
           <div className="logo">
             <img src="/images/logo.png" alt="" />
-            <span>Socimo</span>
+            <span>Extremis</span>
           </div>
           <div className="mockup left-bottom">
             <img src="/images/mockup.png" alt="" />
@@ -83,30 +67,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
-      <Script id="loader-fallback-login" strategy="afterInteractive">
-        {`
-          (function () {
-            var hideLoader = function () {
-              var loader = document.getElementById("page-loader");
-              if (!loader) return;
-              loader.classList.add("hidden");
-              loader.style.display = "none";
-            };
-
-            if (document.readyState === "complete" || document.readyState === "interactive") {
-              hideLoader();
-            } else {
-              document.addEventListener("DOMContentLoaded", hideLoader, { once: true });
-            }
-
-            window.addEventListener("load", hideLoader, { once: true });
-            setTimeout(hideLoader, 1500);
-          })();
-        `}
-      </Script>
-      <Script src="/js/main.min.js" strategy="afterInteractive" />
-      <Script src="/js/script.js" strategy="afterInteractive" />
     </>
   );
 }

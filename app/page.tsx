@@ -1,21 +1,17 @@
 import Link from "next/link";
-import Script from "next/script";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
+import HomeFeedClient from "@/components/posts/HomeFeedClient";
+import LegacyPostInteractions from "@/components/posts/LegacyPostInteractions";
 
 export default function Home() {
   return (
     <RequireAuth>
     <>
-
-<div className="page-loader" id="page-loader">
-
-  <div className="loader"><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span><span className="loader-item"></span></div>
-
-</div>
 <div className="theme-layout">
 
 	<HomeHeader />
+	<LegacyPostInteractions />
 
 	<nav className="sidebar">
 		<ul className="menu-slide">
@@ -31,7 +27,7 @@ export default function Home() {
 					<li><a href="groups.html" title="">Groups</a></li>
 					<li><a href="group-detail.html" title="">Group Detail</a></li>
 					<li><a href="post-detail.html" title="">Social Post Detail</a></li>
-					<li><a href="messages.html" title="">Chat/Messages</a></li>
+					<li><Link href="/messages" title="">Chat/Messages</Link></li>
 					<li><a href="notifications.html" title="">Notificatioins</a></li>
 					<li><a href="search-result.html" title="">Search Result</a></li>
 				</ul>
@@ -111,10 +107,10 @@ export default function Home() {
 				</a>
 			</li>
 			<li className="">
-				<a className="" href="messages.html" title="">
+				<Link className="" href="/messages" title="">
 					<i className="">
 <svg className="feather feather-message-square" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="14" width="14" xmlns="http://www.w3.org/2000/svg" id="ab2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" style={{ strokeDasharray: "68, 88", strokeDashoffset: "0" }}/></svg></i> Live Chat
-				</a>
+				</Link>
 			</li>
 			<li className="">
 				<a className="" href="privacy-n-policy.html" title=""><i className="">
@@ -226,7 +222,7 @@ export default function Home() {
 											<li>
 												<figure><img alt="" src="/images/resources/recentlink-3.jpg" /></figure>
 												<div className="re-links-meta">
-													<h6><a title="" href="#">The socimo over watch scandals.</a></h6>
+													<h6><a title="" href="#">The Extremis over watch scandals.</a></h6>
 													<span>1 day before</span>
 												</div>
 											</li>
@@ -245,14 +241,14 @@ export default function Home() {
 											<li><i className="icofont-dotted-right"></i> <a title="" href="#">about</a></li>
 											<li><i className="icofont-dotted-right"></i> <a title="" href="#">career</a></li>
 											<li><i className="icofont-dotted-right"></i> <a title="" href="#">advertise</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">socimo Apps</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">socimo Blog</a></li>
+											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Extremis Apps</a></li>
+											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Extremis Blog</a></li>
 											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Help</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">socimo Gifts</a></li>
+											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Extremis Gifts</a></li>
 											<li><i className="icofont-dotted-right"></i> <a title="" href="#">content policy</a></li>
 											<li><i className="icofont-dotted-right"></i> <a title="" href="#">User Policy</a></li>
 										</ul>
-										<p>&copy; Socimo 2020. All Rights Reserved.</p>
+										<p>&copy; Extremis 2020. All Rights Reserved.</p>
 									</div>
 								</aside>
 							</div>
@@ -291,6 +287,7 @@ export default function Home() {
 										</ul>
 									</div>
 								</div>
+								<HomeFeedClient />
 								<div className="story-card">
 									<div className="story-title">
 										<h5>Recent Stories</h5>
@@ -2910,7 +2907,7 @@ export default function Home() {
 		<div className="container">
 			<div className="row">
 				<div className="col-lg-12">
-					<span className="">&copy; copyright All rights reserved by socimo 2020</span>
+					<span className="">&copy; copyright All rights reserved by Extremis 2020</span>
 				</div>
 			</div>
 		</div>
@@ -2926,7 +2923,7 @@ export default function Home() {
 				</div>
 				<div className="invitation-meta">
 					<p>
-						Enter an email address to invite a colleague or co-author to join you on socimo. They will receive an email and, in some cases, up to two reminders.
+						Enter an email address to invite a colleague or co-author to join you on Extremis. They will receive an email and, in some cases, up to two reminders.
 					</p>
 					<form method="post" className="c-form">
 						<input type="text" placeholder="Enter Email" />
@@ -2976,42 +2973,52 @@ export default function Home() {
 					<a href="#" className="send-mesg" title="New Message" data-toggle="tooltip"><i className="icofont-edit"></i></a>
 					<ul className="new-messages">
 						<li>
-							<figure><img src="/images/resources/user1.jpg" alt="" /></figure>
+							<Link href="/messages" title="Open messages" style={{ display: "inline-block", verticalAlign: "top" }}>
+								<figure><img src="/images/resources/user1.jpg" alt="Ibrahim Ahmed" /></figure>
+							</Link>
 							<div className="mesg-info">
 								<span>Ibrahim Ahmed</span>
-								<a href="#" title="">Helo dear i wanna talk to you</a>
+								<Link href="/messages" title="Open messages">Helo dear i wanna talk to you</Link>
 							</div>
 						</li>
 						<li>
-							<figure><img src="/images/resources/user2.jpg" alt="" /></figure>
+							<Link href="/messages" title="Open messages" style={{ display: "inline-block", verticalAlign: "top" }}>
+								<figure><img src="/images/resources/user2.jpg" alt="Fatima J." /></figure>
+							</Link>
 							<div className="mesg-info">
 								<span>Fatima J.</span>
-								<a href="#" title="">Helo dear i wanna talk to you</a>
+								<Link href="/messages" title="Open messages">Helo dear i wanna talk to you</Link>
 							</div>
 						</li>
 						<li>
-							<figure><img src="/images/resources/user3.jpg" alt="" /></figure>
+							<Link href="/messages" title="Open messages" style={{ display: "inline-block", verticalAlign: "top" }}>
+								<figure><img src="/images/resources/user3.jpg" alt="Fawad Ahmed" /></figure>
+							</Link>
 							<div className="mesg-info">
 								<span>Fawad Ahmed</span>
-								<a href="#" title="">Helo dear i wanna talk to you</a>
+								<Link href="/messages" title="Open messages">Helo dear i wanna talk to you</Link>
 							</div>
 						</li>
 						<li>
-							<figure><img src="/images/resources/user4.jpg" alt="" /></figure>
+							<Link href="/messages" title="Open messages" style={{ display: "inline-block", verticalAlign: "top" }}>
+								<figure><img src="/images/resources/user4.jpg" alt="Saim Turan" /></figure>
+							</Link>
 							<div className="mesg-info">
 								<span>Saim Turan</span>
-								<a href="#" title="">Helo dear i wanna talk to you</a>
+								<Link href="/messages" title="Open messages">Helo dear i wanna talk to you</Link>
 							</div>
 						</li>
 						<li>
-							<figure><img src="/images/resources/user5.jpg" alt="" /></figure>
+							<Link href="/messages" title="Open messages" style={{ display: "inline-block", verticalAlign: "top" }}>
+								<figure><img src="/images/resources/user5.jpg" alt="Alis wells" /></figure>
+							</Link>
 							<div className="mesg-info">
 								<span>Alis wells</span>
-								<a href="#" title="">Helo dear i wanna talk to you</a>
+								<Link href="/messages" title="Open messages">Helo dear i wanna talk to you</Link>
 							</div>
 						</li>
 					</ul>
-					<a href="#" title="" className="main-btn" data-ripple="">view all</a>
+					<Link href="/messages" title="View all messages" className="main-btn" data-ripple="">view all</Link>
 				</div>
 				<div className="tab-pane fade" id="notifications">
 					<h4><i className="icofont-bell-alt"></i> notifications</h4>
@@ -3053,82 +3060,6 @@ export default function Home() {
 						</li>
 					</ul>
 					<a href="#" title="" className="main-btn" data-ripple="">view all</a>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div className="post-new-popup">
-		<div className="popup" style={{ width: "800px" }}>
-			<span className="popup-closed"><i className="icofont-close"></i></span>
-			<div className="popup-meta">
-				<div className="popup-head">
-					<h5><i>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></i>Create New Post</h5>
-				</div>
-				<div className="post-new">
-					<div className="post-newmeta">
-						<ul className="post-categoroes">
-							<li><i className="icofont-camera"></i> Photo / Video</li>
-							<li><i className="icofont-google-map"></i> Post Location</li>
-							<li><i className="icofont-file-gif"></i> Post Gif</li>
-							<li><i className="icofont-ui-tag"></i> Tag to Friend</li>
-							<li><i className="icofont-users"></i> Share in Group</li>
-							<li><i className="icofont-link"></i> Share Link</li>
-							<li><i className="icofont-video-cam"></i> Go Live</li>
-							<li><i className="icofont-sale-discount"></i> Post Online Course</li>
-							<li><i className="icofont-read-book"></i> Post A Book</li>
-							<li><i className="icofont-globe"></i> Post an Ad</li>
-						</ul>
-						<form method="post" className="dropzone" action="/upload-target">
-							<div className="fallback">
-								<input name="file" type="file" multiple />
-							</div>
-						</form>
-					</div>
-					<form method="post" className="c-form">
-						<textarea id="emojionearea1" placeholder="What's On Your Mind?"></textarea>
-						<div className="activity-post">
-							<div className="checkbox">
-								<input type="checkbox" id="checkbox" defaultChecked />
-								<label htmlFor="checkbox"><span>Activity Feed</span></label>
-							</div>
-							<div className="checkbox">
-								<input type="checkbox" id="checkbox2" defaultChecked />
-								<label htmlFor="checkbox2"><span>My Story</span></label>
-							</div>
-						</div>
-						<div className="select-box">
-							<div className="select-box__current" tabIndex={1}>
-								<div className="select-box__value"><input className="select-box__input" type="radio" id="0" value="1" name="Ben" defaultChecked />
-									<p className="select-box__input-text"><i className="icofont-globe-alt"></i> Public</p>
-								</div>
-								<div className="select-box__value"><input className="select-box__input" type="radio" id="1" value="2" name="Ben" defaultChecked />
-									<p className="select-box__input-text"><i className="icofont-lock"></i> Private</p>
-								</div>
-								<div className="select-box__value"><input className="select-box__input" type="radio" id="2" value="3" name="Ben" defaultChecked />
-									<p className="select-box__input-text"><i className="icofont-user"></i> Specific Friend</p>
-								</div>
-								<div className="select-box__value"><input className="select-box__input" type="radio" id="3" value="4" name="Ben" defaultChecked />
-									<p className="select-box__input-text"><i className="icofont-star"></i> Only Friends</p>
-								</div>
-								<div className="select-box__value"><input className="select-box__input" type="radio" id="4" value="5" name="Ben" defaultChecked />
-									<p className="select-box__input-text"><i className="icofont-users-alt-3"></i> Joined Groups</p>
-								</div>
-								<img className="select-box__icon" src="/images/arrow-down.svg" alt="Arrow Icon" aria-hidden="true" />
-							</div>
-							<ul className="select-box__list">
-								<li><label className="select-box__option" htmlFor="0"><i className="icofont-globe-alt"></i> Public</label></li>
-								<li><label className="select-box__option" htmlFor="1"><i className="icofont-lock"></i> Private</label></li>
-								<li><label className="select-box__option" htmlFor="2"><i className="icofont-user"></i> Specific Friend</label></li>
-								<li><label className="select-box__option" htmlFor="3"><i className="icofont-star"></i> Only Friends</label></li>
-								<li><label className="select-box__option" htmlFor="4"><i className="icofont-users-alt-3"></i> Joined Groups</label></li>
-							</ul>
-						</div>
-						<input className="schedule-btn" type="text" id="datetimepicker" readOnly />
-						<input type="text" placeholder="https://www.youtube.com/watch?v=vgvsuiFlA-Y&t=56s" />
-						<button type="submit" className="main-btn">Publish</button>
-					</form>
 				</div>
 			</div>
 		</div>
@@ -3823,105 +3754,6 @@ export default function Home() {
 
 </div>
 
-
-
-
-
-
-      <Script id="loader-fallback" strategy="afterInteractive">
-        {`
-          (function () {
-            var hideLoader = function () {
-              var loader = document.getElementById("page-loader");
-              if (!loader) return;
-              loader.classList.add("hidden");
-              loader.style.display = "none";
-            };
-
-            if (document.readyState === "complete" || document.readyState === "interactive") {
-              hideLoader();
-            } else {
-              document.addEventListener("DOMContentLoaded", hideLoader, { once: true });
-            }
-
-            window.addEventListener("load", hideLoader, { once: true });
-            setTimeout(hideLoader, 1500);
-          })();
-        `}
-      </Script>
-      <Script src="/js/main.min.js" strategy="afterInteractive" />
-      <Script src="/js/date-time.js" strategy="afterInteractive" />
-      <Script src="/js/script.js" strategy="afterInteractive" />
-      <Script id="mobile-nav-fix" strategy="lazyOnload">
-        {`
-          (function () {
-            var body = document.body;
-            var nav = document.querySelector("nav.sidebar");
-            if (!body || !nav) return;
-
-            var triggerSelector = ".responsive-header .sidemenu, .header-shortcuts .sidemenu";
-            var isMobile = function () {
-              return window.matchMedia("(max-width: 990px)").matches;
-            };
-
-            var openNav = function () {
-              nav.classList.add("hide");
-              body.classList.add("mobile-nav-open");
-            };
-
-            var closeNav = function () {
-              nav.classList.remove("hide");
-              nav.classList.remove("padding");
-              body.classList.remove("mobile-nav-open");
-            };
-
-            var toggleNav = function (event) {
-              if (!isMobile()) return;
-              event.preventDefault();
-              event.stopPropagation();
-              if (body.classList.contains("mobile-nav-open")) {
-                closeNav();
-              } else {
-                openNav();
-              }
-            };
-
-            var triggers = document.querySelectorAll(triggerSelector);
-            triggers.forEach(function (trigger) {
-              trigger.addEventListener("click", toggleNav);
-            });
-
-            nav.addEventListener("click", function (event) {
-              event.stopPropagation();
-            });
-
-            document.addEventListener("click", function (event) {
-              if (!isMobile() || !body.classList.contains("mobile-nav-open")) return;
-              if (event.target.closest("nav.sidebar")) return;
-              if (event.target.closest(triggerSelector)) return;
-              closeNav();
-            });
-
-            document.addEventListener("keydown", function (event) {
-              if (event.key === "Escape") {
-                closeNav();
-              }
-            });
-
-            nav.querySelectorAll("a").forEach(function (link) {
-              link.addEventListener("click", function () {
-                if (isMobile()) closeNav();
-              });
-            });
-
-            window.addEventListener("resize", function () {
-              if (!isMobile()) {
-                closeNav();
-              }
-            });
-          })();
-        `}
-      </Script>
     </>
     </RequireAuth>
   );

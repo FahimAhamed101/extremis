@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const toPublicUser = require("../utils/toPublicUser");
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
@@ -21,23 +22,6 @@ function normalizeOptionalUrl(value) {
   } catch {
     return null;
   }
-}
-
-function toPublicUser(user) {
-  return {
-    id: String(user._id),
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    researcherType: user.researcherType || null,
-    institute: user.institute || null,
-    department: user.department || null,
-    position: user.position || null,
-    gender: user.gender || null,
-    avatarUrl: user.avatarUrl || null,
-    coverImageUrl: user.coverImageUrl || null,
-    createdAt: user.createdAt,
-  };
 }
 
 async function signup(req, res, next) {

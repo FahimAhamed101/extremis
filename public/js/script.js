@@ -1,10 +1,22 @@
 //-----window.load start here
 
+var hidePageLoader = function () {
+	var $loader = $('#page-loader');
+	if (!$loader.length) {
+		return;
+	}
+
+	$loader.addClass('hidden');
+	window.setTimeout(function () {
+		$loader.css('display', 'none');
+	}, 600);
+};
+
 // Animate loader off screen
 $(window).on('load', function () {
 	"use strict";
     /*$(".se-pre-con").fadeOut("slow");*/
-	$('#page-loader').addClass('hidden');
+	hidePageLoader();
 	
 //animated svg icons
 	var settings = $.extend({
@@ -36,6 +48,8 @@ $(window).on('load', function () {
 jQuery(document).ready(function($) {
 	
 	"use strict";
+
+	window.setTimeout(hidePageLoader, 1500);
 
 // select gender on pitpoint page	
 	$('.starting-ask').click( function() {

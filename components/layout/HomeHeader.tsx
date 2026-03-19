@@ -5,6 +5,7 @@ import { MouseEvent, useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { clearAuthSession } from "@/lib/auth/client";
 import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants";
+import CreatePostModal from "@/components/posts/CreatePostModal";
 
 type StoredUser = {
   firstName?: string;
@@ -163,7 +164,7 @@ export default function HomeHeader() {
         <div className="topbar stick">
           <div className="logo">
             <img src="/images/logo.png" alt="" />
-            <span>Socimo</span>
+            <span>Extremis</span>
           </div>
           <div className="searches">
             <form method="post">
@@ -219,7 +220,7 @@ export default function HomeHeader() {
               </Link>
             </li>
             <li>
-              <a className="mesg-notif" href="#" title="Messages" data-toggle="tooltip">
+              <Link className="mesg-notif" href="/messages" title="Messages" data-toggle="tooltip">
                 <i>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -236,7 +237,7 @@ export default function HomeHeader() {
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                   </svg>
                 </i>
-              </a>
+              </Link>
               <span></span>
             </li>
             <li>
@@ -552,6 +553,8 @@ export default function HomeHeader() {
           </div>
         </div>
       </section>
+
+      {isAuthenticated ? <CreatePostModal /> : null}
     </>
   );
 }
