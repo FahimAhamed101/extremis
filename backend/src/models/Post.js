@@ -20,6 +20,69 @@ const postCommentSchema = new mongoose.Schema(
   }
 );
 
+const postAudioSourceSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+      required: true,
+    },
+    mimeType: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+const sponsorItemSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200,
+    },
+    imageUrl: {
+      type: String,
+      default: null,
+    },
+    priceLabel: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 60,
+    },
+    href: {
+      type: String,
+      default: null,
+    },
+    ctaLabel: {
+      type: String,
+      default: "Shop Now",
+      trim: true,
+      maxlength: 80,
+    },
+    shareLabel: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 80,
+    },
+    likeLabel: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 80,
+    },
+  },
+  {
+    _id: true,
+  }
+);
+
 const postSchema = new mongoose.Schema(
   {
     author: {
@@ -27,6 +90,24 @@ const postSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       index: true,
+    },
+    postType: {
+      type: String,
+      enum: ["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor"],
+      default: "custom",
+      index: true,
+    },
+    activityLabel: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 120,
+    },
+    title: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 300,
     },
     content: {
       type: String,
@@ -50,9 +131,54 @@ const postSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    displayImageUrl: {
+      type: String,
+      default: null,
+    },
+    galleryImages: {
+      type: [String],
+      default: [],
+    },
+    morePhotosCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     linkUrl: {
       type: String,
       default: null,
+    },
+    ctaLabel: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 120,
+    },
+    ctaHref: {
+      type: String,
+      default: null,
+    },
+    fetchedImageLabel: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 120,
+    },
+    gifPreviewUrl: {
+      type: String,
+      default: null,
+    },
+    gifDataUrl: {
+      type: String,
+      default: null,
+    },
+    audioSources: {
+      type: [postAudioSourceSchema],
+      default: [],
+    },
+    sponsorItems: {
+      type: [sponsorItemSchema],
+      default: [],
     },
     audience: {
       type: String,
@@ -66,6 +192,10 @@ const postSchema = new mongoose.Schema(
     myStory: {
       type: Boolean,
       default: true,
+    },
+    commentsOpen: {
+      type: Boolean,
+      default: false,
     },
     scheduledFor: {
       type: Date,

@@ -118,10 +118,6 @@ if ($.isFunction($.fn.dropzone)) {
 	$(".postoverlay").not(".new-postbox").click(function() {
 	    $(".postoverlay").fadeOut(500);
 	});
-	$("[type = submit]").click(function () {
-	    var post = $("textarea").val();
-	    $("<p class='post'>" + post + "</p>").appendTo("section");
-	});	
 	
 // top menu list	
 	$('.main-menu > span').on('click', function () {

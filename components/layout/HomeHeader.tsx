@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { MouseEvent, useMemo, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { MouseEvent, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { clearAuthSession } from "@/lib/auth/client";
 import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants";
 import CreatePostModal from "@/components/posts/CreatePostModal";
+import { useGetChatConversationsQuery } from "@/lib/services/authApi";
+import HeaderSideSlide from "@/components/layout/HeaderSideSlide";
 
 type StoredUser = {
   firstName?: string;
@@ -42,6 +45,9 @@ function subscribeToAuthStorage(callback: () => void): () => void {
 
 export default function HomeHeader() {
   const router = useRouter();
+  const pathname = usePathname();
+  const [isSideSlideOpen, setIsSideSlideOpen] = useState(false);
+  const [activeSideSlideTab, setActiveSideSlideTab] = useState<"messages" | "notifications">("messages");
   const userSnapshot = useSyncExternalStore(
     subscribeToAuthStorage,
     getStoredUserSnapshot,
@@ -62,6 +68,19 @@ export default function HomeHeader() {
   }, [userSnapshot]);
 
   const isAuthenticated = Boolean(user);
+  const { data: chatConversations } = useGetChatConversationsQuery(
+    isAuthenticated
+      ? {
+          page: 1,
+          limit: 50,
+        }
+      : skipToken,
+    {
+      pollingInterval: isAuthenticated ? 15000 : 0,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    }
+  );
 
   const displayName = useMemo(() => {
     if (!user) {
@@ -84,6 +103,12 @@ export default function HomeHeader() {
     return avatarUrl || "/images/resources/user.jpg";
   }, [user]);
 
+  const unreadChatCount = useMemo(() => {
+    return (chatConversations?.data || []).reduce((total, conversation) => {
+      return total + Number(conversation.unreadCount || 0);
+    }, 0);
+  }, [chatConversations]);
+
   const handleLogout = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -91,6 +116,33 @@ export default function HomeHeader() {
     router.replace("/login");
     router.refresh();
   };
+
+  const handleSideSlideOpen = (
+    tab: "messages" | "notifications",
+    event: MouseEvent<HTMLAnchorElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setActiveSideSlideTab(tab);
+    setIsSideSlideOpen(true);
+  };
+
+  useEffect(() => {
+    const handleEscapeClose = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsSideSlideOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeClose);
+    return () => {
+      document.removeEventListener("keydown", handleEscapeClose);
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsSideSlideOpen(false);
+  }, [pathname]);
 
   return (
     <>
@@ -220,7 +272,13 @@ export default function HomeHeader() {
               </Link>
             </li>
             <li>
-              <Link className="mesg-notif" href="/messages" title="Messages" data-toggle="tooltip">
+              <a
+                className="message-nav-link"
+                href="#messages-preview"
+                title="Messages"
+                data-toggle="tooltip"
+                onClick={(event) => handleSideSlideOpen("messages", event)}
+              >
                 <i>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -237,11 +295,17 @@ export default function HomeHeader() {
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                   </svg>
                 </i>
-              </Link>
-              <span></span>
+              </a>
+              <span aria-hidden="true">{unreadChatCount > 0 ? unreadChatCount : ""}</span>
             </li>
             <li>
-              <a className="mesg-notif" href="#" title="Notifications" data-toggle="tooltip">
+              <a
+                className="notification-nav-link"
+                href="#notifications-preview"
+                title="Notifications"
+                data-toggle="tooltip"
+                onClick={(event) => handleSideSlideOpen("notifications", event)}
+              >
                 <i>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -553,6 +617,14 @@ export default function HomeHeader() {
           </div>
         </div>
       </section>
+
+      <HeaderSideSlide
+        activeTab={activeSideSlideTab}
+        conversations={chatConversations?.data || []}
+        isOpen={isSideSlideOpen}
+        onClose={() => setIsSideSlideOpen(false)}
+        onTabChange={setActiveSideSlideTab}
+      />
 
       {isAuthenticated ? <CreatePostModal /> : null}
     </>

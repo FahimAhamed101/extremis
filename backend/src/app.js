@@ -1,6 +1,7 @@
 const cors = require("cors");
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const postRoutes = require("./routes/postRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
@@ -43,6 +44,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/chat", chatRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/uploads", uploadRoutes);

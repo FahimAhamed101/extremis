@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: #f8fafc; color: #0f172a; }
+    main { max-width: 980px; margin: 0 auto; padding: 32px 20px 48px; }
+    section { background: #fff; border: 1px solid #dbe5f1; border-radius: 22px; padding: 24px; margin-bottom: 20px; }
+    h1, h2, h3 { margin-top: 0; }
+    p, li { color: #475569; line-height: 1.7; }
+    pre, code { font-family: Consolas, monospace; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 16px; overflow: auto; }
+    code { background: #eff6ff; padding: 2px 8px; border-radius: 6px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>API Reference</h1>
+      <p>All chat endpoints require <code>Authorization: Bearer &lt;accessToken&gt;</code>.</p>
+    </section>
+
+    <section>
+      <h2>Authentication</h2>
+      <h3>POST /api/auth/register</h3>
+      <pre>{
+  "email": "user@example.com",
+  "password": "secret123",
+  "role": "user"
+}</pre>
+
+      <h3>POST /api/auth/login</h3>
+      <pre>{
+  "email": "user@example.com",
+  "password": "secret123",
+  "role": "user"
+}</pre>
+    </section>
+
+    <section>
+      <h2>Chat Routes</h2>
+      <ul>
+        <li><code>GET /api/chat/contacts</code></li>
+        <li><code>POST /api/chat/conversations</code></li>
+        <li><code>GET /api/chat/conversations?page=1&amp;limit=20</code></li>
+        <li><code>GET /api/chat/conversations/:conversationId/messages?limit=200</code></li>
+        <li><code>POST /api/chat/conversations/:conversationId/messages</code></li>
+        <li><code>POST /api/chat/conversations/:conversationId/read</code></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Create Conversation</h2>
+      <pre>{
+  "recipientId": "CONTACT_ID",
+  "recipientModel": "Doctor"
+}</pre>
+    </section>
+
+    <section>
+      <h2>Send Message</h2>
+      <pre>{
+  "content": "Hello there"
+}</pre>
+    </section>
+
+    <section>
+      <h2>Socket Events</h2>
+      <ul>
+        <li><code>chat:message</code>: emitted when a new message is delivered</li>
+        <li><code>chat:read</code>: emitted when a conversation is marked as read</li>
+      </ul>
+      <p>
+        The socket client authenticates with the same JWT token used for the REST API.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

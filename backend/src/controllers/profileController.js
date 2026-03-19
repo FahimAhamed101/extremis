@@ -1,11 +1,9 @@
+const mongoose = require("mongoose");
+const User = require("../models/User");
 const toPublicUser = require("../utils/toPublicUser");
 const Post = require("../models/Post");
 const { toTimelinePost } = require("../utils/postSerializer");
 const {
-  followers,
-  following,
-  suggestions,
-  whoIsFollowing,
   videos,
   comments,
   timeline,
@@ -105,7 +103,112 @@ function getCompletion(user) {
   return Math.round((completed / fields.length) * 100);
 }
 
-function buildProfilePayload(user) {
+function getObjectIdStrings(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      value
+        .map((entry) => {
+          if (!entry) {
+            return null;
+          }
+
+          if (typeof entry === "string") {
+            return entry;
+          }
+
+          if (typeof entry === "object" && "_id" in entry) {
+            return String(entry._id);
+          }
+
+          return String(entry);
+        })
+        .filter(Boolean)
+    )
+  );
+}
+
+function getPersonSubtitle(publicUser) {
+  return (
+    publicUser.department ||
+    publicUser.position ||
+    publicUser.institute ||
+    publicUser.researcherType ||
+    "Researcher"
+  );
+}
+
+function buildPersonCard(user, viewerFollowingSet, viewerId) {
+  const publicUser = toPublicUser(user);
+  const userId = publicUser.id;
+  const isViewer = viewerId ? viewerId === userId : false;
+  const isFollowing = !isViewer && viewerFollowingSet.has(userId);
+
+  return {
+    id: userId,
+    profileHref: `/profile/${userId}`,
+    name: getFullName(publicUser),
+    subtitle: getPersonSubtitle(publicUser),
+    image: publicUser.avatarUrl || "/images/resources/user.jpg",
+    actionLabel: isViewer ? "You" : isFollowing ? "Following" : "Follow",
+    isFollowing,
+    canFollow: !isViewer,
+  };
+}
+
+async function buildNetworkPayload(profileUser, viewerUser) {
+  const profileUserId = String(profileUser._id);
+  const viewerUserId = String(viewerUser._id);
+  const profileFollowingIds = getObjectIdStrings(profileUser.following);
+  const viewerFollowingIds = getObjectIdStrings(viewerUser.following);
+  const viewerFollowingSet = new Set(viewerFollowingIds);
+  const suggestionExcludedIds = Array.from(
+    new Set([viewerUserId, profileUserId, ...viewerFollowingIds])
+  );
+
+  const [followerCount, followerDocs, followingDocs, suggestionDocs] = await Promise.all([
+    User.countDocuments({ following: profileUser._id }),
+    User.find({ following: profileUser._id }).sort({ createdAt: -1 }).limit(24),
+    profileFollowingIds.length
+      ? User.find({ _id: { $in: profileFollowingIds } })
+      : Promise.resolve([]),
+    User.find({ _id: { $nin: suggestionExcludedIds } }).sort({ createdAt: -1 }).limit(8),
+  ]);
+
+  const followingDocMap = new Map(
+    followingDocs.map((user) => [String(user._id), user])
+  );
+
+  const orderedFollowingDocs = profileFollowingIds
+    .map((userId) => followingDocMap.get(userId))
+    .filter(Boolean);
+
+  const followerCards = followerDocs.map((user) =>
+    buildPersonCard(user, viewerFollowingSet, viewerUserId)
+  );
+  const followingCards = orderedFollowingDocs.map((user) =>
+    buildPersonCard(user, viewerFollowingSet, viewerUserId)
+  );
+  const suggestionCards = suggestionDocs.map((user) =>
+    buildPersonCard(user, viewerFollowingSet, viewerUserId)
+  );
+
+  return {
+    followers: followerCards,
+    following: followingCards,
+    suggestions: suggestionCards,
+    whoIsFollowing: followerCards.slice(0, 5),
+    stats: {
+      followerCount,
+      followingCount: profileFollowingIds.length,
+    },
+  };
+}
+
+function buildProfilePayload(user, stats = {}) {
   const publicUser = toPublicUser(user);
   const fullName = getFullName(publicUser);
   const handle = getHandle(publicUser);
@@ -173,36 +276,72 @@ function buildProfilePayload(user) {
       researcherType,
       institute,
       joined: formatDate(publicUser.createdAt),
-      followerCount: followers.length,
-      followingCount: following.length,
+      followerCount: Number.isFinite(stats.followerCount) ? stats.followerCount : 0,
+      followingCount: Number.isFinite(stats.followingCount) ? stats.followingCount : 0,
     },
   };
 }
 
-async function loadProfileTimeline(userId) {
-  const userPosts = await Post.find({ author: userId })
+async function loadProfileTimeline(profileUserId, viewerId = profileUserId) {
+  const userPosts = await Post.find({ author: profileUserId })
     .populate("author")
     .populate("comments.user")
     .sort({ createdAt: -1 })
     .limit(20);
 
-  return [...userPosts.map((post) => toTimelinePost(post, userId)), ...timeline];
+  return [...userPosts.map((post) => toTimelinePost(post, viewerId)), ...timeline];
 }
 
 async function getMyProfile(req, res, next) {
   try {
-    const profileTimeline = await loadProfileTimeline(req.user._id);
+    const [profileTimeline, network] = await Promise.all([
+      loadProfileTimeline(req.user._id),
+      buildNetworkPayload(req.user, req.user),
+    ]);
 
     res.status(200).json({
       message: "Profile loaded successfully.",
-      profile: buildProfilePayload(req.user),
+      profile: buildProfilePayload(req.user, network.stats),
       timeline: profileTimeline,
-      network: {
-        followers,
-        following,
-        suggestions,
-        whoIsFollowing,
+      network,
+      media: {
+        videos,
+        researchImages,
       },
+      events,
+      comments,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getProfileById(req, res, next) {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      res.status(404).json({ message: "Profile not found." });
+      return;
+    }
+
+    const profileUser = await User.findById(userId);
+
+    if (!profileUser) {
+      res.status(404).json({ message: "Profile not found." });
+      return;
+    }
+
+    const [profileTimeline, network] = await Promise.all([
+      loadProfileTimeline(profileUser._id, req.user._id),
+      buildNetworkPayload(profileUser, req.user),
+    ]);
+
+    res.status(200).json({
+      message: "Profile loaded successfully.",
+      profile: buildProfilePayload(profileUser, network.stats),
+      timeline: profileTimeline,
+      network,
       media: {
         videos,
         researchImages,
@@ -302,18 +441,16 @@ async function updateMyProfile(req, res, next) {
     }
 
     await req.user.save();
-    const profileTimeline = await loadProfileTimeline(req.user._id);
+    const [profileTimeline, network] = await Promise.all([
+      loadProfileTimeline(req.user._id),
+      buildNetworkPayload(req.user, req.user),
+    ]);
 
     res.status(200).json({
       message: "Profile updated successfully.",
-      profile: buildProfilePayload(req.user),
+      profile: buildProfilePayload(req.user, network.stats),
       timeline: profileTimeline,
-      network: {
-        followers,
-        following,
-        suggestions,
-        whoIsFollowing,
-      },
+      network,
       media: {
         videos,
         researchImages,
@@ -326,7 +463,51 @@ async function updateMyProfile(req, res, next) {
   }
 }
 
+async function toggleFollowUser(req, res, next) {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      res.status(404).json({ message: "User not found." });
+      return;
+    }
+
+    if (String(req.user._id) === userId) {
+      res.status(400).json({ message: "You cannot follow yourself." });
+      return;
+    }
+
+    const targetUser = await User.findById(userId);
+
+    if (!targetUser) {
+      res.status(404).json({ message: "User not found." });
+      return;
+    }
+
+    const currentFollowingIds = getObjectIdStrings(req.user.following);
+    const isFollowing = currentFollowingIds.includes(userId);
+
+    if (isFollowing) {
+      req.user.following = currentFollowingIds.filter((followedUserId) => followedUserId !== userId);
+    } else {
+      req.user.following = [...currentFollowingIds, userId];
+    }
+
+    await req.user.save();
+
+    res.status(200).json({
+      message: isFollowing ? "User unfollowed successfully." : "User followed successfully.",
+      targetUserId: userId,
+      isFollowing: !isFollowing,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
+  getProfileById,
   getMyProfile,
+  toggleFollowUser,
   updateMyProfile,
 };

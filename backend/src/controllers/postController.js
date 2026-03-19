@@ -3,22 +3,34 @@ const { toFeedPost, toTimelinePost } = require("../utils/postSerializer");
 
 const ALLOWED_AUDIENCES = new Set(["public", "private", "specific-friend", "only-friends", "joined-groups"]);
 const ALLOWED_ATTACHMENT_TYPES = new Set(["image", "video", "file"]);
+const ALLOWED_POST_TYPES = new Set(["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor"]);
+const TEMPLATE_RELATIVE_PATTERN = /^(?:\.{0,2}\/)?[\w./-]+\.(?:html?|php|asp|aspx)(?:[?#].*)?$/i;
 
 function normalizeOptionalText(value) {
   const normalized = String(value || "").trim();
   return normalized || null;
 }
 
-function normalizeOptionalUrl(value, fieldName) {
+function normalizeOptionalHref(value, fieldName) {
   const normalized = normalizeOptionalText(value);
   if (!normalized) {
     return null;
   }
 
+  if (
+    normalized === "#" ||
+    normalized.startsWith("/") ||
+    normalized.startsWith("./") ||
+    normalized.startsWith("../") ||
+    TEMPLATE_RELATIVE_PATTERN.test(normalized)
+  ) {
+    return normalized;
+  }
+
   try {
     return new URL(normalized).toString();
   } catch {
-    const error = new Error(`${fieldName} must be a valid URL.`);
+    const error = new Error(`${fieldName} must be a valid URL or app path.`);
     error.statusCode = 400;
     throw error;
   }
@@ -47,6 +59,21 @@ function normalizeAttachmentType(value) {
 
   if (!ALLOWED_ATTACHMENT_TYPES.has(normalized)) {
     const error = new Error("Attachment type is invalid.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return normalized;
+}
+
+function normalizePostType(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized) {
+    return "custom";
+  }
+
+  if (!ALLOWED_POST_TYPES.has(normalized)) {
+    const error = new Error("Post type is invalid.");
     error.statusCode = 400;
     throw error;
   }
@@ -87,6 +114,121 @@ function normalizeScheduledFor(value) {
   }
 
   return parsed;
+}
+
+function normalizeNonNegativeInteger(value, fallback = 0) {
+  if (value == null || value === "") {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(String(value), 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    const error = new Error("A numeric value is invalid.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return parsed;
+}
+
+function normalizeHrefList(value, fieldName) {
+  if (value == null || value === "") {
+    return [];
+  }
+
+  const entries = Array.isArray(value) ? value : [value];
+
+  return entries
+    .map((entry) => normalizeOptionalHref(entry, fieldName))
+    .filter(Boolean)
+    .slice(0, 10);
+}
+
+function normalizeAudioSources(value, fallbackUrl, fallbackMimeType) {
+  const normalizedEntries = [];
+  const entries = Array.isArray(value) ? value : value ? [value] : [];
+
+  entries.forEach((entry) => {
+    if (typeof entry === "string") {
+      const url = normalizeOptionalHref(entry, "Audio source URL");
+      if (url) {
+        normalizedEntries.push({ url, mimeType: null });
+      }
+
+      return;
+    }
+
+    if (!entry || typeof entry !== "object") {
+      return;
+    }
+
+    const url = normalizeOptionalHref(entry.url, "Audio source URL");
+    const mimeType = normalizeOptionalText(entry.mimeType);
+    if (url) {
+      normalizedEntries.push({ url, mimeType });
+    }
+  });
+
+  if (normalizedEntries.length > 0) {
+    return normalizedEntries.slice(0, 4);
+  }
+
+  const fallbackNormalizedUrl = normalizeOptionalHref(fallbackUrl, "Audio source URL");
+  if (!fallbackNormalizedUrl) {
+    return [];
+  }
+
+  return [
+    {
+      url: fallbackNormalizedUrl,
+      mimeType: normalizeOptionalText(fallbackMimeType),
+    },
+  ];
+}
+
+function normalizeSponsorItems(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const title = normalizeOptionalText(item.title);
+      if (!title) {
+        return null;
+      }
+
+      return {
+        title,
+        imageUrl: normalizeOptionalHref(item.imageUrl || item.image, "Sponsor image URL"),
+        priceLabel: normalizeOptionalText(item.priceLabel || item.price),
+        href: normalizeOptionalHref(item.href, "Sponsor item URL"),
+        ctaLabel: normalizeOptionalText(item.ctaLabel) || "Shop Now",
+        shareLabel: normalizeOptionalText(item.shareLabel),
+        likeLabel: normalizeOptionalText(item.likeLabel),
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+function hasRenderableContent(payload) {
+  return Boolean(
+    payload.title ||
+      payload.content ||
+      payload.linkUrl ||
+      payload.attachmentUrl ||
+      payload.displayImageUrl ||
+      payload.galleryImages.length > 0 ||
+      payload.audioSources.length > 0 ||
+      payload.gifPreviewUrl ||
+      payload.gifDataUrl ||
+      payload.sponsorItems.length > 0
+  );
 }
 
 function canUserViewPost(post, userId) {
@@ -145,37 +287,75 @@ async function getFeedPosts(req, res, next) {
 
 async function createPost(req, res, next) {
   try {
-    const content = normalizeOptionalText(req.body.content) || "";
-    const linkUrl = normalizeOptionalUrl(req.body.linkUrl, "Link URL");
-    const attachmentUrl = normalizeOptionalUrl(req.body.attachmentUrl, "Attachment URL");
+    const attachmentUrl = normalizeOptionalHref(req.body.attachmentUrl, "Attachment URL");
     const attachmentType = normalizeAttachmentType(req.body.attachmentType);
-    const attachmentName = normalizeOptionalText(req.body.attachmentName);
-    const audience = normalizeAudience(req.body.audience);
-    const scheduledFor = normalizeScheduledFor(req.body.scheduledFor);
-    const activityFeed = normalizeBoolean(req.body.activityFeed, true);
-    const myStory = normalizeBoolean(req.body.myStory, true);
+    const payload = {
+      postType: normalizePostType(req.body.postType || req.body.type),
+      activityLabel: normalizeOptionalText(req.body.activityLabel || req.body.activity),
+      title: normalizeOptionalText(req.body.title),
+      content: normalizeOptionalText(req.body.content || req.body.description) || "",
+      attachmentUrl,
+      attachmentType,
+      attachmentName: normalizeOptionalText(req.body.attachmentName),
+      displayImageUrl: normalizeOptionalHref(req.body.displayImageUrl || req.body.image, "Image URL"),
+      galleryImages: normalizeHrefList(req.body.galleryImages || req.body.images, "Gallery image URL"),
+      morePhotosCount: normalizeNonNegativeInteger(req.body.morePhotosCount, 0),
+      linkUrl: normalizeOptionalHref(req.body.linkUrl || req.body.href, "Link URL"),
+      ctaLabel: normalizeOptionalText(req.body.ctaLabel),
+      ctaHref: normalizeOptionalHref(req.body.ctaHref, "Call to action URL"),
+      fetchedImageLabel: normalizeOptionalText(req.body.fetchedImageLabel),
+      gifPreviewUrl: normalizeOptionalHref(req.body.gifPreviewUrl || req.body.gifPreview, "GIF preview URL"),
+      gifDataUrl: normalizeOptionalHref(req.body.gifDataUrl, "GIF data URL"),
+      audioSources: normalizeAudioSources(
+        req.body.audioSources,
+        req.body.audioUrl || (attachmentType === "file" ? attachmentUrl : null),
+        req.body.audioMimeType
+      ),
+      sponsorItems: normalizeSponsorItems(req.body.sponsorItems),
+      audience: normalizeAudience(req.body.audience),
+      activityFeed: normalizeBoolean(req.body.activityFeed, true),
+      myStory: normalizeBoolean(req.body.myStory, true),
+      commentsOpen: normalizeBoolean(req.body.commentsOpen, false),
+      scheduledFor: normalizeScheduledFor(req.body.scheduledFor),
+    };
 
-    if (!content && !linkUrl && !attachmentUrl) {
-      res.status(400).json({ message: "Write something, attach a file, or add a link before publishing." });
+    if (!hasRenderableContent(payload)) {
+      res.status(400).json({
+        message: "Add a title, write something, attach media, or provide variant content before publishing.",
+      });
       return;
     }
 
-    if (attachmentUrl && !attachmentType) {
+    if (payload.attachmentUrl && !payload.attachmentType) {
       res.status(400).json({ message: "Attachment type is required when an attachment URL is provided." });
       return;
     }
 
     const createdPost = await Post.create({
       author: req.user._id,
-      content,
-      attachmentUrl,
-      attachmentType,
-      attachmentName,
-      linkUrl,
-      audience,
-      activityFeed,
-      myStory,
-      scheduledFor,
+      postType: payload.postType,
+      activityLabel: payload.activityLabel,
+      title: payload.title,
+      content: payload.content,
+      attachmentUrl: payload.attachmentUrl,
+      attachmentType: payload.attachmentType,
+      attachmentName: payload.attachmentName,
+      displayImageUrl: payload.displayImageUrl,
+      galleryImages: payload.galleryImages,
+      morePhotosCount: payload.morePhotosCount,
+      linkUrl: payload.linkUrl,
+      ctaLabel: payload.ctaLabel,
+      ctaHref: payload.ctaHref,
+      fetchedImageLabel: payload.fetchedImageLabel,
+      gifPreviewUrl: payload.gifPreviewUrl,
+      gifDataUrl: payload.gifDataUrl,
+      audioSources: payload.audioSources,
+      sponsorItems: payload.sponsorItems,
+      audience: payload.audience,
+      activityFeed: payload.activityFeed,
+      myStory: payload.myStory,
+      commentsOpen: payload.commentsOpen,
+      scheduledFor: payload.scheduledFor,
     });
 
     const post = await Post.findById(createdPost._id).populate("author");

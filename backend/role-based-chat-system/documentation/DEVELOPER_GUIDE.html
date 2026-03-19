@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Developer Guide</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: #f8fafc; color: #0f172a; }
+    main { max-width: 980px; margin: 0 auto; padding: 32px 20px 48px; }
+    section { background: #fff; border: 1px solid #dbe5f1; border-radius: 22px; padding: 24px; margin-bottom: 20px; }
+    h1, h2, h3 { margin-top: 0; }
+    p, li { color: #475569; line-height: 1.7; }
+    pre, code { font-family: Consolas, monospace; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 16px; overflow: auto; }
+    code { background: #eff6ff; padding: 2px 8px; border-radius: 6px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Developer Guide</h1>
+      <p>
+        The project follows a clear split between API, persistence, and UI layers.
+      </p>
+    </section>
+
+    <section>
+      <h2>Backend Structure</h2>
+      <pre>src/
+  app.ts
+  server.ts
+  socket.ts
+  config/
+  controllers/
+  interfaces/
+  middlewares/
+  models/
+  repositories/
+  routes/
+  services/
+  utils/
+  validators/</pre>
+      <ul>
+        <li><code>controllers/</code> handle HTTP input and response formatting.</li>
+        <li><code>services/</code> contain chat workflows and business logic.</li>
+        <li><code>repositories/</code> isolate MongoDB access.</li>
+        <li><code>socket.ts</code> handles realtime delivery and read receipts.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Frontend Structure</h2>
+      <pre>client/src/
+  app/
+  components/Chat/
+  lib/
+  redux/</pre>
+      <ul>
+        <li><code>app/</code> contains the Next.js routes.</li>
+        <li><code>components/Chat/</code> contains the inbox workspace UI.</li>
+        <li><code>redux/features/auth</code> manages login and stored credentials.</li>
+        <li><code>redux/features/chat</code> uses RTK Query for conversations and messages.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Customization Points</h2>
+      <ul>
+        <li>Change API URLs with frontend environment variables.</li>
+        <li>Change allowed browser origins with <code>FRONTEND_URL</code>.</li>
+        <li>Adjust pagination in <code>chatApi.tsx</code> and controller defaults.</li>
+        <li>Extend the inbox UI from <code>src/components/Chat/ChatApp.tsx</code>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Notes for Extending</h2>
+      <ul>
+        <li>Add new endpoints in <code>routes/</code>, then wire them to a controller and service.</li>
+        <li>Add new realtime events from the backend with <code>emitToUser</code> in <code>socket.ts</code>.</li>
+        <li>Prefer env-driven configuration instead of hardcoded hostnames or secrets.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

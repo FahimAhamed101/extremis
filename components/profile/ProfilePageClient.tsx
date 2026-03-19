@@ -987,6 +987,42 @@ function renderTimelinePost(post: ProfileTimelinePost, comments: CommentItem[]) 
           <p>{description}</p>
         </ProfilePost>
       );
+    case "audio":
+      return (
+        <ProfilePost
+          key={post.id}
+          postId={persistedPostId}
+          authorName={post.authorName}
+          authorImage={post.authorImage}
+          activity={post.activity}
+          published={post.published}
+          emojiCount={emojiCount}
+          commentsOpen={Boolean(post.commentsOpen)}
+          comments={resolvedComments}
+          shareUrl={post.linkUrl || href}
+          stats={resolvedStats}
+        >
+          {title ? (
+            <SmartLink href={href} className="post-title" title="">
+              {title}
+            </SmartLink>
+          ) : null}
+          {description ? <p>{description}</p> : null}
+          {post.audioSources && post.audioSources.length > 0 ? (
+            <div className="aud-vid">
+              <audio className="audio-player" controls>
+                {post.audioSources.map((source) => (
+                  <source
+                    key={`${source.url}-${source.mimeType || "audio"}`}
+                    src={source.url}
+                    type={source.mimeType || undefined}
+                  />
+                ))}
+              </audio>
+            </div>
+          ) : null}
+        </ProfilePost>
+      );
     case "gif":
       return (
         <ProfilePost
@@ -1003,6 +1039,49 @@ function renderTimelinePost(post: ProfileTimelinePost, comments: CommentItem[]) 
           stats={resolvedStats}
         >
           <img className="gif" src={post.gifPreview} data-gif={post.gifDataUrl} alt={title || "Shared gif"} />
+        </ProfilePost>
+      );
+    case "sponsor":
+      return (
+        <ProfilePost
+          key={post.id}
+          postId={persistedPostId}
+          authorName={post.authorName}
+          authorImage={post.authorImage}
+          activity={post.activity}
+          published={post.published}
+          emojiCount={emojiCount}
+          commentsOpen={Boolean(post.commentsOpen)}
+          comments={resolvedComments}
+          shareUrl={href}
+          stats={resolvedStats}
+        >
+          <ul className="sponsored-caro">
+            {(post.sponsorItems || []).map((item) => (
+              <li key={item.id}>
+                {item.image ? (
+                  <figure>
+                    <img src={item.image} alt={item.title} />
+                  </figure>
+                ) : null}
+                <div className="sponsor-prod-name">
+                  <a href={item.href || "#"} title={item.title}>
+                    {item.title}
+                  </a>
+                  {item.priceLabel ? <span>{item.priceLabel}</span> : null}
+                </div>
+                <a href={item.href || "#"} title={item.title} className="shop-btn">
+                  {item.ctaLabel || "Shop Now"}
+                </a>
+                {item.shareLabel || item.likeLabel ? (
+                  <div className="share-info">
+                    {item.shareLabel ? <span>{item.shareLabel}</span> : null}
+                    {item.likeLabel ? <span>{item.likeLabel}</span> : null}
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
         </ProfilePost>
       );
     case "custom":

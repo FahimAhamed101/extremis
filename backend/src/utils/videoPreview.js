@@ -53,6 +53,21 @@ function getVimeoId(url) {
 }
 
 function getVideoPreview(linkUrl) {
+  const normalized = String(linkUrl || "").trim();
+  if (!normalized) {
+    return {
+      embedUrl: null,
+      videoUrl: null,
+    };
+  }
+
+  if (DIRECT_VIDEO_EXTENSION_PATTERN.test(normalized)) {
+    return {
+      embedUrl: null,
+      videoUrl: normalized,
+    };
+  }
+
   const url = safeParseUrl(linkUrl);
   if (!url) {
     return {

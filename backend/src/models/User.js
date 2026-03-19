@@ -83,6 +83,11 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    following: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
+    },
   },
   {
     timestamps: true,

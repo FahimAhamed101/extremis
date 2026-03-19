@@ -58,6 +58,81 @@ export type UserDto = {
   createdAt: string;
 };
 
+export type ChatRole = "student" | "ngo" | "medical" | "other";
+export type ChatPresence = "online" | "away" | "offline";
+
+export type ChatParticipantDto = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+  status: ChatPresence;
+  role: ChatRole;
+  roleLabel: string;
+  location: string | null;
+  institute: string | null;
+  department: string | null;
+  phoneNumber: string | null;
+  skypeId: string | null;
+  localTime: string | null;
+  conversationId?: string | null;
+};
+
+export type ChatConversationDto = {
+  conversationId: string;
+  lastMessageText: string | null;
+  lastMessageSenderRole: ChatRole | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+  participant: ChatParticipantDto;
+};
+
+export type ChatMessageDto = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderRole: ChatRole;
+  content: string;
+  readByViewer: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ChatConversationsResponse = {
+  total: number;
+  page: number;
+  limit: number;
+  data: ChatConversationDto[];
+};
+
+export type ChatContactsResponse = {
+  data: ChatParticipantDto[];
+};
+
+export type ChatMessagesResponse = {
+  data: ChatMessageDto[];
+  limit: number;
+};
+
+export type GetOrCreateConversationPayload = {
+  recipientId: string;
+};
+
+export type GetOrCreateConversationResponse = {
+  message: string;
+  conversationId: string;
+  participant: ChatParticipantDto;
+};
+
+export type SendChatMessagePayload = {
+  conversationId: string;
+  content: string;
+};
+
+export type MarkChatConversationReadResponse = {
+  message: string;
+};
+
 export type PostAudience =
   | "public"
   | "private"
@@ -66,6 +141,33 @@ export type PostAudience =
   | "joined-groups";
 
 export type PostAttachmentType = "image" | "video" | "file";
+export type PostType =
+  | "custom"
+  | "article"
+  | "premium"
+  | "image"
+  | "album"
+  | "link"
+  | "video"
+  | "gif"
+  | "audio"
+  | "sponsor";
+
+export type PostAudioSource = {
+  url: string;
+  mimeType?: string | null;
+};
+
+export type SponsorItemDto = {
+  id: string;
+  title: string;
+  image: string | null;
+  priceLabel?: string | null;
+  href?: string | null;
+  ctaLabel?: string | null;
+  shareLabel?: string | null;
+  likeLabel?: string | null;
+};
 
 export type PostCommentDto = {
   id: string;
@@ -101,10 +203,14 @@ export type UpdateProfileMediaPayload = {
 };
 
 export type ProfilePersonCard = {
+  id?: string;
+  profileHref?: string;
   name: string;
   subtitle: string;
   image: string;
   actionLabel: string;
+  isFollowing?: boolean;
+  canFollow?: boolean;
 };
 
 export type ProfileVideoCard = {
@@ -125,12 +231,13 @@ export type ProfileComment = {
 
 export type ProfileTimelinePost = {
   id: string;
-  type: "article" | "premium" | "image" | "album" | "link" | "video" | "gif" | "custom";
+  type: PostType;
   authorName: string;
   authorImage: string;
   activity: string;
   published: string;
   title?: string;
+  content?: string;
   description?: string;
   href?: string;
   image?: string;
@@ -139,6 +246,8 @@ export type ProfileTimelinePost = {
   ctaLabel?: string;
   ctaHref?: string;
   embedUrl?: string;
+  audioSources?: PostAudioSource[];
+  sponsorItems?: SponsorItemDto[];
   gifPreview?: string;
   gifDataUrl?: string;
   fetchedImageLabel?: string;
@@ -159,18 +268,33 @@ export type ProfileTimelinePost = {
 
 export type FeedPost = {
   id: string;
+  type: PostType;
   authorName: string;
   authorHandle: string;
   authorImage: string;
   activity: string;
   published: string;
+  title?: string | null;
   content: string;
+  description?: string;
+  href?: string;
+  image?: string | null;
+  images?: string[];
+  morePhotosCount?: number;
   attachmentUrl: string | null;
   attachmentType: PostAttachmentType | null;
   attachmentName: string | null;
   linkUrl: string | null;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  fetchedImageLabel?: string | null;
   embedUrl: string | null;
   videoUrl: string | null;
+  audioSources?: PostAudioSource[];
+  sponsorItems?: SponsorItemDto[];
+  gifPreview?: string | null;
+  gifDataUrl?: string | null;
+  commentsOpen?: boolean;
   audience: PostAudience;
   activityFeed: boolean;
   myStory: boolean;
@@ -187,11 +311,35 @@ export type FeedPostsResponse = {
 };
 
 export type CreatePostPayload = {
+  type?: PostType;
+  title?: string;
   content?: string;
+  description?: string;
   attachmentUrl?: string | null;
   attachmentType?: PostAttachmentType | null;
   attachmentName?: string | null;
+  image?: string | null;
+  images?: string[];
   linkUrl?: string | null;
+  href?: string | null;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  fetchedImageLabel?: string | null;
+  gifPreviewUrl?: string | null;
+  gifDataUrl?: string | null;
+  audioSources?: PostAudioSource[];
+  sponsorItems?: Array<{
+    title: string;
+    imageUrl?: string | null;
+    priceLabel?: string | null;
+    href?: string | null;
+    ctaLabel?: string | null;
+    shareLabel?: string | null;
+    likeLabel?: string | null;
+  }>;
+  morePhotosCount?: number;
+  commentsOpen?: boolean;
+  activity?: string | null;
   audience?: PostAudience;
   activityFeed?: boolean;
   myStory?: boolean;
@@ -312,9 +460,15 @@ export type UploadProfileAssetResponse = {
   originalFilename: string;
 };
 
+export type ToggleFollowUserResponse = {
+  message: string;
+  targetUserId: string;
+  isFollowing: boolean;
+};
+
 export const authApi = createApi({
   reducerPath: "authApi",
-  tagTypes: ["Auth", "Profile", "Posts"],
+  tagTypes: ["Auth", "Profile", "Posts", "Chat"],
   baseQuery: fetchBaseQuery({
     baseUrl: `${apiBaseUrl}/api`,
     prepareHeaders: (headers) => {
@@ -354,6 +508,71 @@ export const authApi = createApi({
       }),
       providesTags: ["Auth"],
     }),
+    getChatConversations: builder.query<
+      ChatConversationsResponse,
+      { page?: number; limit?: number } | void
+    >({
+      query: (params) => ({
+        url: "/chat/conversations",
+        method: "GET",
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 20,
+        },
+      }),
+      providesTags: ["Chat"],
+    }),
+    getChatContacts: builder.query<ChatContactsResponse, { search?: string } | void>({
+      query: (params) => ({
+        url: "/chat/contacts",
+        method: "GET",
+        params: params?.search ? { search: params.search } : undefined,
+      }),
+      providesTags: ["Chat"],
+    }),
+    getOrCreateChatConversation: builder.mutation<
+      GetOrCreateConversationResponse,
+      GetOrCreateConversationPayload
+    >({
+      query: (body) => ({
+        url: "/chat/conversations",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Chat"],
+    }),
+    getChatMessages: builder.query<
+      ChatMessagesResponse,
+      { conversationId: string; before?: string; limit?: number }
+    >({
+      query: ({ conversationId, before, limit = 200 }) => ({
+        url: `/chat/conversations/${conversationId}/messages`,
+        method: "GET",
+        params: {
+          limit,
+          ...(before ? { before } : {}),
+        },
+      }),
+      providesTags: ["Chat"],
+    }),
+    sendChatMessage: builder.mutation<ChatMessageDto, SendChatMessagePayload>({
+      query: ({ conversationId, content }) => ({
+        url: `/chat/conversations/${conversationId}/messages`,
+        method: "POST",
+        body: { content },
+      }),
+      invalidatesTags: ["Chat"],
+    }),
+    markChatConversationRead: builder.mutation<
+      MarkChatConversationReadResponse,
+      string
+    >({
+      query: (conversationId) => ({
+        url: `/chat/conversations/${conversationId}/read`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Chat"],
+    }),
     getFeedPosts: builder.query<FeedPostsResponse, void>({
       query: () => ({
         url: "/posts/feed",
@@ -375,6 +594,20 @@ export const authApi = createApi({
         method: "GET",
       }),
       providesTags: ["Profile"],
+    }),
+    getProfileById: builder.query<ProfileDashboardResponse, string>({
+      query: (userId) => ({
+        url: `/profile/${userId}`,
+        method: "GET",
+      }),
+      providesTags: ["Profile"],
+    }),
+    toggleFollowUser: builder.mutation<ToggleFollowUserResponse, string>({
+      query: (userId) => ({
+        url: `/profile/${userId}/follow`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Profile", "Auth"],
     }),
     updateMyProfile: builder.mutation<ProfileDashboardResponse, UpdateMyProfilePayload>({
       query: (body) => ({
@@ -434,9 +667,17 @@ export const {
   useSignupMutation,
   useLoginMutation,
   useGetCurrentUserQuery,
+  useGetChatConversationsQuery,
+  useGetChatContactsQuery,
+  useGetOrCreateChatConversationMutation,
+  useGetChatMessagesQuery,
+  useSendChatMessageMutation,
+  useMarkChatConversationReadMutation,
   useGetFeedPostsQuery,
   useUpdateProfileMediaMutation,
   useGetMyProfileQuery,
+  useGetProfileByIdQuery,
+  useToggleFollowUserMutation,
   useUpdateMyProfileMutation,
   useUploadProfileAssetMutation,
   useCreatePostMutation,
