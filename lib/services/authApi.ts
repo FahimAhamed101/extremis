@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_STORAGE_KEY } from "@/lib/auth/constants";
 
-const rawApiBaseUrl = String(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim();
+const rawApiBaseUrl = String(process.env.NEXT_PUBLIC_API_URL || "").trim();
 const normalizedApiBaseUrl = rawApiBaseUrl.replace(/\/+$/, "");
 export const apiBaseUrl = normalizedApiBaseUrl.endsWith("/api")
   ? normalizedApiBaseUrl.slice(0, -4)
