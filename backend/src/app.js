@@ -8,6 +8,7 @@ const uploadRoutes = require("./routes/uploadRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
+const apiRouter = express.Router();
 
 const allowedOrigins = String(process.env.CLIENT_ORIGIN || "")
   .split(",")
@@ -35,7 +36,7 @@ app.use(
 
 app.use(express.json());
 
-app.get("/api/health", (req, res) => {
+apiRouter.get("/health", (req, res) => {
   res.status(200).json({
     ok: true,
     service: "auth-api",
@@ -43,11 +44,15 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/posts", postRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/uploads", uploadRoutes);
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/chat", chatRoutes);
+apiRouter.use("/posts", postRoutes);
+apiRouter.use("/profile", profileRoutes);
+apiRouter.use("/uploads", uploadRoutes);
+
+// Support both direct server mounts (/api/* locally) and stripped Vercel function paths.
+app.use("/api", apiRouter);
+app.use(apiRouter);
 
 app.use(notFound);
 app.use(errorHandler);
