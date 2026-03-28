@@ -6,8 +6,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearAuthSession } from "@/lib/auth/client";
-import type { ProfilePersonCard } from "@/lib/services/authApi";
+import type { ChatParticipantDto, ProfilePersonCard } from "@/lib/services/authApi";
 import {
+  useGetChatContactsQuery,
   useGetDiscoverPeopleQuery,
   useToggleFollowUserMutation,
 } from "@/lib/services/authApi";
@@ -34,16 +35,36 @@ function getErrorMessage(error: unknown) {
 
 export default function FriendsPageClient() {
   const router = useRouter();
-  const { data, isLoading, isFetching, isError, error } = useGetDiscoverPeopleQuery({ limit: 30 });
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+  } = useGetDiscoverPeopleQuery({ limit: 30 });
+  const {
+    data: contactsData,
+    isLoading: isContactsLoading,
+    error: contactsError,
+  } = useGetChatContactsQuery(undefined, {
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
   const [toggleFollowUser] = useToggleFollowUserMutation();
   const [pendingFollowUserId, setPendingFollowUserId] = useState<string | null>(null);
   const [followErrorMessage, setFollowErrorMessage] = useState<string | null>(null);
+  const [followStateOverrides, setFollowStateOverrides] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const status =
+    const discoverStatus =
       error && typeof error === "object" && "status" in error
         ? (error as { status?: number | string }).status
         : null;
+    const contactsStatus =
+      contactsError && typeof contactsError === "object" && "status" in contactsError
+        ? (contactsError as { status?: number | string }).status
+        : null;
+    const status = discoverStatus === 401 ? discoverStatus : contactsStatus;
 
     if (status !== 401) {
       return;
@@ -51,12 +72,54 @@ export default function FriendsPageClient() {
 
     clearAuthSession();
     router.replace("/login");
-  }, [error, router]);
+  }, [contactsError, error, router]);
 
-  const people = useMemo(() => {
+  const discoveredPeople = useMemo(() => {
     const users = Array.isArray(data?.users) ? data.users : [];
     return users.filter((person) => String(person.id || "").trim());
   }, [data]);
+
+  const fallbackPeople = useMemo<ProfilePersonCard[]>(() => {
+    const contacts = Array.isArray(contactsData?.data) ? contactsData.data : [];
+
+    return contacts
+      .filter((contact): contact is ChatParticipantDto => Boolean(String(contact?.id || "").trim()))
+      .map((contact) => ({
+        id: contact.id,
+        profileHref: `/profile/${contact.id}`,
+        name: contact.name,
+        subtitle:
+          String(contact.department || "").trim() ||
+          String(contact.institute || "").trim() ||
+          String(contact.roleLabel || "").trim() ||
+          "Researcher",
+        image: contact.avatarUrl,
+        actionLabel: "Follow",
+        canFollow: true,
+        isFollowing: false,
+      }));
+  }, [contactsData]);
+
+  const people = useMemo(() => {
+    const source = discoveredPeople.length > 0 ? discoveredPeople : fallbackPeople;
+
+    return source.map((person) => {
+      const personId = String(person.id || "").trim();
+      const override = personId ? followStateOverrides[personId] : undefined;
+      const isFollowing = typeof override === "boolean" ? override : Boolean(person.isFollowing);
+
+      return {
+        ...person,
+        isFollowing,
+        canFollow: person.canFollow !== false,
+        actionLabel: person.canFollow === false ? person.actionLabel : isFollowing ? "Following" : "Follow",
+      };
+    });
+  }, [discoveredPeople, fallbackPeople, followStateOverrides]);
+
+  const hasRenderablePeople = people.length > 0;
+  const shouldShowError = !hasRenderablePeople && Boolean(isError || contactsError);
+  const isBusyLoading = isLoading || (!hasRenderablePeople && isContactsLoading);
 
   const handleToggleFollow = async (person: ProfilePersonCard) => {
     const personId = String(person.id || "").trim();
@@ -68,7 +131,11 @@ export default function FriendsPageClient() {
     setPendingFollowUserId(personId);
 
     try {
-      await toggleFollowUser(personId).unwrap();
+      const response = await toggleFollowUser(personId).unwrap();
+      setFollowStateOverrides((current) => ({
+        ...current,
+        [personId]: Boolean(response.isFollowing),
+      }));
     } catch (followError) {
       setFollowErrorMessage(getErrorMessage(followError));
     } finally {
@@ -91,12 +158,12 @@ export default function FriendsPageClient() {
                     </p>
                   </div>
                   <span className="friends-directory-count">
-                    {isLoading ? "Loading..." : `${people.length} researchers`}
+                    {isBusyLoading ? "Loading..." : `${people.length} researchers`}
                   </span>
                 </div>
 
-                {isError ? (
-                  <p className="profile-follow-error">{getErrorMessage(error)}</p>
+                {shouldShowError ? (
+                  <p className="profile-follow-error">{getErrorMessage(error || contactsError)}</p>
                 ) : (
                   <div className="row friends-directory-grid">
                     {people.map((person) => {
@@ -142,10 +209,10 @@ export default function FriendsPageClient() {
                   </div>
                 )}
 
-                {!isLoading && !people.length && !isError ? (
+                {!isBusyLoading && !people.length && !shouldShowError ? (
                   <p className="profile-page-two-empty">No other users are available yet.</p>
                 ) : null}
-                {isFetching && !isLoading ? (
+                {isFetching && !isBusyLoading ? (
                   <p className="profile-page-two-empty">Refreshing researchers...</p>
                 ) : null}
                 {followErrorMessage ? <p className="profile-follow-error">{followErrorMessage}</p> : null}
