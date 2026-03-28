@@ -6,7 +6,9 @@ import Link from "next/link";
 import { skipToken } from "@reduxjs/toolkit/query";
 import type { FormEvent, MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { clearAuthSession } from "@/lib/auth/client";
 import type {
   ChatConversationDto,
   ChatParticipantDto,
@@ -80,6 +82,7 @@ function toProfileValue(value: string | null | undefined, fallback = "Not added"
 }
 
 export default function MessagesPageClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const {
     data: currentUserResponse,
@@ -152,11 +155,13 @@ export default function MessagesPageClient() {
 
   const {
     data: messagesResponse,
+    error: messagesError,
     isFetching: isMessagesFetching,
   } = useGetChatMessagesQuery(
-    selectedConversationId
+    selectedParticipant
       ? {
-          conversationId: selectedConversationId,
+          conversationId: selectedConversationId || "new",
+          recipientId: selectedParticipant?.id,
           limit: 200,
         }
       : skipToken,
@@ -170,6 +175,12 @@ export default function MessagesPageClient() {
   const messages = messagesResponse?.data ?? [];
   const isBusy = isCreatingConversation || isSendingMessage;
   const showLoadingState = isCurrentUserLoading || isConversationsLoading || isContactsLoading;
+  const conversationDate = messages[0]?.createdAt || selectedConversation?.lastMessageAt || null;
+  const emptyConversationLabel = selectedParticipant
+    ? selectedConversationId || messagesResponse?.conversationId
+      ? "No messages in this conversation yet."
+      : `Start the first conversation with ${selectedParticipant.name}.`
+    : "Select a contact to start chatting.";
 
   useEffect(() => {
     if (!requestedConversationId) {
@@ -226,6 +237,31 @@ export default function MessagesPageClient() {
   }, [headerItems, selectedConversationId, selectedParticipantId]);
 
   useEffect(() => {
+    if (!selectedParticipantId || !selectedConversationId) {
+      return;
+    }
+
+    const matchedHeaderItem = headerItems.find((item) => item.id === selectedParticipantId);
+    if (!matchedHeaderItem) {
+      return;
+    }
+
+    const nextConversationId = matchedHeaderItem.conversationId ?? null;
+    if (nextConversationId === selectedConversationId) {
+      return;
+    }
+
+    const conversationStillExists = conversations.some(
+      (conversation) => conversation.conversationId === selectedConversationId
+    );
+    if (conversationStillExists) {
+      return;
+    }
+
+    setSelectedConversationId(nextConversationId);
+  }, [conversations, headerItems, selectedConversationId, selectedParticipantId]);
+
+  useEffect(() => {
     if (!selectedConversationId || !selectedConversation?.unreadCount) {
       return;
     }
@@ -246,6 +282,42 @@ export default function MessagesPageClient() {
       behavior: "smooth",
     });
   }, [messages.length, selectedConversationId]);
+
+  useEffect(() => {
+    const resolvedConversationId = String(messagesResponse?.conversationId || "").trim();
+    if (!resolvedConversationId || resolvedConversationId === selectedConversationId) {
+      return;
+    }
+
+    setSelectedConversationId(resolvedConversationId);
+  }, [messagesResponse?.conversationId, selectedConversationId]);
+
+  useEffect(() => {
+    const status =
+      messagesError && typeof messagesError === "object" && "status" in messagesError
+        ? (messagesError as { status?: number | string }).status
+        : null;
+
+    if (status === 401) {
+      clearAuthSession();
+      router.replace("/login");
+      return;
+    }
+
+    if (status !== 404) {
+      return;
+    }
+
+    const matchedHeaderItem = headerItems.find((item) => item.id === selectedParticipantId);
+    const nextConversationId = matchedHeaderItem?.conversationId ?? null;
+
+    if (nextConversationId !== selectedConversationId) {
+      setSelectedConversationId(nextConversationId);
+      return;
+    }
+
+    setSelectedConversationId(null);
+  }, [headerItems, messagesError, router, selectedConversationId, selectedParticipantId]);
 
   async function handleSelectContact(item: ChatHeaderItem) {
     setActionError(null);
@@ -282,6 +354,7 @@ export default function MessagesPageClient() {
 
       await sendChatMessage({
         conversationId,
+        recipientId: selectedParticipant.id,
         content,
       }).unwrap();
 
@@ -351,7 +424,7 @@ export default function MessagesPageClient() {
 
               <div className="chat-content">
                 <div className="date">
-                  {formatConversationDate(messages[0]?.createdAt || selectedConversation?.lastMessageAt)}
+                  {conversationDate ? formatConversationDate(conversationDate) : "New conversation"}
                 </div>
 
                 <ul className="chatting-area" ref={messageListRef}>
@@ -377,7 +450,7 @@ export default function MessagesPageClient() {
 
                 {!showLoadingState && !isMessagesFetching && messages.length === 0 ? (
                   <div className="date">
-                    {selectedParticipant ? "No messages yet. Start the conversation." : "No contacts available yet."}
+                    {emptyConversationLabel}
                   </div>
                 ) : null}
 

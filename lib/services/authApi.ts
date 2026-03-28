@@ -110,6 +110,7 @@ export type ChatContactsResponse = {
 };
 
 export type ChatMessagesResponse = {
+  conversationId?: string;
   data: ChatMessageDto[];
   limit: number;
 };
@@ -126,6 +127,7 @@ export type GetOrCreateConversationResponse = {
 
 export type SendChatMessagePayload = {
   conversationId: string;
+  recipientId: string;
   content: string;
 };
 
@@ -495,8 +497,17 @@ export const authApi = createApi({
     baseUrl: `${apiBaseUrl}/api`,
     prepareHeaders: (headers) => {
       if (typeof window !== "undefined") {
-        const token =
-          window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || readCookie(AUTH_COOKIE_NAME);
+        let token: string | null = null;
+
+        try {
+          token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+        } catch {
+          token = null;
+        }
+
+        if (!token) {
+          token = readCookie(AUTH_COOKIE_NAME);
+        }
 
         if (token) {
           headers.set("authorization", `Bearer ${token}`);
@@ -565,23 +576,24 @@ export const authApi = createApi({
     }),
     getChatMessages: builder.query<
       ChatMessagesResponse,
-      { conversationId: string; before?: string; limit?: number }
+      { conversationId: string; recipientId?: string; before?: string; limit?: number }
     >({
-      query: ({ conversationId, before, limit = 200 }) => ({
+      query: ({ conversationId, recipientId, before, limit = 200 }) => ({
         url: `/chat/conversations/${conversationId}/messages`,
         method: "GET",
         params: {
           limit,
+          ...(recipientId ? { recipientId } : {}),
           ...(before ? { before } : {}),
         },
       }),
       providesTags: ["Chat"],
     }),
     sendChatMessage: builder.mutation<ChatMessageDto, SendChatMessagePayload>({
-      query: ({ conversationId, content }) => ({
+      query: ({ conversationId, recipientId, content }) => ({
         url: `/chat/conversations/${conversationId}/messages`,
         method: "POST",
-        body: { content },
+        body: { content, recipientId },
       }),
       invalidatesTags: ["Chat"],
     }),

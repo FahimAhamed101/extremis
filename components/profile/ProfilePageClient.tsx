@@ -370,7 +370,14 @@ function readStoredUser(): UserDto | null {
     return null;
   }
 
-  const rawUser = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
+  let rawUser: string | null = null;
+
+  try {
+    rawUser = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+
   if (!rawUser) {
     return null;
   }
@@ -427,6 +434,27 @@ function formatOptionalValue(value: string | null | undefined, fallback: string)
   return normalized || fallback;
 }
 
+function normalizeStringList(value: unknown, fallback: string[]): string[] {
+  const normalized = Array.from(
+    new Set(
+      (Array.isArray(value) ? value : [])
+        .map((entry) => String(entry || "").trim())
+        .filter(Boolean),
+    ),
+  );
+
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function normalizePercent(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(parsed)));
+}
+
 function getCompletion(user: UserDto | null): number {
   if (!user) {
     return 0;
@@ -481,6 +509,122 @@ function getFallbackStats(emojiCount: string | undefined, commentCount: number):
     commentCount,
     shareCount,
     likedByViewer: false,
+  };
+}
+
+function getResolvedUser(user: Partial<UserDto> | null | undefined, fallbackUser: UserDto | null): UserDto {
+  const baseUser = user && typeof user === "object" ? user : fallbackUser;
+
+  return {
+    id: formatOptionalValue(baseUser?.id, ""),
+    firstName: formatOptionalValue(baseUser?.firstName, "Guest"),
+    lastName: formatOptionalValue(baseUser?.lastName, "User"),
+    email: formatOptionalValue(baseUser?.email, "guest@example.com"),
+    researcherType: baseUser?.researcherType ?? null,
+    institute: baseUser?.institute ?? null,
+    department: baseUser?.department ?? null,
+    position: baseUser?.position ?? null,
+    gender: baseUser?.gender ?? null,
+    avatarUrl: baseUser?.avatarUrl ?? null,
+    coverImageUrl: baseUser?.coverImageUrl ?? null,
+    bio: baseUser?.bio ?? null,
+    location: baseUser?.location ?? null,
+    website: baseUser?.website ?? null,
+    phoneNumber: baseUser?.phoneNumber ?? null,
+    skypeId: baseUser?.skypeId ?? null,
+    localTime: baseUser?.localTime ?? null,
+    disciplines: normalizeStringList(baseUser?.disciplines, []),
+    skills: normalizeStringList(baseUser?.skills, []),
+    createdAt: formatOptionalValue(baseUser?.createdAt, ""),
+  };
+}
+
+function buildProfileDashboard(profile: Partial<ProfileDashboard> | null | undefined, fallbackUser: UserDto | null): ProfileDashboard {
+  const resolvedUser = getResolvedUser(profile?.user, fallbackUser);
+  const fullName = formatOptionalValue(profile?.fullName, getFullName(resolvedUser));
+  const institute = formatOptionalValue(profile?.institute, formatOptionalValue(resolvedUser.institute, "Oxford University"));
+  const department = formatOptionalValue(profile?.department, formatOptionalValue(resolvedUser.department, "Department not added"));
+  const position = formatOptionalValue(profile?.position, formatOptionalValue(resolvedUser.position, "Professor Associate"));
+  const researcherType = formatOptionalValue(
+    profile?.researcherType,
+    formatOptionalValue(resolvedUser.researcherType, "Educational leadership"),
+  );
+  const gender = formatOptionalValue(profile?.gender, formatOptionalValue(resolvedUser.gender, "Not specified"));
+  const avatarUrl = formatOptionalValue(profile?.avatarUrl, formatOptionalValue(resolvedUser.avatarUrl, "/images/resources/user.jpg"));
+  const coverImageUrl = formatOptionalValue(
+    profile?.coverImageUrl,
+    formatOptionalValue(resolvedUser.coverImageUrl, "/images/resources/top-bg.jpg"),
+  );
+  const location = formatOptionalValue(
+    profile?.location,
+    formatOptionalValue(resolvedUser.location, [department, institute].filter(Boolean).join(", ")),
+  );
+  const joined = formatOptionalValue(profile?.joined, formatDate(resolvedUser.createdAt));
+  const completion = normalizePercent(profile?.completion, getCompletion(resolvedUser));
+  const disciplines = normalizeStringList(profile?.disciplines, [
+    ...resolvedUser.disciplines,
+    researcherType,
+    department,
+    "Educational assessment",
+    "Educational management",
+    "Social Psychology",
+    "Qualitative social research",
+  ]);
+  const skills = normalizeStringList(profile?.skills, [
+    ...resolvedUser.skills,
+    position,
+    institute,
+    "Research collaboration",
+    "Mentoring",
+    "Conference speaking",
+    `Profile completion ${completion}%`,
+  ]);
+  const contact = profile?.contact;
+  const analytics = profile?.analytics;
+
+  return {
+    user: resolvedUser,
+    fullName,
+    handle: formatOptionalValue(profile?.handle, getUserHandle(resolvedUser)),
+    institute,
+    department,
+    position,
+    researcherType,
+    gender,
+    avatarUrl,
+    coverImageUrl,
+    location,
+    joined,
+    completion,
+    disciplines,
+    skills,
+    bio: formatOptionalValue(
+      profile?.bio,
+      formatOptionalValue(
+        resolvedUser.bio,
+        `${fullName} is building research collaborations, sharing field notes, and contributing to academic conversations across the Extremis network.`,
+      ),
+    ),
+    headline: formatOptionalValue(profile?.headline, `${position} at ${institute}`),
+    contact: {
+      emailAddress: formatOptionalValue(contact?.emailAddress, resolvedUser.email),
+      phoneNumber: formatOptionalValue(contact?.phoneNumber, formatOptionalValue(resolvedUser.phoneNumber, "Not added")),
+      skypeId: formatOptionalValue(contact?.skypeId, formatOptionalValue(resolvedUser.skypeId, "Not added")),
+      website: formatOptionalValue(contact?.website, formatOptionalValue(resolvedUser.website, "Not added")),
+      localTime: formatOptionalValue(contact?.localTime, formatOptionalValue(resolvedUser.localTime, "3:40AM")),
+    },
+    analytics: {
+      profileCompletion: normalizePercent(analytics?.profileCompletion, completion),
+      researcherType: formatOptionalValue(analytics?.researcherType, researcherType),
+      institute: formatOptionalValue(analytics?.institute, institute),
+      joined: formatOptionalValue(analytics?.joined, joined),
+      followerCount: Number.isFinite(Number(analytics?.followerCount))
+        ? Number(analytics?.followerCount)
+        : followerCards.length,
+      followingCount: Number.isFinite(Number(analytics?.followingCount))
+        ? Number(analytics?.followingCount)
+        : followingCards.length,
+    },
   };
 }
 
@@ -1225,15 +1369,18 @@ export default function ProfilePageClient() {
   });
   const [updateMyProfile] = useUpdateMyProfileMutation();
   const [uploadProfileAsset] = useUploadProfileAssetMutation();
+  const apiProfile = data?.profile ?? null;
+  const apiNetwork = data?.network ?? null;
+  const apiMedia = data?.media ?? null;
 
   useEffect(() => {
-    if (!data?.profile?.user || typeof window === "undefined") {
+    if (!apiProfile?.user || typeof window === "undefined") {
       return;
     }
 
     const token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || undefined;
-    setAuthSession(token, data.profile.user);
-  }, [data]);
+    setAuthSession(token, apiProfile.user);
+  }, [apiProfile]);
 
   useEffect(() => {
     const status =
@@ -1263,107 +1410,24 @@ export default function ProfilePageClient() {
     };
   }, []);
 
-  const user = data?.profile.user || storedUser;
+  const user = apiProfile?.user || storedUser;
 
-  const profileData = useMemo<ProfileDashboard>(() => {
-    if (data?.profile) {
-      return data.profile;
-    }
+  const profileData = useMemo<ProfileDashboard>(() => buildProfileDashboard(apiProfile, user), [apiProfile, user]);
 
-    const fullName = getFullName(user);
-    const handle = getUserHandle(user);
-    const institute = formatOptionalValue(user?.institute, "Oxford University");
-    const department = formatOptionalValue(user?.department, "Department not added");
-    const position = formatOptionalValue(user?.position, "Professor Associate");
-    const researcherType = formatOptionalValue(user?.researcherType, "Educational leadership");
-    const gender = formatOptionalValue(user?.gender, "Not specified");
-    const avatarUrl = String(user?.avatarUrl || "/images/resources/user.jpg").trim();
-    const coverImageUrl = String(user?.coverImageUrl || "/images/resources/top-bg.jpg").trim();
-    const location = formatOptionalValue(user?.location, [department, institute].filter(Boolean).join(", "));
-    const joined = formatDate(user?.createdAt);
-    const completion = getCompletion(user);
-    const bio = formatOptionalValue(
-      user?.bio,
-      `${fullName} is building research collaborations, sharing field notes, and contributing to academic conversations across the Extremis network.`,
-    );
-
-    const disciplines = Array.from(
-      new Set(
-        [
-          ...(user?.disciplines || []),
-          researcherType,
-          department,
-          "Educational assessment",
-          "Educational management",
-          "Social Psychology",
-          "Qualitative social research",
-        ].filter((value) => String(value || "").trim()),
-      ),
-    );
-
-    const skills = Array.from(
-      new Set(
-        [
-          ...(user?.skills || []),
-          position,
-          institute,
-          "Research collaboration",
-          "Mentoring",
-          "Conference speaking",
-          `Profile completion ${completion}%`,
-        ].filter((value) => String(value || "").trim()),
-      ),
-    );
-
-    return {
-      user: user as UserDto,
-      avatarUrl,
-      completion,
-      coverImageUrl,
-      department,
-      disciplines,
-      fullName,
-      gender,
-      handle,
-      institute,
-      joined,
-      location,
-      position,
-      researcherType,
-      skills,
-      bio,
-      headline: `${position} at ${institute}`,
-      contact: {
-        emailAddress: String(user?.email || ""),
-        phoneNumber: formatOptionalValue(user?.phoneNumber, "Not added"),
-        skypeId: formatOptionalValue(user?.skypeId, "Not added"),
-        website: formatOptionalValue(user?.website, "Not added"),
-        localTime: formatOptionalValue(user?.localTime, "3:40AM"),
-      },
-      analytics: {
-        profileCompletion: completion,
-        researcherType,
-        institute,
-        joined,
-        followerCount: followerCards.length,
-        followingCount: followingCards.length,
-      },
-    };
-  }, [data?.profile, user]);
-
-  const followersList = data?.network.followers ?? followerCards;
-  const followingList = data?.network.following ?? followingCards;
-  const suggestedList = data?.network.suggestions ?? suggestedResearchers;
-  const whoIsFollowingList = data?.network.whoIsFollowing ?? whoIsFollowing;
-  const videoList = data?.media.videos ?? videoCards;
-  const commentItems = data?.comments ?? defaultComments;
-  const researchImageList = data?.media.researchImages ?? fallbackResearchImages;
-  const eventList = data?.events ?? fallbackEvents;
-  const timelinePosts = data?.timeline ?? fallbackTimelinePosts;
+  const followersList = Array.isArray(apiNetwork?.followers) ? apiNetwork.followers : followerCards;
+  const followingList = Array.isArray(apiNetwork?.following) ? apiNetwork.following : followingCards;
+  const suggestedList = Array.isArray(apiNetwork?.suggestions) ? apiNetwork.suggestions : suggestedResearchers;
+  const whoIsFollowingList = Array.isArray(apiNetwork?.whoIsFollowing) ? apiNetwork.whoIsFollowing : whoIsFollowing;
+  const videoList = Array.isArray(apiMedia?.videos) ? apiMedia.videos : videoCards;
+  const commentItems = Array.isArray(data?.comments) ? data.comments : defaultComments;
+  const researchImageList = Array.isArray(apiMedia?.researchImages) ? apiMedia.researchImages : fallbackResearchImages;
+  const eventList = Array.isArray(data?.events) ? data.events : fallbackEvents;
+  const timelinePosts = Array.isArray(data?.timeline) ? data.timeline : fallbackTimelinePosts;
   const leadingTimelinePosts = timelinePosts.slice(0, 2);
   const trailingTimelinePosts = timelinePosts.slice(2);
   const displayAvatarUrl = localAvatarUrl || profileData.avatarUrl;
   const displayCoverImageUrl = localCoverImageUrl || profileData.coverImageUrl;
+  const profileFirstName = profileData.fullName.trim().split(/\s+/)[0] || "Researcher";
 
   const openFilePicker = (kind: UploadKind) => {
     setUploadError(null);
@@ -1405,7 +1469,9 @@ export default function ProfilePageClient() {
 
       if (typeof window !== "undefined") {
         const token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || undefined;
-        setAuthSession(token, updated.profile.user);
+        if (updated.profile?.user) {
+          setAuthSession(token, updated.profile.user);
+        }
       }
     } catch (uploadMutationError) {
       setUploadError(getErrorMessage(uploadMutationError));
@@ -1699,7 +1765,7 @@ export default function ProfilePageClient() {
 
                       <div className={`tab-pane fade ${activeTab === "about" ? "active show" : ""}`} id="about">
                         <div className="main-wraper">
-                          <h3 className="main-title">About {profileData.fullName.split(" ")[0]}</h3>
+                          <h3 className="main-title">About {profileFirstName}</h3>
                           <div className="lang">
                             <h6>Profile Snapshot</h6>
                             <span>

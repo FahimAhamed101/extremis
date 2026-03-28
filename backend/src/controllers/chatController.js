@@ -9,6 +9,9 @@ const {
   toChatParticipant,
 } = require("../utils/chatSerializer");
 
+const CHAT_USER_SELECT_FIELDS =
+  "firstName lastName email researcherType avatarUrl location institute department phoneNumber skypeId localTime updatedAt createdAt";
+
 function createHttpError(message, statusCode) {
   const error = new Error(message);
   error.statusCode = statusCode;
@@ -51,6 +54,14 @@ function buildUserSearchQuery(search) {
   };
 }
 
+function getRequestBody(req) {
+  if (!req || !req.body || typeof req.body !== "object" || Buffer.isBuffer(req.body)) {
+    return {};
+  }
+
+  return req.body;
+}
+
 async function getConversationUnreadCount(conversationId, viewerId) {
   return ChatMessage.countDocuments({
     conversationId,
@@ -60,9 +71,13 @@ async function getConversationUnreadCount(conversationId, viewerId) {
 }
 
 async function loadConversationForUser(conversationId, currentUserId) {
+  if (!isValidObjectId(conversationId)) {
+    throw createHttpError("Conversation not found.", 404);
+  }
+
   const conversation = await ChatConversation.findById(conversationId).populate(
     "participants",
-    "firstName lastName email researcherType avatarUrl location institute department phoneNumber skypeId localTime updatedAt createdAt"
+    CHAT_USER_SELECT_FIELDS
   );
 
   if (!conversation) {
@@ -80,40 +95,73 @@ async function loadConversationForUser(conversationId, currentUserId) {
   return conversation;
 }
 
+async function findConversationForUsers(currentUser, recipientId) {
+  const recipient = await findRecipientForConversation(currentUser, recipientId);
+  const participantKey = buildParticipantKey(currentUser._id, recipient._id);
+
+  const conversation = await ChatConversation.findOne({ participantKey }).populate(
+    "participants",
+    CHAT_USER_SELECT_FIELDS
+  );
+
+  return {
+    conversation,
+    recipient,
+  };
+}
+
+async function findRecipientForConversation(currentUser, recipientId) {
+  const normalizedRecipientId = String(recipientId || "").trim();
+  const currentUserId = String(currentUser?._id || "");
+
+  if (!isValidObjectId(normalizedRecipientId)) {
+    throw createHttpError("A valid recipientId is required.", 400);
+  }
+
+  if (normalizedRecipientId === currentUserId) {
+    throw createHttpError("You cannot start a conversation with yourself.", 400);
+  }
+
+  const recipient = await User.findById(normalizedRecipientId).select(
+    CHAT_USER_SELECT_FIELDS
+  );
+
+  if (!recipient) {
+    throw createHttpError("Recipient not found.", 404);
+  }
+
+  return recipient;
+}
+
+async function findOrCreateConversation(currentUser, recipientId) {
+  const recipient = await findRecipientForConversation(currentUser, recipientId);
+  const currentUserId = String(currentUser._id);
+  const resolvedRecipientId = String(recipient._id);
+  const participantKey = buildParticipantKey(currentUserId, resolvedRecipientId);
+
+  let conversation = await ChatConversation.findOne({ participantKey });
+
+  if (!conversation) {
+    conversation = await ChatConversation.create({
+      participants: [currentUser._id, recipient._id],
+      participantKey,
+      participantRoleMap: {
+        [currentUserId]: normalizeChatRole(currentUser.researcherType),
+        [resolvedRecipientId]: normalizeChatRole(recipient.researcherType),
+      },
+    });
+  }
+
+  return {
+    conversation,
+    recipient,
+  };
+}
+
 async function getOrCreateConversation(req, res, next) {
   try {
-    const currentUserId = String(req.user._id);
-    const recipientId = String(req.body.recipientId || "").trim();
-
-    if (!isValidObjectId(recipientId)) {
-      throw createHttpError("A valid recipientId is required.", 400);
-    }
-
-    if (recipientId === currentUserId) {
-      throw createHttpError("You cannot start a conversation with yourself.", 400);
-    }
-
-    const recipient = await User.findById(recipientId).select(
-      "firstName lastName email researcherType avatarUrl location institute department phoneNumber skypeId localTime updatedAt createdAt"
-    );
-
-    if (!recipient) {
-      throw createHttpError("Recipient not found.", 404);
-    }
-
-    const participantKey = buildParticipantKey(currentUserId, recipientId);
-    let conversation = await ChatConversation.findOne({ participantKey });
-
-    if (!conversation) {
-      conversation = await ChatConversation.create({
-        participants: [req.user._id, recipient._id],
-        participantKey,
-        participantRoleMap: {
-          [currentUserId]: normalizeChatRole(req.user.researcherType),
-          [recipientId]: normalizeChatRole(recipient.researcherType),
-        },
-      });
-    }
+    const body = getRequestBody(req);
+    const { conversation, recipient } = await findOrCreateConversation(req.user, body.recipientId);
 
     res.status(200).json({
       message: "Conversation ready.",
@@ -136,7 +184,7 @@ async function listConversations(req, res, next) {
       ChatConversation.find({ participants: req.user._id })
         .populate(
           "participants",
-          "firstName lastName email researcherType avatarUrl location institute department phoneNumber skypeId localTime updatedAt createdAt"
+          CHAT_USER_SELECT_FIELDS
         )
         .sort({ lastMessageAt: -1, updatedAt: -1 })
         .skip((page - 1) * limit)
@@ -175,7 +223,7 @@ async function listContacts(req, res, next) {
       ...searchQuery,
     })
       .select(
-        "firstName lastName email researcherType avatarUrl location institute department phoneNumber skypeId localTime updatedAt createdAt"
+        CHAT_USER_SELECT_FIELDS
       )
       .sort({ updatedAt: -1, createdAt: -1 })
       .limit(50);
@@ -205,8 +253,30 @@ async function listContacts(req, res, next) {
 
 async function listMessages(req, res, next) {
   try {
-    const conversation = await loadConversationForUser(req.params.conversationId, req.user._id);
+    const recipientId = String(req.query.recipientId || "").trim();
+    let conversation;
+
+    try {
+      conversation = await loadConversationForUser(req.params.conversationId, req.user._id);
+    } catch (error) {
+      if ((error?.statusCode === 404 || error?.statusCode === 403) && recipientId) {
+        ({ conversation } = await findConversationForUsers(req.user, recipientId));
+      } else {
+        throw error;
+      }
+    }
+
     const limit = normalizePaginationValue(req.query.limit, 200, 500);
+
+    if (!conversation) {
+      res.status(200).json({
+        conversationId: null,
+        data: [],
+        limit,
+      });
+      return;
+    }
+
     const before = String(req.query.before || "").trim();
 
     const match = { conversationId: conversation._id };
@@ -222,6 +292,7 @@ async function listMessages(req, res, next) {
     const messages = await ChatMessage.find(match).sort({ createdAt: 1 }).limit(limit);
 
     res.status(200).json({
+      conversationId: String(conversation._id),
       data: messages.map((message) => toChatMessage(message, req.user._id)),
       limit,
     });
@@ -232,8 +303,8 @@ async function listMessages(req, res, next) {
 
 async function sendMessage(req, res, next) {
   try {
-    const conversation = await loadConversationForUser(req.params.conversationId, req.user._id);
-    const content = String(req.body.content || "").trim();
+    const body = getRequestBody(req);
+    const content = String(body.content || "").trim();
 
     if (!content) {
       throw createHttpError("Message content is required.", 400);
@@ -241,6 +312,18 @@ async function sendMessage(req, res, next) {
 
     if (content.length > 2000) {
       throw createHttpError("Message content cannot exceed 2000 characters.", 400);
+    }
+
+    let conversation;
+
+    try {
+      conversation = await loadConversationForUser(req.params.conversationId, req.user._id);
+    } catch (error) {
+      if ((error?.statusCode === 404 || error?.statusCode === 403) && body.recipientId) {
+        ({ conversation } = await findOrCreateConversation(req.user, body.recipientId));
+      } else {
+        throw error;
+      }
     }
 
     const senderRole = normalizeChatRole(req.user.researcherType);

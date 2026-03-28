@@ -346,6 +346,9 @@ export default function PublicProfilePageClient({ userId }: PublicProfilePageCli
       refetchOnMountOrArgChange: true,
     },
   );
+  const apiProfile = data?.profile ?? null;
+  const apiNetwork = data?.network ?? null;
+  const apiMedia = data?.media ?? null;
 
   useEffect(() => {
     const status =
@@ -384,15 +387,15 @@ export default function PublicProfilePageClient({ userId }: PublicProfilePageCli
     () =>
       buildGalleryImages(
         data?.timeline || [],
-        data?.media.researchImages || [],
-        data?.profile.avatarUrl || "/images/resources/user.jpg",
+        apiMedia?.researchImages || [],
+        apiProfile?.avatarUrl || "/images/resources/user.jpg",
       ),
-    [data],
+    [apiMedia, apiProfile, data?.timeline],
   );
 
   const friendsList = useMemo(
-    () => buildFriendsList(data?.network.followers || [], data?.network.following || []),
-    [data],
+    () => buildFriendsList(apiNetwork?.followers || [], apiNetwork?.following || []),
+    [apiNetwork],
   );
 
   if (isLoading) {

@@ -5,7 +5,7 @@ import { AUTH_COOKIE_NAME } from "./lib/auth/constants";
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const { pathname } = request.nextUrl;
-  const isProtectedRoute = pathname === "/" || pathname === "/profile";
+  const isProtectedRoute = pathname === "/" || pathname === "/profile" || pathname === "/friends";
   const isGuestOnlyRoute = pathname === "/login" || pathname === "/signup";
 
   if (!token && isProtectedRoute) {
@@ -22,5 +22,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/profile", "/login", "/signup"],
+  matcher: ["/", "/profile", "/friends", "/login", "/signup"],
 };

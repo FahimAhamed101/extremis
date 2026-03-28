@@ -22,7 +22,11 @@ function getStoredUserSnapshot(): string | null {
     return null;
   }
 
-  return localStorage.getItem(AUTH_USER_STORAGE_KEY);
+  try {
+    return window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 function subscribeToAuthStorage(callback: () => void): () => void {

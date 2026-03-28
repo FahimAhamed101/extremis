@@ -3,7 +3,9 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { clearAuthSession } from "@/lib/auth/client";
 import type { ProfilePersonCard } from "@/lib/services/authApi";
 import {
   useGetDiscoverPeopleQuery,
@@ -31,13 +33,29 @@ function getErrorMessage(error: unknown) {
 }
 
 export default function FriendsPageClient() {
+  const router = useRouter();
   const { data, isLoading, isFetching, isError, error } = useGetDiscoverPeopleQuery({ limit: 30 });
   const [toggleFollowUser] = useToggleFollowUserMutation();
   const [pendingFollowUserId, setPendingFollowUserId] = useState<string | null>(null);
   const [followErrorMessage, setFollowErrorMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    const status =
+      error && typeof error === "object" && "status" in error
+        ? (error as { status?: number | string }).status
+        : null;
+
+    if (status !== 401) {
+      return;
+    }
+
+    clearAuthSession();
+    router.replace("/login");
+  }, [error, router]);
+
   const people = useMemo(() => {
-    return (data?.users || []).filter((person) => String(person.id || "").trim());
+    const users = Array.isArray(data?.users) ? data.users : [];
+    return users.filter((person) => String(person.id || "").trim());
   }, [data]);
 
   const handleToggleFollow = async (person: ProfilePersonCard) => {

@@ -67,17 +67,26 @@ export function setAuthSession(token: string | undefined, user: unknown) {
     return;
   }
 
-  if (token) {
-    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
-    writeCookie(AUTH_COOKIE_NAME, token, COOKIE_MAX_AGE_SECONDS);
-  } else {
-    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-    clearCookie(AUTH_COOKIE_NAME);
+  try {
+    if (token) {
+      window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+      writeCookie(AUTH_COOKIE_NAME, token, COOKIE_MAX_AGE_SECONDS);
+    } else {
+      window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      clearCookie(AUTH_COOKIE_NAME);
+    }
+
+    window.localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
+    window.sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    window.sessionStorage.removeItem(AUTH_USER_STORAGE_KEY);
+  } catch {
+    if (token) {
+      writeCookie(AUTH_COOKIE_NAME, token, COOKIE_MAX_AGE_SECONDS);
+    } else {
+      clearCookie(AUTH_COOKIE_NAME);
+    }
   }
 
-  localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
-  sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-  sessionStorage.removeItem(AUTH_USER_STORAGE_KEY);
   dispatchAuthStorageEvent();
 }
 
@@ -86,10 +95,15 @@ export function clearAuthSession() {
     return;
   }
 
-  localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-  localStorage.removeItem(AUTH_USER_STORAGE_KEY);
-  sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-  sessionStorage.removeItem(AUTH_USER_STORAGE_KEY);
+  try {
+    window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    window.localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+    window.sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    window.sessionStorage.removeItem(AUTH_USER_STORAGE_KEY);
+  } catch {
+    // Storage access can be blocked in some browser modes. Cookie cleanup still runs.
+  }
+
   clearCookie(AUTH_COOKIE_NAME);
   dispatchAuthStorageEvent();
 }
@@ -99,5 +113,9 @@ export function hasClientAuthSession() {
     return false;
   }
 
-  return Boolean(localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || readCookie(AUTH_COOKIE_NAME));
+  try {
+    return Boolean(window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || readCookie(AUTH_COOKIE_NAME));
+  } catch {
+    return Boolean(readCookie(AUTH_COOKIE_NAME));
+  }
 }
