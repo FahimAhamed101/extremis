@@ -24,18 +24,52 @@ function normalizeOptionalUrl(value) {
   }
 }
 
+function getRequestBody(req) {
+  if (!req || req.body == null) {
+    return {};
+  }
+
+  if (typeof req.body === "object" && !Buffer.isBuffer(req.body)) {
+    return req.body;
+  }
+
+  if (Buffer.isBuffer(req.body)) {
+    try {
+      return JSON.parse(req.body.toString("utf8"));
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof req.body === "string") {
+    const rawBody = req.body.trim();
+    if (!rawBody) {
+      return {};
+    }
+
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      return {};
+    }
+  }
+
+  return {};
+}
+
 async function signup(req, res, next) {
   try {
-    const firstName = String(req.body.firstName || "").trim();
-    const lastName = String(req.body.lastName || "").trim();
-    const email = normalizeEmail(req.body.email);
-    const password = String(req.body.password || "");
-    const researcherType = String(req.body.researcherType || "").trim();
-    const institute = String(req.body.institute || "").trim();
-    const department = String(req.body.department || "").trim();
-    const position = String(req.body.position || "").trim();
-    const gender = String(req.body.gender || "").trim();
-    const termsAccepted = Boolean(req.body.termsAccepted);
+    const body = getRequestBody(req);
+    const firstName = String(body.firstName || "").trim();
+    const lastName = String(body.lastName || "").trim();
+    const email = normalizeEmail(body.email);
+    const password = String(body.password || "");
+    const researcherType = String(body.researcherType || "").trim();
+    const institute = String(body.institute || "").trim();
+    const department = String(body.department || "").trim();
+    const position = String(body.position || "").trim();
+    const gender = String(body.gender || "").trim();
+    const termsAccepted = Boolean(body.termsAccepted);
 
     if (!firstName || !lastName || !email || !password) {
       res.status(400).json({ message: "First name, last name, email, and password are required." });
@@ -91,8 +125,9 @@ async function signup(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    const email = normalizeEmail(req.body.email);
-    const password = String(req.body.password || "");
+    const body = getRequestBody(req);
+    const email = normalizeEmail(body.email);
+    const password = String(body.password || "");
 
     if (!email || !password) {
       res.status(400).json({ message: "Email and password are required." });
@@ -135,8 +170,9 @@ async function getCurrentUser(req, res, next) {
 
 async function updateCurrentUser(req, res, next) {
   try {
-    const hasAvatarUrl = Object.prototype.hasOwnProperty.call(req.body, "avatarUrl");
-    const hasCoverImageUrl = Object.prototype.hasOwnProperty.call(req.body, "coverImageUrl");
+    const body = getRequestBody(req);
+    const hasAvatarUrl = Object.prototype.hasOwnProperty.call(body, "avatarUrl");
+    const hasCoverImageUrl = Object.prototype.hasOwnProperty.call(body, "coverImageUrl");
 
     if (!hasAvatarUrl && !hasCoverImageUrl) {
       res.status(400).json({ message: "No profile media fields were provided." });
@@ -144,8 +180,8 @@ async function updateCurrentUser(req, res, next) {
     }
 
     if (hasAvatarUrl) {
-      const avatarUrl = normalizeOptionalUrl(req.body.avatarUrl);
-      if (req.body.avatarUrl && !avatarUrl) {
+      const avatarUrl = normalizeOptionalUrl(body.avatarUrl);
+      if (body.avatarUrl && !avatarUrl) {
         res.status(400).json({ message: "Avatar URL must be a valid URL." });
         return;
       }
@@ -154,8 +190,8 @@ async function updateCurrentUser(req, res, next) {
     }
 
     if (hasCoverImageUrl) {
-      const coverImageUrl = normalizeOptionalUrl(req.body.coverImageUrl);
-      if (req.body.coverImageUrl && !coverImageUrl) {
+      const coverImageUrl = normalizeOptionalUrl(body.coverImageUrl);
+      if (body.coverImageUrl && !coverImageUrl) {
         res.status(400).json({ message: "Cover image URL must be a valid URL." });
         return;
       }
