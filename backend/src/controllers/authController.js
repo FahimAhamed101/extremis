@@ -57,6 +57,8 @@ async function signup(req, res, next) {
       return;
     }
 
+    generateToken.getJwtSecret();
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(409).json({ message: "An account with this email already exists." });
@@ -109,6 +111,7 @@ async function login(req, res, next) {
       return;
     }
 
+    generateToken.getJwtSecret();
     const token = generateToken(user._id);
     res.status(200).json({
       message: "Login successful.",

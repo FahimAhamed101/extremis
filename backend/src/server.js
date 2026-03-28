@@ -1,20 +1,5 @@
-const fs = require("fs");
-const path = require("path");
-const dotenv = require("dotenv");
-
-const envCandidates = [
-  path.resolve(process.cwd(), ".env"),
-  path.resolve(__dirname, "../.env"),
-  path.resolve(__dirname, "../../.env"),
-  path.resolve(__dirname, ".env"),
-];
-
-for (const envPath of [...new Set(envCandidates)]) {
-  if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-    break;
-  }
-}
+const loadEnv = require("./config/loadEnv");
+loadEnv();
 
 const connectDB = require("./config/db");
 const app = require("./app");

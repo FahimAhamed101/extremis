@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
 
 async function protect(req, res, next) {
   try {
@@ -16,10 +17,7 @@ async function protect(req, res, next) {
       return;
     }
 
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error("JWT_SECRET is missing. Add it to your environment variables.");
-    }
+    const secret = generateToken.getJwtSecret();
 
     const decoded = jwt.verify(token, secret);
     const userId = decoded && typeof decoded === "object" ? decoded.sub : null;

@@ -1,3 +1,6 @@
+const loadEnv = require("./backend/src/config/loadEnv");
+loadEnv();
+
 const app = require("./backend/src/app");
 const connectDB = require("./backend/src/config/db");
 
@@ -10,7 +13,7 @@ module.exports = async (req, res) => {
 
     if (!res.headersSent) {
       res.status(500).json({
-        message: "Internal server error.",
+        message: error?.expose && error?.message ? error.message : "Internal server error.",
       });
     }
   }

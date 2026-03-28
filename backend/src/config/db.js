@@ -2,10 +2,17 @@ const mongoose = require("mongoose");
 
 let connectionPromise = null;
 
+function createConfigError(message) {
+  const error = new Error(message);
+  error.statusCode = 500;
+  error.expose = true;
+  return error;
+}
+
 async function connectDB() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    throw new Error("MONGODB_URI is missing. Add it to your environment variables.");
+    throw createConfigError("MONGODB_URI is missing. Add it to your environment variables.");
   }
 
   if (mongoose.connection.readyState === 1) {
