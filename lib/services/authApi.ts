@@ -178,12 +178,17 @@ export type PostCommentDto = {
   message: string;
 };
 
+export type PostReactionType = "like" | "love" | "haha" | "wow" | "sad";
+
 export type PostStats = {
   viewCount: number;
   likeCount: number;
   commentCount: number;
   shareCount: number;
   likedByViewer: boolean;
+  viewerReaction?: PostReactionType | null;
+  reactionCounts?: Record<PostReactionType, number>;
+  topReactions?: PostReactionType[];
 };
 
 export type AuthResponse = {
@@ -232,6 +237,7 @@ export type ProfileComment = {
 export type ProfileTimelinePost = {
   id: string;
   type: PostType;
+  authorId?: string | null;
   authorName: string;
   authorImage: string;
   activity: string;
@@ -269,6 +275,7 @@ export type ProfileTimelinePost = {
 export type FeedPost = {
   id: string;
   type: PostType;
+  authorId: string | null;
   authorName: string;
   authorHandle: string;
   authorImage: string;
@@ -308,6 +315,11 @@ export type FeedPost = {
 export type FeedPostsResponse = {
   message: string;
   posts: FeedPost[];
+};
+
+export type GetPostResponse = {
+  message: string;
+  post: FeedPost;
 };
 
 export type CreatePostPayload = {
@@ -355,6 +367,11 @@ export type CreatePostResponse = {
 export type UpdatePostInteractionResponse = {
   message: string;
   post: FeedPost;
+};
+
+export type ReactToPostPayload = {
+  postId: string;
+  reactionType: PostReactionType;
 };
 
 export type AddPostCommentPayload = {
@@ -464,6 +481,11 @@ export type ToggleFollowUserResponse = {
   message: string;
   targetUserId: string;
   isFollowing: boolean;
+};
+
+export type DiscoverPeopleResponse = {
+  message: string;
+  users: ProfilePersonCard[];
 };
 
 export const authApi = createApi({
@@ -580,6 +602,13 @@ export const authApi = createApi({
       }),
       providesTags: ["Posts"],
     }),
+    getPostById: builder.query<GetPostResponse, string>({
+      query: (postId) => ({
+        url: `/posts/${postId}`,
+        method: "GET",
+      }),
+      providesTags: ["Posts"],
+    }),
     updateProfileMedia: builder.mutation<CurrentUserResponse, UpdateProfileMediaPayload>({
       query: (body) => ({
         url: "/auth/me",
@@ -599,6 +628,14 @@ export const authApi = createApi({
       query: (userId) => ({
         url: `/profile/${userId}`,
         method: "GET",
+      }),
+      providesTags: ["Profile"],
+    }),
+    getDiscoverPeople: builder.query<DiscoverPeopleResponse, { limit?: number } | void>({
+      query: (params) => ({
+        url: "/profile/discover/people",
+        method: "GET",
+        params: params?.limit ? { limit: params.limit } : undefined,
       }),
       providesTags: ["Profile"],
     }),
@@ -638,6 +675,14 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Posts", "Profile"],
     }),
+    reactToPost: builder.mutation<UpdatePostInteractionResponse, ReactToPostPayload>({
+      query: ({ postId, reactionType }) => ({
+        url: `/posts/${postId}/reactions`,
+        method: "POST",
+        body: { reactionType },
+      }),
+      invalidatesTags: ["Posts", "Profile"],
+    }),
     togglePostLike: builder.mutation<UpdatePostInteractionResponse, string>({
       query: (postId) => ({
         url: `/posts/${postId}/like`,
@@ -674,13 +719,16 @@ export const {
   useSendChatMessageMutation,
   useMarkChatConversationReadMutation,
   useGetFeedPostsQuery,
+  useGetPostByIdQuery,
   useUpdateProfileMediaMutation,
   useGetMyProfileQuery,
   useGetProfileByIdQuery,
+  useGetDiscoverPeopleQuery,
   useToggleFollowUserMutation,
   useUpdateMyProfileMutation,
   useUploadProfileAssetMutation,
   useCreatePostMutation,
+  useReactToPostMutation,
   useTogglePostLikeMutation,
   useAddPostCommentMutation,
   useSharePostMutation,

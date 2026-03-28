@@ -2,11 +2,13 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
+  type PostReactionType,
   useAddPostCommentMutation,
+  useReactToPostMutation,
   useSharePostMutation,
-  useTogglePostLikeMutation,
 } from "@/lib/services/authApi";
 import { AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants";
 
@@ -26,6 +28,9 @@ export type PostInteractionStats = {
   commentCount?: number;
   shareCount?: number;
   likedByViewer?: boolean;
+  viewerReaction?: PostReactionType | null;
+  reactionCounts?: Record<PostReactionType, number>;
+  topReactions?: PostReactionType[];
 };
 
 type StoredUser = {
@@ -41,6 +46,40 @@ type PostInteractionsProps = {
   initialComments?: PostInteractionComment[];
   shareUrl?: string;
   defaultCommentsOpen?: boolean;
+  postDetailHref?: string;
+  hideDetailLink?: boolean;
+};
+
+type ResolvedPostStats = {
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  shareCount: number;
+  likedByViewer: boolean;
+  viewerReaction: PostReactionType | null;
+  reactionCounts: Record<PostReactionType, number>;
+  topReactions: PostReactionType[];
+};
+
+const REACTION_OPTIONS: Array<{
+  type: PostReactionType;
+  label: string;
+  iconClass: string;
+  imageSrc: string;
+}> = [
+  { type: "like", label: "Like", iconClass: "icon--like", imageSrc: "/images/smiles/thumb.png" },
+  { type: "love", label: "Love", iconClass: "icon--heart", imageSrc: "/images/smiles/heart.png" },
+  { type: "haha", label: "Haha", iconClass: "icon--haha", imageSrc: "/images/smiles/smile.png" },
+  { type: "wow", label: "Wow", iconClass: "icon--wow", imageSrc: "/images/smiles/surprised.png" },
+  { type: "sad", label: "Sad", iconClass: "icon--sad", imageSrc: "/images/smiles/weep.png" },
+];
+
+const DEFAULT_REACTION_COUNTS: Record<PostReactionType, number> = {
+  like: 0,
+  love: 0,
+  haha: 0,
+  wow: 0,
+  sad: 0,
 };
 
 function getErrorMessage(error: unknown): string {
@@ -106,78 +145,150 @@ function buildFallbackComment(message: string): PostInteractionComment {
   };
 }
 
+function normalizeReactionCounts(
+  reactionCounts?: Partial<Record<PostReactionType, number>>,
+  fallbackLikeCount = 0,
+): Record<PostReactionType, number> {
+  const normalized = { ...DEFAULT_REACTION_COUNTS };
+
+  if (reactionCounts && typeof reactionCounts === "object") {
+    REACTION_OPTIONS.forEach((option) => {
+      const nextValue = Number(reactionCounts[option.type] || 0);
+      normalized[option.type] = Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 0;
+    });
+  } else if (fallbackLikeCount > 0) {
+    normalized.like = fallbackLikeCount;
+  }
+
+  return normalized;
+}
+
+function computeTopReactions(reactionCounts: Record<PostReactionType, number>): PostReactionType[] {
+  return REACTION_OPTIONS
+    .map((option) => option.type)
+    .filter((type) => reactionCounts[type] > 0)
+    .sort((left, right) => reactionCounts[right] - reactionCounts[left])
+    .slice(0, 3);
+}
+
+function resolveStats(
+  initialStats: PostInteractionStats | undefined,
+  initialComments: PostInteractionComment[],
+): ResolvedPostStats {
+  const reactionCounts = normalizeReactionCounts(initialStats?.reactionCounts, initialStats?.likeCount ?? 0);
+  const likeCount =
+    Number(initialStats?.likeCount) ||
+    Object.values(reactionCounts).reduce((total, count) => total + Number(count || 0), 0);
+  const commentCount = Number(initialStats?.commentCount ?? initialComments.length);
+  const shareCount = Number(initialStats?.shareCount ?? 0);
+  const viewerReaction = initialStats?.viewerReaction ?? (initialStats?.likedByViewer ? "like" : null);
+
+  return {
+    viewCount: Number(initialStats?.viewCount ?? Math.max(1, likeCount + commentCount + shareCount + 1)),
+    likeCount,
+    commentCount,
+    shareCount,
+    likedByViewer: Boolean(viewerReaction),
+    viewerReaction,
+    reactionCounts,
+    topReactions:
+      initialStats?.topReactions && initialStats.topReactions.length > 0
+        ? initialStats.topReactions
+        : computeTopReactions(reactionCounts),
+  };
+}
+
+function getReactionMeta(reactionType: PostReactionType | null) {
+  return (
+    REACTION_OPTIONS.find((option) => option.type === reactionType) || REACTION_OPTIONS[0]
+  );
+}
+
+function applyReactionLocally(
+  current: ResolvedPostStats,
+  selectedReaction: PostReactionType,
+): ResolvedPostStats {
+  const reactionCounts = { ...normalizeReactionCounts(current.reactionCounts, current.likeCount) };
+  const currentReaction = current.viewerReaction;
+  const nextReaction = currentReaction === selectedReaction ? null : selectedReaction;
+
+  if (currentReaction) {
+    reactionCounts[currentReaction] = Math.max(0, reactionCounts[currentReaction] - 1);
+  }
+
+  if (nextReaction) {
+    reactionCounts[nextReaction] += 1;
+  }
+
+  const likeCount = Object.values(reactionCounts).reduce((total, count) => total + count, 0);
+  const commentCount = Number(current.commentCount || 0);
+  const shareCount = Number(current.shareCount || 0);
+
+  return {
+    viewCount: Math.max(1, likeCount + commentCount + shareCount + 1),
+    likeCount,
+    commentCount,
+    shareCount,
+    likedByViewer: Boolean(nextReaction),
+    viewerReaction: nextReaction,
+    reactionCounts,
+    topReactions: computeTopReactions(reactionCounts),
+  };
+}
+
 export default function PostInteractions({
   postId,
   initialStats,
   initialComments = [],
   shareUrl,
   defaultCommentsOpen = false,
+  postDetailHref,
+  hideDetailLink = false,
 }: PostInteractionsProps) {
-  const [stats, setStats] = useState<PostInteractionStats>({
-    viewCount: initialStats?.viewCount ?? Math.max(1, (initialStats?.likeCount || 0) + (initialStats?.commentCount || initialComments.length) + (initialStats?.shareCount || 0) + 1),
-    likeCount: initialStats?.likeCount ?? 0,
-    commentCount: initialStats?.commentCount ?? initialComments.length,
-    shareCount: initialStats?.shareCount ?? 0,
-    likedByViewer: initialStats?.likedByViewer ?? false,
-  });
+  const [stats, setStats] = useState<ResolvedPostStats>(() => resolveStats(initialStats, initialComments));
   const [comments, setComments] = useState<PostInteractionComment[]>(initialComments);
   const [commentsOpen, setCommentsOpen] = useState(defaultCommentsOpen);
   const [commentMessage, setCommentMessage] = useState("");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [togglePostLike] = useTogglePostLikeMutation();
+  const [reactionsVisible, setReactionsVisible] = useState(false);
+  const [reactToPost] = useReactToPostMutation();
   const [addPostComment] = useAddPostCommentMutation();
   const [sharePost] = useSharePostMutation();
 
   useEffect(() => {
-    setStats({
-      viewCount: initialStats?.viewCount ?? Math.max(1, (initialStats?.likeCount || 0) + (initialStats?.commentCount || initialComments.length) + (initialStats?.shareCount || 0) + 1),
-      likeCount: initialStats?.likeCount ?? 0,
-      commentCount: initialStats?.commentCount ?? initialComments.length,
-      shareCount: initialStats?.shareCount ?? 0,
-      likedByViewer: initialStats?.likedByViewer ?? false,
-    });
-  }, [initialComments.length, initialStats?.commentCount, initialStats?.likeCount, initialStats?.likedByViewer, initialStats?.shareCount, initialStats?.viewCount]);
+    setStats(resolveStats(initialStats, initialComments));
+  }, [initialComments, initialStats]);
 
   useEffect(() => {
     setComments(initialComments);
   }, [initialComments]);
 
   const emojiCount = useMemo(() => formatCount(stats.likeCount), [stats.likeCount]);
+  const activeReaction = getReactionMeta(stats.viewerReaction);
+  const visibleReactions = stats.topReactions.length > 0 ? stats.topReactions : [];
 
   const applyServerPost = (post: {
     comments?: PostInteractionComment[];
     stats?: PostInteractionStats;
   }) => {
-    if (post.comments) {
-      setComments(post.comments);
-    }
-
-    if (post.stats) {
-      setStats(post.stats);
-    }
+    const nextComments = post.comments || [];
+    setComments(nextComments);
+    setStats(resolveStats(post.stats, nextComments));
   };
 
-  const handleLike = async (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
+  const handleReactionSelect = async (reactionType: PostReactionType) => {
     setActionMessage(null);
 
     if (!postId) {
-      setStats((current) => {
-        const liked = !current.likedByViewer;
-        const likeCount = Math.max(0, (current.likeCount || 0) + (liked ? 1 : -1));
-        return {
-          ...current,
-          likedByViewer: liked,
-          likeCount,
-          viewCount: Math.max(1, likeCount + (current.commentCount || 0) + (current.shareCount || 0) + 1),
-        };
-      });
+      setStats((current) => applyReactionLocally(current, reactionType));
+      setReactionsVisible(false);
       return;
     }
 
     try {
-      const response = await togglePostLike(postId).unwrap();
+      const response = await reactToPost({ postId, reactionType }).unwrap();
       applyServerPost(response.post);
+      setReactionsVisible(false);
     } catch (error) {
       setActionMessage(getErrorMessage(error));
     }
@@ -187,9 +298,7 @@ export default function PostInteractions({
     event.preventDefault();
     setActionMessage(null);
 
-    const fallbackUrl =
-      shareUrl ||
-      (typeof window !== "undefined" ? window.location.href : "");
+    const fallbackUrl = shareUrl || (typeof window !== "undefined" ? window.location.href : "");
 
     if (fallbackUrl && typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
       try {
@@ -201,11 +310,11 @@ export default function PostInteractions({
 
     if (!postId) {
       setStats((current) => {
-        const shareCount = (current.shareCount || 0) + 1;
+        const shareCount = current.shareCount + 1;
         return {
           ...current,
           shareCount,
-          viewCount: Math.max(1, (current.likeCount || 0) + (current.commentCount || 0) + shareCount + 1),
+          viewCount: Math.max(1, current.likeCount + current.commentCount + shareCount + 1),
         };
       });
       setActionMessage("Link copied.");
@@ -232,15 +341,13 @@ export default function PostInteractions({
 
     if (!postId) {
       const nextComment = buildFallbackComment(normalizedMessage);
-      setComments((current) => [...current, nextComment]);
-      setStats((current) => {
-        const commentCount = (current.commentCount || 0) + 1;
-        return {
-          ...current,
-          commentCount,
-          viewCount: Math.max(1, (current.likeCount || 0) + commentCount + (current.shareCount || 0) + 1),
-        };
-      });
+      const nextComments = [...comments, nextComment];
+      setComments(nextComments);
+      setStats((current) => ({
+        ...current,
+        commentCount: nextComments.length,
+        viewCount: Math.max(1, current.likeCount + nextComments.length + current.shareCount + 1),
+      }));
       setCommentMessage("");
       setCommentsOpen(true);
       return;
@@ -273,7 +380,7 @@ export default function PostInteractions({
             </span>
           </li>
           <li>
-            <span title="Likes" className="Follow">
+            <span title="Reactions" className="Follow">
               <i className="icofont-star"></i>
               <ins>{formatCount(stats.likeCount)}</ins>
             </span>
@@ -285,47 +392,78 @@ export default function PostInteractions({
             </span>
           </li>
         </ul>
-        <a
-          href="#"
-          className="reply"
-          onClick={(event) => {
-            event.preventDefault();
-            setCommentsOpen((current) => !current);
-          }}
-        >
-          Reply <i className="icofont-reply"></i>
-        </a>
+        <div className="post-interaction-links">
+          <a
+            href="#"
+            className="reply"
+            onClick={(event) => {
+              event.preventDefault();
+              setCommentsOpen((current) => !current);
+            }}
+          >
+            Reply <i className="icofont-reply"></i>
+          </a>
+          {postDetailHref && !hideDetailLink ? (
+            <Link href={postDetailHref} className="reply post-detail-link">
+              Details <i className="icofont-link"></i>
+            </Link>
+          ) : null}
+        </div>
       </div>
+
       <div className="stat-tools" data-react-post="true">
         <div className="box">
-          <div className="Like">
-            <a className={`Like__link${stats.likedByViewer ? " is-active" : ""}`} href="#" onClick={handleLike}>
-              <i className="icofont-like"></i> {stats.likedByViewer ? "Liked" : "Like"}
+          <div
+            className="Like post-reaction-shell"
+            onMouseEnter={() => setReactionsVisible(true)}
+            onMouseLeave={() => setReactionsVisible(false)}
+            onFocusCapture={() => setReactionsVisible(true)}
+            onBlurCapture={(event) => {
+              const nextTarget = event.relatedTarget;
+              if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+                setReactionsVisible(false);
+              }
+            }}
+          >
+            <a
+              className={`Like__link post-reaction-link${stats.viewerReaction ? " is-active" : ""}${
+                reactionsVisible ? " js-hover" : ""
+              }`}
+              href="#"
+              onClick={(event) => {
+                event.preventDefault();
+                void handleReactionSelect("like");
+              }}
+            >
+              <span className="post-reaction-link-icon">
+                <img src={activeReaction.imageSrc} alt={activeReaction.label} />
+              </span>
+              {activeReaction.label}
             </a>
-            <div className="Emojis">
-              <div className="Emoji Emoji--like">
-                <div className="icon icon--like"></div>
-              </div>
-              <div className="Emoji Emoji--love">
-                <div className="icon icon--heart"></div>
-              </div>
-              <div className="Emoji Emoji--haha">
-                <div className="icon icon--haha"></div>
-              </div>
-              <div className="Emoji Emoji--wow">
-                <div className="icon icon--wow"></div>
-              </div>
-              <div className="Emoji Emoji--sad">
-                <div className="icon icon--sad"></div>
-              </div>
-              <div className="Emoji Emoji--angry">
-                <div className="icon icon--angry"></div>
-              </div>
+            <div className="Emojis" role="menu" aria-label="Choose a reaction">
+              {REACTION_OPTIONS.map((reaction) => (
+                <button
+                  key={reaction.type}
+                  type="button"
+                  className={`Emoji post-reaction-emoji-button Emoji--${reaction.type}${
+                    stats.viewerReaction === reaction.type ? " is-selected" : ""
+                  }`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void handleReactionSelect(reaction.type);
+                  }}
+                  aria-label={reaction.label}
+                  title={reaction.label}
+                >
+                  <div className={`icon ${reaction.iconClass}`}></div>
+                </button>
+              ))}
             </div>
           </div>
         </div>
+
         <a
-          title=""
+          title="Comment"
           href="#"
           className="comment-to"
           onClick={(event) => {
@@ -335,27 +473,31 @@ export default function PostInteractions({
         >
           <i className="icofont-comment"></i> Comment
         </a>
-        <a title="" href="#" className="share-to" onClick={handleShare}>
+
+        <a title="Share" href="#" className="share-to" onClick={handleShare}>
           <i className="icofont-share-alt"></i> Share
         </a>
+
         <div className="emoji-state">
-          <div className="popover_wrapper">
-            <a className="popover_title" href="#" title="">
-              <img alt="" src="/images/smiles/thumb.png" />
-            </a>
-          </div>
-          <div className="popover_wrapper">
-            <a className="popover_title" href="#" title="">
-              <img alt="" src="/images/smiles/heart.png" />
-            </a>
-          </div>
-          <div className="popover_wrapper">
-            <a className="popover_title" href="#" title="">
-              <img alt="" src="/images/smiles/smile.png" />
-            </a>
-          </div>
+          {visibleReactions.map((reactionType) => {
+            const reaction = getReactionMeta(reactionType);
+
+            return (
+              <div className="popover_wrapper" key={reaction.type}>
+                <a
+                  className="popover_title"
+                  href="#"
+                  title={reaction.label}
+                  onClick={(event) => event.preventDefault()}
+                >
+                  <img alt={reaction.label} src={reaction.imageSrc} />
+                </a>
+              </div>
+            );
+          })}
           <p>{emojiCount}</p>
         </div>
+
         <div className="new-comment" style={{ display: commentsOpen ? "block" : "none" }}>
           <form method="post" onSubmit={handleCommentSubmit}>
             <input
@@ -378,9 +520,15 @@ export default function PostInteractions({
                   </figure>
                   <div className="commenter">
                     <h5>
-                      <a title="" href="#">
-                        {comment.name}
-                      </a>
+                      {comment.userId ? (
+                        <Link title={comment.name} href={`/profile/${comment.userId}`}>
+                          {comment.name}
+                        </Link>
+                      ) : (
+                        <a title={comment.name} href="#">
+                          {comment.name}
+                        </a>
+                      )}
                     </h5>
                     <span>{comment.time}</span>
                     <p>{comment.message}</p>

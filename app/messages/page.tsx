@@ -43,7 +43,7 @@ const sidebarMenu: MenuItem[] = [
     href: "#",
     iconClass: "icofont-flash",
     children: [
-      { label: "Videos", href: "videos.html" },
+      { label: "Videos", href: "/videos" },
       { label: "Live Stream", href: "live-stream.html" },
       { label: "Events Page", href: "event-page.html" },
       { label: "Event Detail", href: "event-detail.html" },

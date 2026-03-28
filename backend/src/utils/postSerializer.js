@@ -4,6 +4,7 @@ const { getVideoPreview } = require("./videoPreview");
 const DEFAULT_AVATAR_URL = "/images/resources/user.jpg";
 const DEFAULT_POST_TYPE = "custom";
 const ALLOWED_POST_TYPES = new Set(["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor"]);
+const REACTION_TYPES = ["like", "love", "haha", "wow", "sad"];
 
 function getAuthorName(user) {
   if (!user) {
@@ -213,6 +214,42 @@ function serializeSponsorItems(post) {
     .filter(Boolean);
 }
 
+function serializeReactions(post) {
+  const rawReactions = Array.isArray(post?.reactions) ? post.reactions : [];
+  if (rawReactions.length > 0) {
+    return rawReactions.reduce((entries, reaction) => {
+      const userId =
+        reaction?.user && typeof reaction.user === "object" && reaction.user._id
+          ? String(reaction.user._id)
+          : String(reaction?.user || "").trim();
+      const type = String(reaction?.type || "").trim().toLowerCase();
+
+      if (!userId || !REACTION_TYPES.includes(type)) {
+        return entries;
+      }
+
+      entries.push({ userId, type });
+      return entries;
+    }, []);
+  }
+
+  return Array.isArray(post?.likes)
+    ? post.likes.reduce((entries, user) => {
+        const userId =
+          user && typeof user === "object" && user._id
+            ? String(user._id)
+            : String(user || "").trim();
+
+        if (!userId) {
+          return entries;
+        }
+
+        entries.push({ userId, type: "like" });
+        return entries;
+      }, [])
+    : [];
+}
+
 function serializePost(post, viewerId) {
   const authorSource = post?.author && typeof post.author === "object" ? post.author : null;
   const author =
@@ -225,10 +262,29 @@ function serializePost(post, viewerId) {
   const publishedAt = isScheduled ? scheduledFor : createdAt;
   const attachmentType = getAttachmentType(post);
   const postType = getPostType(post);
-  const likeIds = Array.isArray(post?.likes) ? post.likes.map((entry) => String(entry)) : [];
   const serializedComments = Array.isArray(post?.comments) ? post.comments.map((comment) => serializeComment(comment)) : [];
   const { embedUrl, videoUrl } = getVideoPreview(post?.linkUrl);
-  const likeCount = likeIds.length;
+  const serializedReactions = serializeReactions(post);
+  const reactionCounts = serializedReactions.reduce(
+    (counts, reaction) => {
+      counts[reaction.type] += 1;
+      return counts;
+    },
+    {
+      like: 0,
+      love: 0,
+      haha: 0,
+      wow: 0,
+      sad: 0,
+    }
+  );
+  const topReactions = REACTION_TYPES
+    .filter((type) => reactionCounts[type] > 0)
+    .sort((left, right) => reactionCounts[right] - reactionCounts[left])
+    .slice(0, 3);
+  const viewerReaction =
+    serializedReactions.find((reaction) => reaction.userId === String(viewerId || ""))?.type || null;
+  const likeCount = serializedReactions.length;
   const commentCount = serializedComments.length;
   const shareCount = Number(post?.shareCount || 0);
   const title = String(post?.title || "").trim() || null;
@@ -242,6 +298,7 @@ function serializePost(post, viewerId) {
   return {
     id: String(post?._id || post?.id || ""),
     type: postType,
+    authorId: author?.id || null,
     authorName: getAuthorName(author),
     authorHandle: getAuthorHandle(author),
     authorImage: String(author?.avatarUrl || DEFAULT_AVATAR_URL).trim() || DEFAULT_AVATAR_URL,
@@ -280,7 +337,10 @@ function serializePost(post, viewerId) {
       likeCount,
       commentCount,
       shareCount,
-      likedByViewer: viewerId ? likeIds.includes(String(viewerId)) : false,
+      likedByViewer: Boolean(viewerReaction),
+      viewerReaction,
+      reactionCounts,
+      topReactions,
     },
   };
 }

@@ -30,15 +30,17 @@ function SmartLink({ href, className, title, children }: SmartLinkProps) {
   );
 }
 
-function PostMoreOptions() {
+function PostMoreOptions({ postId }: { postId: string }) {
   return (
     <div className="more">
       <div className="more-post-optns">
         <i className="icofont-navigation-menu"></i>
         <ul>
           <li>
-            <i className="icofont-info-circle"></i>Post details
-            <span>This post was published from the create post flow</span>
+            <Link href={`/posts/${postId}`}>
+              <i className="icofont-info-circle"></i>Post details
+              <span>Open the full post with all comments and reactions</span>
+            </Link>
           </li>
         </ul>
       </div>
@@ -84,7 +86,7 @@ function renderAlbum(images: string[], title: string, morePhotosCount?: number) 
   );
 }
 
-function FeedPostBody({ post }: { post: FeedPost }) {
+export function FeedPostBody({ post }: { post: FeedPost }) {
   const title = post.title || "";
   const description = post.description || post.content || "";
   const href = post.href || post.linkUrl || "#";
@@ -308,7 +310,20 @@ function FeedPostBody({ post }: { post: FeedPost }) {
   }
 }
 
-function FeedPostCard({ post }: { post: FeedPost }) {
+type FeedPostCardProps = {
+  post: FeedPost;
+  forceCommentsOpen?: boolean;
+  showDetailLink?: boolean;
+};
+
+export function FeedPostCard({
+  post,
+  forceCommentsOpen = false,
+  showDetailLink = true,
+}: FeedPostCardProps) {
+  const authorHref = post.authorId ? `/profile/${post.authorId}` : "/profile";
+  const postDetailHref = `/posts/${post.id}`;
+
   return (
     <div className="main-wraper">
       <div className="user-post">
@@ -317,9 +332,9 @@ function FeedPostCard({ post }: { post: FeedPost }) {
             <img alt={post.authorName} src={post.authorImage} />
           </figure>
           <div className="friend-name">
-            <PostMoreOptions />
+            <PostMoreOptions postId={post.id} />
             <ins>
-              <Link href="/profile">{post.authorName}</Link> {post.activity}
+              <Link href={authorHref}>{post.authorName}</Link> {post.activity}
             </ins>
             <span>
               <i className="icofont-globe"></i> published: {post.published}
@@ -327,12 +342,21 @@ function FeedPostCard({ post }: { post: FeedPost }) {
           </div>
           <div className="post-meta">
             <FeedPostBody post={post} />
+            {showDetailLink ? (
+              <div className="post-detail-link-row">
+                <Link href={postDetailHref} className="post-detail-inline-link">
+                  View details
+                </Link>
+              </div>
+            ) : null}
             <PostInteractions
               postId={post.id}
               initialStats={post.stats}
               initialComments={post.comments}
               shareUrl={post.linkUrl || post.href || undefined}
-              defaultCommentsOpen={Boolean(post.commentsOpen)}
+              defaultCommentsOpen={forceCommentsOpen || Boolean(post.commentsOpen)}
+              postDetailHref={postDetailHref}
+              hideDetailLink={!showDetailLink}
             />
           </div>
         </div>

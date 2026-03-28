@@ -51,7 +51,7 @@ const sidebarMenu: MenuItem[] = [
     href: "#",
     iconClass: "icofont-flash",
     children: [
-      { label: "Videos", href: "videos.html" },
+      { label: "Videos", href: "/videos" },
       { label: "Live Stream", href: "live-stream.html" },
       { label: "Events", href: "event-page.html" },
       { label: "Support", href: "help-faq.html" },
@@ -267,6 +267,8 @@ function renderTimelineMedia(post: ProfileTimelinePost) {
 function TimelinePostCard({ post }: { post: ProfileTimelinePost }) {
   const href = String(post.href || post.linkUrl || "#").trim() || "#";
   const shareUrl = post.linkUrl || post.href || post.videoUrl || post.embedUrl || undefined;
+  const authorHref = post.authorId ? `/profile/${post.authorId}` : "/profile";
+  const postDetailHref = `/posts/${post.id}`;
 
   return (
     <div className="main-wraper">
@@ -277,9 +279,9 @@ function TimelinePostCard({ post }: { post: ProfileTimelinePost }) {
           </figure>
           <div className="friend-name">
             <ins>
-              <a title={post.authorName} href="#">
+              <SmartLink title={post.authorName} href={authorHref}>
                 {post.authorName}
-              </a>{" "}
+              </SmartLink>{" "}
               {post.activity}
             </ins>
             <span>
@@ -311,12 +313,18 @@ function TimelinePostCard({ post }: { post: ProfileTimelinePost }) {
                 <i className="icofont-cart-alt"></i> {post.ctaLabel}
               </SmartLink>
             ) : null}
+            <div className="post-detail-link-row">
+              <Link href={postDetailHref} className="post-detail-inline-link">
+                View details
+              </Link>
+            </div>
             <PostInteractions
               postId={post.id}
               initialStats={post.stats}
               initialComments={post.comments || []}
               shareUrl={shareUrl}
               defaultCommentsOpen={Boolean(post.commentsOpen)}
+              postDetailHref={postDetailHref}
             />
           </div>
         </div>

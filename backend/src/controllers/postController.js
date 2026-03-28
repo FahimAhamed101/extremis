@@ -4,6 +4,7 @@ const { toFeedPost, toTimelinePost } = require("../utils/postSerializer");
 const ALLOWED_AUDIENCES = new Set(["public", "private", "specific-friend", "only-friends", "joined-groups"]);
 const ALLOWED_ATTACHMENT_TYPES = new Set(["image", "video", "file"]);
 const ALLOWED_POST_TYPES = new Set(["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor"]);
+const ALLOWED_REACTION_TYPES = new Set(["like", "love", "haha", "wow", "sad"]);
 const TEMPLATE_RELATIVE_PATTERN = /^(?:\.{0,2}\/)?[\w./-]+\.(?:html?|php|asp|aspx)(?:[?#].*)?$/i;
 
 function normalizeOptionalText(value) {
@@ -74,6 +75,17 @@ function normalizePostType(value) {
 
   if (!ALLOWED_POST_TYPES.has(normalized)) {
     const error = new Error("Post type is invalid.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return normalized;
+}
+
+function normalizeReactionType(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized || !ALLOWED_REACTION_TYPES.has(normalized)) {
+    const error = new Error("Reaction type is invalid.");
     error.statusCode = 400;
     throw error;
   }
@@ -260,6 +272,45 @@ async function findPostForViewer(postId, userId) {
   return post;
 }
 
+function getReactionUserId(reaction) {
+  if (reaction?.user && typeof reaction.user === "object" && reaction.user._id) {
+    return String(reaction.user._id);
+  }
+
+  return String(reaction?.user || "").trim();
+}
+
+function getMutableReactions(post) {
+  if (Array.isArray(post.reactions) && post.reactions.length > 0) {
+    return post.reactions;
+  }
+
+  post.reactions = Array.isArray(post.likes)
+    ? post.likes
+        .map((userId) => {
+          const normalizedUserId = String(userId || "").trim();
+          if (!normalizedUserId) {
+            return null;
+          }
+
+          return {
+            user: userId,
+            type: "like",
+          };
+        })
+        .filter(Boolean)
+    : [];
+
+  return post.reactions;
+}
+
+function syncLegacyLikes(post) {
+  const reactions = Array.isArray(post.reactions) ? post.reactions : [];
+  post.likes = reactions
+    .filter((reaction) => String(reaction?.type || "").trim().toLowerCase() === "like")
+    .map((reaction) => reaction.user);
+}
+
 async function getFeedPosts(req, res, next) {
   try {
     const now = new Date();
@@ -371,7 +422,7 @@ async function createPost(req, res, next) {
   }
 }
 
-async function togglePostLike(req, res, next) {
+async function getPostById(req, res, next) {
   try {
     const post = await findPostForViewer(req.params.postId, String(req.user._id));
     if (!post) {
@@ -379,26 +430,69 @@ async function togglePostLike(req, res, next) {
       return;
     }
 
-    const viewerId = String(req.user._id);
-    const likeIndex = post.likes.findIndex((entry) => String(entry) === viewerId);
+    res.status(200).json({
+      message: "Post loaded successfully.",
+      post: toFeedPost(post, req.user._id),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
-    if (likeIndex >= 0) {
-      post.likes.splice(likeIndex, 1);
-    } else {
-      post.likes.push(req.user._id);
+async function reactToPost(req, res, next) {
+  try {
+    const post = await findPostForViewer(req.params.postId, String(req.user._id));
+    if (!post) {
+      res.status(404).json({ message: "Post not found." });
+      return;
     }
+
+    const reactionType = normalizeReactionType(req.body.reactionType);
+    const viewerId = String(req.user._id);
+    const reactions = getMutableReactions(post);
+    const existingReactionIndex = reactions.findIndex(
+      (reaction) => getReactionUserId(reaction) === viewerId
+    );
+    const existingReaction =
+      existingReactionIndex >= 0 ? String(reactions[existingReactionIndex]?.type || "").trim().toLowerCase() : null;
+    let message = "Reaction saved.";
+
+    if (existingReactionIndex >= 0 && existingReaction === reactionType) {
+      post.reactions.splice(existingReactionIndex, 1);
+      message = "Reaction removed.";
+    } else if (existingReactionIndex >= 0) {
+      post.reactions[existingReactionIndex].type = reactionType;
+      message = "Reaction updated.";
+    } else {
+      post.reactions.push({
+        user: req.user._id,
+        type: reactionType,
+      });
+      message = "Reaction added.";
+    }
+
+    syncLegacyLikes(post);
 
     await post.save();
     await post.populate("author");
     await post.populate("comments.user");
 
     res.status(200).json({
-      message: likeIndex >= 0 ? "Post unliked." : "Post liked.",
+      message,
       post: toFeedPost(post, req.user._id),
     });
   } catch (error) {
     next(error);
   }
+}
+
+async function togglePostLike(req, res, next) {
+  req.body = {
+    ...req.body,
+    reactionType: "like",
+  };
+
+  return reactToPost(req, res, next);
 }
 
 async function addPostComment(req, res, next) {
@@ -457,7 +551,9 @@ async function sharePost(req, res, next) {
 
 module.exports = {
   getFeedPosts,
+  getPostById,
   createPost,
+  reactToPost,
   togglePostLike,
   addPostComment,
   sharePost,

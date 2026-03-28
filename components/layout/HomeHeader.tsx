@@ -108,6 +108,9 @@ export default function HomeHeader() {
       return total + Number(conversation.unreadCount || 0);
     }, 0);
   }, [chatConversations]);
+  const isHomePage = pathname === "/";
+  const isVideosPage = pathname === "/videos" || pathname === "/videos.html";
+  const isFriendsPage = pathname === "/friends";
 
   const handleLogout = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -465,7 +468,7 @@ export default function HomeHeader() {
                 <div className="col-lg-8">
                   <div className="page-caro">
                     <div className="link-item">
-                      <Link className="active" href="/" title="">
+                      <Link className={isHomePage ? "active" : ""} href="/" title="">
                         <i>
                           <svg
                             className="feather feather-zap"
@@ -486,7 +489,7 @@ export default function HomeHeader() {
                       </Link>
                     </div>
                     <div className="link-item">
-                      <a href="videos.html" title="">
+                      <Link className={isVideosPage ? "active" : ""} href="/videos" title="Videos">
                         <i>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -505,7 +508,7 @@ export default function HomeHeader() {
                           </svg>
                         </i>
                         <p>Videos</p>
-                      </a>
+                      </Link>
                     </div>
                     <div className="link-item">
                       <a href="courses.html" title="">
@@ -527,28 +530,6 @@ export default function HomeHeader() {
                           </svg>
                         </i>
                         <p>Courses</p>
-                      </a>
-                    </div>
-                    <div className="link-item">
-                      <a href="books.html" title="">
-                        <i>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="feather feather-book"
-                          >
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                          </svg>
-                        </i>
-                        <p>Books</p>
                       </a>
                     </div>
                     <div className="link-item">
@@ -597,6 +578,30 @@ export default function HomeHeader() {
                         </i>
                         <p>Groups</p>
                       </a>
+                    </div>
+                    <div className="link-item">
+                      <Link className={isFriendsPage ? "active" : ""} href="/friends" title="Friends">
+                        <i>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-user-plus"
+                          >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="17" y1="11" x2="23" y2="11"></line>
+                          </svg>
+                        </i>
+                        <p>Friends</p>
+                      </Link>
                     </div>
                   </div>
                 </div>

@@ -95,7 +95,7 @@ const sidebarMenu: MenuItem[] = [
     href: "#",
     iconClass: "icofont-light-bulb",
     children: [
-      { label: "Videos", href: "videos.html" },
+      { label: "Videos", href: "/videos" },
       { label: "Live Stream", href: "live-stream.html" },
       { label: "Events Page", href: "event-page.html" },
       { label: "QA", href: "Q-A.html" },
@@ -780,6 +780,7 @@ function ProfilePost({
               initialComments={comments}
               shareUrl={shareUrl}
               defaultCommentsOpen={commentsOpen}
+              postDetailHref={postId ? `/posts/${postId}` : undefined}
             />
           </div>
         </div>
@@ -1628,7 +1629,7 @@ export default function ProfilePageClient() {
                             <span>
                               <i className="icofont-video-alt"></i> Videos Play List
                             </span>
-                            <SmartLink href="videos.html" title="">
+                            <SmartLink href="/videos" title="">
                               See all Videos
                             </SmartLink>
                           </div>

@@ -37,7 +37,7 @@ export default function Home() {
 					<i className=""><svg id="ab7" className="feather feather-zap" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="14" width="14" xmlns="http://www.w3.org/2000/svg"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></i> Features
 				</a>
 				<ul className="submenu">
-					<li><a href="videos.html" title="">Videos</a></li>
+					<li><Link href="/videos" title="">Videos</Link></li>
 					<li><a href="live-stream.html" title="">Live Stream</a></li>
 					<li><a href="event-page.html" title="">Events Page</a></li>
 					<li><a href="event-detail.html" title="">Event Detail</a></li>
@@ -1302,7 +1302,7 @@ export default function Home() {
 								<div className="main-wraper">
 									<div className="wraper-title">
 										<span><i className="icofont-video-alt"></i> Videos Play List</span>
-										<a href="videos.html" title="">See all Videos</a>
+										<Link href="/videos" title="">See all Videos</Link>
 									</div>
 									<div className="videos-caro">
 										<div className="item-video" data-merge="2">

@@ -131,6 +131,16 @@ function getObjectIdStrings(value) {
   );
 }
 
+function parsePositiveInteger(value, fallback, max = 60) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return Math.min(parsed, max);
+}
+
 function getPersonSubtitle(publicUser) {
   return (
     publicUser.department ||
@@ -354,6 +364,26 @@ async function getProfileById(req, res, next) {
   }
 }
 
+async function getDiscoverPeople(req, res, next) {
+  try {
+    const viewerUserId = String(req.user._id);
+    const viewerFollowingIds = getObjectIdStrings(req.user.following);
+    const viewerFollowingSet = new Set(viewerFollowingIds);
+    const limit = parsePositiveInteger(req.query.limit, 24);
+
+    const users = await User.find({ _id: { $ne: req.user._id } })
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    res.status(200).json({
+      message: "People loaded successfully.",
+      users: users.map((user) => buildPersonCard(user, viewerFollowingSet, viewerUserId)),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function updateMyProfile(req, res, next) {
   try {
     const updatableFields = [
@@ -506,6 +536,7 @@ async function toggleFollowUser(req, res, next) {
 }
 
 module.exports = {
+  getDiscoverPeople,
   getProfileById,
   getMyProfile,
   toggleFollowUser,

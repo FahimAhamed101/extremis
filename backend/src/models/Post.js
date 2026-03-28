@@ -20,6 +20,26 @@ const postCommentSchema = new mongoose.Schema(
   }
 );
 
+const postReactionSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["like", "love", "haha", "wow", "sad"],
+      required: true,
+      default: "like",
+    },
+  },
+  {
+    _id: true,
+    timestamps: true,
+  }
+);
+
 const postAudioSourceSchema = new mongoose.Schema(
   {
     url: {
@@ -208,6 +228,10 @@ const postSchema = new mongoose.Schema(
           ref: "User",
         },
       ],
+      default: [],
+    },
+    reactions: {
+      type: [postReactionSchema],
       default: [],
     },
     comments: {
