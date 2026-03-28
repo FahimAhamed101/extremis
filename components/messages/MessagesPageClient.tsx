@@ -175,9 +175,11 @@ export default function MessagesPageClient() {
   const messages = messagesResponse?.data ?? [];
   const isBusy = isCreatingConversation || isSendingMessage;
   const showLoadingState = isCurrentUserLoading || isConversationsLoading || isContactsLoading;
+  const resolvedConversationId = String(messagesResponse?.conversationId || "").trim() || null;
+  const activeConversationId = resolvedConversationId || selectedConversation?.conversationId || null;
   const conversationDate = messages[0]?.createdAt || selectedConversation?.lastMessageAt || null;
   const emptyConversationLabel = selectedParticipant
-    ? selectedConversationId || messagesResponse?.conversationId
+    ? activeConversationId
       ? "No messages in this conversation yet."
       : `Start the first conversation with ${selectedParticipant.name}.`
     : "Select a contact to start chatting.";
@@ -262,14 +264,14 @@ export default function MessagesPageClient() {
   }, [conversations, headerItems, selectedConversationId, selectedParticipantId]);
 
   useEffect(() => {
-    if (!selectedConversationId || !selectedConversation?.unreadCount) {
+    if (!activeConversationId || !selectedConversation?.unreadCount) {
       return;
     }
 
-    markChatConversationRead(selectedConversationId).catch(() => {
+    markChatConversationRead(activeConversationId).catch(() => {
       return;
     });
-  }, [markChatConversationRead, selectedConversation?.unreadCount, selectedConversationId]);
+  }, [activeConversationId, markChatConversationRead, selectedConversation?.unreadCount]);
 
   useEffect(() => {
     const listNode = messageListRef.current;
@@ -284,13 +286,20 @@ export default function MessagesPageClient() {
   }, [messages.length, selectedConversationId]);
 
   useEffect(() => {
-    const resolvedConversationId = String(messagesResponse?.conversationId || "").trim();
     if (!resolvedConversationId || resolvedConversationId === selectedConversationId) {
       return;
     }
 
     setSelectedConversationId(resolvedConversationId);
-  }, [messagesResponse?.conversationId, selectedConversationId]);
+  }, [resolvedConversationId, selectedConversationId]);
+
+  useEffect(() => {
+    if (!selectedConversationId || selectedConversation || resolvedConversationId !== null) {
+      return;
+    }
+
+    setSelectedConversationId(null);
+  }, [resolvedConversationId, selectedConversation, selectedConversationId]);
 
   useEffect(() => {
     const status =
@@ -340,7 +349,7 @@ export default function MessagesPageClient() {
     }
 
     try {
-      let conversationId = selectedConversationId;
+      let conversationId = activeConversationId;
 
       if (!conversationId) {
         const conversation = await getOrCreateConversation({
