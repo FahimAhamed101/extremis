@@ -73,6 +73,16 @@ function getErrorMessage(error: unknown) {
     return error.data.message;
   }
 
+  if (
+    error &&
+    typeof error === "object" &&
+    "error" in error &&
+    typeof error.error === "string" &&
+    error.error.trim()
+  ) {
+    return error.error;
+  }
+
   return "Unable to complete the chat action.";
 }
 
@@ -349,17 +359,17 @@ export default function MessagesPageClient() {
     }
 
     try {
-      let conversationId = activeConversationId;
+      const conversation = await getOrCreateConversation({
+        recipientId: selectedParticipant.id,
+      }).unwrap();
 
+      const conversationId = String(conversation.conversationId || "").trim();
       if (!conversationId) {
-        const conversation = await getOrCreateConversation({
-          recipientId: selectedParticipant.id,
-        }).unwrap();
-
-        conversationId = conversation.conversationId;
-        setSelectedParticipantId(conversation.participant.id);
-        setSelectedConversationId(conversation.conversationId);
+        throw new Error("Conversation could not be created.");
       }
+
+      setSelectedParticipantId(conversation.participant.id);
+      setSelectedConversationId(conversation.conversationId);
 
       await sendChatMessage({
         conversationId,
