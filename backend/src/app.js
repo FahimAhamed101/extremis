@@ -10,16 +10,50 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 const app = express();
 const apiRouter = express.Router();
 
-const allowedOrigins = String(process.env.CLIENT_ORIGIN || "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+function normalizeOrigin(origin) {
+  const normalized = String(origin || "").trim();
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    return new URL(normalized).origin.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function stripWwwPrefix(host) {
+  return String(host || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^www\./, "");
+}
+
+function getRequestHost(req) {
+  return String(req.headers["x-forwarded-host"] || req.headers.host || "")
+    .trim()
+    .toLowerCase();
+}
+
+function isWwwSiblingHost(firstHost, secondHost) {
+  return Boolean(firstHost && secondHost) && stripWwwPrefix(firstHost) === stripWwwPrefix(secondHost);
+}
+
+const allowedOrigins = Array.from(
+  new Set(
+    String(process.env.CLIENT_ORIGIN || "")
+      .split(",")
+      .map((origin) => normalizeOrigin(origin))
+      .filter(Boolean)
+  )
+);
 
 function isSameOriginRequest(req, origin) {
   try {
     const originUrl = new URL(origin);
-    const requestHost = String(req.headers["x-forwarded-host"] || req.headers.host || "").trim();
-    return Boolean(requestHost) && originUrl.host === requestHost;
+    const requestHost = getRequestHost(req);
+    return Boolean(requestHost) && isWwwSiblingHost(originUrl.host, requestHost);
   } catch {
     return false;
   }
@@ -33,10 +67,19 @@ app.use((req, res, next) => {
         return;
       }
 
+      const normalizedOrigin = normalizeOrigin(origin);
+      if (!normalizedOrigin) {
+        const error = new Error("Origin is not a valid URL.");
+        error.statusCode = 403;
+        error.expose = true;
+        callback(error);
+        return;
+      }
+
       if (
         allowedOrigins.length === 0 ||
-        allowedOrigins.includes(origin) ||
-        isSameOriginRequest(req, origin)
+        allowedOrigins.includes(normalizedOrigin) ||
+        isSameOriginRequest(req, normalizedOrigin)
       ) {
         callback(null, true);
         return;
