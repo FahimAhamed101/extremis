@@ -6,6 +6,8 @@ const normalizedApiBaseUrl = rawApiBaseUrl.replace(/\/+$/, "");
 export const apiBaseUrl = normalizedApiBaseUrl.endsWith("/api")
   ? normalizedApiBaseUrl.slice(0, -4)
   : normalizedApiBaseUrl;
+const cloudinaryCloudName = String(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "").trim();
+const cloudinaryUploadPreset = String(process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "").trim();
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") {
@@ -479,6 +481,38 @@ export type UploadProfileAssetResponse = {
   originalFilename: string;
 };
 
+type CloudinaryUploadResponse = {
+  secure_url?: string;
+  public_id?: string;
+  resource_type?: string;
+  bytes?: number;
+  width?: number | null;
+  height?: number | null;
+  original_filename?: string;
+  error?: {
+    message?: string;
+  };
+};
+
+function getCloudinaryFolder(kind: UploadProfileAssetPayload["kind"]): string {
+  switch (kind) {
+    case "avatar":
+      return "extremis/avatars";
+    case "cover":
+      return "extremis/covers";
+    default:
+      return "extremis/uploads";
+  }
+}
+
+function getUploadResponseKind(kind: UploadProfileAssetPayload["kind"]): UploadProfileAssetResponse["kind"] {
+  if (kind === "avatar" || kind === "cover") {
+    return kind;
+  }
+
+  return "upload";
+}
+
 export type ToggleFollowUserResponse = {
   message: string;
   targetUserId: string;
@@ -667,16 +701,73 @@ export const authApi = createApi({
       invalidatesTags: ["Auth", "Profile"],
     }),
     uploadProfileAsset: builder.mutation<UploadProfileAssetResponse, UploadProfileAssetPayload>({
-      query: ({ file, kind }) => {
+      queryFn: async ({ file, kind }) => {
+        if (!cloudinaryCloudName || !cloudinaryUploadPreset) {
+          return {
+            error: {
+              status: 500,
+              data: {
+                message:
+                  "Cloudinary upload is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.",
+              },
+            },
+          };
+        }
+
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("kind", kind);
+        formData.append("upload_preset", cloudinaryUploadPreset);
+        formData.append("folder", getCloudinaryFolder(kind));
+        formData.append("public_id", `${kind}-${Date.now()}`);
 
-        return {
-          url: "/uploads",
-          method: "POST",
-          body: formData,
-        };
+        try {
+          const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/auto/upload`,
+            {
+              method: "POST",
+              body: formData,
+              cache: "no-store",
+            }
+          );
+
+          const payload = (await response
+            .json()
+            .catch(() => ({}))) as CloudinaryUploadResponse;
+
+          if (!response.ok || !payload.secure_url || !payload.public_id || !payload.resource_type) {
+            return {
+              error: {
+                status: response.status || 500,
+                data: {
+                  message: payload?.error?.message || "Cloudinary upload failed.",
+                },
+              },
+            };
+          }
+
+          return {
+            data: {
+              kind: getUploadResponseKind(kind),
+              publicId: payload.public_id,
+              resourceType: payload.resource_type,
+              url: payload.secure_url,
+              bytes: Number(payload.bytes || file.size),
+              width: payload.width ?? null,
+              height: payload.height ?? null,
+              originalFilename: payload.original_filename || file.name,
+            },
+          };
+        } catch (error) {
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error && error.message
+                  ? error.message
+                  : "Upload request failed.",
+            },
+          };
+        }
       },
     }),
     createPost: builder.mutation<CreatePostResponse, CreatePostPayload>({

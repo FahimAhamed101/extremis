@@ -37,6 +37,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Environment Variables
 
 - `NEXT_PUBLIC_API_URL` (default: `http://localhost:4000`)
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (required for direct browser uploads)
+- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` (required, unsigned preset)
 - `AUTH_PORT` (default: `4000`)
 - `CLIENT_ORIGIN` (default: `http://localhost:3000`)
 - `MONGODB_URI` (required)
