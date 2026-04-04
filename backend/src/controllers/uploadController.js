@@ -1,6 +1,8 @@
 const { Readable } = require("node:stream");
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_MULTIPART_BODY_BYTES = MAX_FILE_SIZE_BYTES + 1024 * 1024;
+const DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS = 15000;
 
 function getUploadKind(value) {
   const normalized = String(value || "").trim().toLowerCase();
@@ -40,6 +42,27 @@ function getFolder(kind) {
 function setStatus(error, statusCode) {
   error.statusCode = statusCode;
   return error;
+}
+
+function toPositiveInteger(value, fallback) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function getContentLength(req) {
+  const rawHeader = req.headers["content-length"];
+  const value = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+  const parsed = Number.parseInt(String(value || ""), 10);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return parsed;
 }
 
 function isUploadFile(value) {
@@ -105,6 +128,12 @@ async function uploadFile(req, res, next) {
       return;
     }
 
+    const contentLength = getContentLength(req);
+    if (contentLength && contentLength > MAX_MULTIPART_BODY_BYTES) {
+      res.status(413).json({ message: "Files must be 10MB or smaller." });
+      return;
+    }
+
     const formData = await readMultipartFormData(req);
     const file = formData.get("file");
     const kind = getUploadKind(formData.get("kind"));
@@ -129,18 +158,41 @@ async function uploadFile(req, res, next) {
     uploadBody.append("file", file, file.name);
     uploadBody.append("folder", getFolder(kind));
     uploadBody.append("public_id", `${kind}-${userId}-${Date.now()}`);
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`,
-        },
-        body: uploadBody,
-        cache: "no-store",
-      }
+    const timeoutMs = toPositiveInteger(
+      process.env.CLOUDINARY_UPLOAD_TIMEOUT_MS,
+      DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS
     );
+    const abortController = new AbortController();
+    const timeoutHandle = setTimeout(() => {
+      abortController.abort();
+    }, timeoutMs);
+
+    let response;
+    try {
+      response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`,
+          },
+          body: uploadBody,
+          cache: "no-store",
+          signal: abortController.signal,
+        }
+      );
+    } catch (error) {
+      if (error && typeof error === "object" && error.name === "AbortError") {
+        res.status(504).json({
+          message: "Upload timed out while contacting Cloudinary. Please try again.",
+        });
+        return;
+      }
+
+      throw error;
+    } finally {
+      clearTimeout(timeoutHandle);
+    }
 
     const payload = await response
       .json()

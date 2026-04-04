@@ -34,6 +34,7 @@ import {
 
 type ProfileTab = "timeline" | "followers" | "follow" | "about";
 type UploadKind = "avatar" | "cover";
+const MAX_PROFILE_MEDIA_BYTES = 10 * 1024 * 1024;
 
 type MenuItem = {
   title: string;
@@ -1449,6 +1450,11 @@ export default function ProfilePageClient() {
 
     if (!file.type.startsWith("image/")) {
       setUploadError("Please choose an image file for your profile media.");
+      return;
+    }
+
+    if (file.size > MAX_PROFILE_MEDIA_BYTES) {
+      setUploadError("Please choose an image smaller than 10MB.");
       return;
     }
 

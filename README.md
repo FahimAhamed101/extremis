@@ -45,6 +45,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `CLOUDINARY_CLOUD_NAME` (required for uploads)
 - `CLOUDINARY_API_KEY` (required for uploads)
 - `CLOUDINARY_API_SECRET` (required for uploads)
+- `CLOUDINARY_UPLOAD_TIMEOUT_MS` (optional, default: `15000`)
 
 ## API Endpoints
 
