@@ -391,6 +391,22 @@ function readStoredUser(): UserDto | null {
   }
 }
 
+function readStoredToken(): string | undefined {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  try {
+    return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
 function getFullName(user: UserDto | null): string {
   if (!user) {
     return "Guest User";
@@ -481,9 +497,16 @@ function getCompletion(user: UserDto | null): number {
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
     if ("data" in error) {
-      const data = (error as { data?: { message?: unknown } }).data;
-      if (data && typeof data.message === "string") {
-        return data.message;
+      const data = (error as { data?: unknown }).data;
+      if (typeof data === "string" && data.trim()) {
+        return data.trim();
+      }
+
+      if (
+        isObjectRecord(data) &&
+        typeof (data as { message?: unknown }).message === "string"
+      ) {
+        return String((data as { message: string }).message);
       }
     }
 
@@ -935,6 +958,10 @@ function ProfilePost({
 }
 
 function renderTimelinePost(post: ProfileTimelinePost, comments: CommentItem[]) {
+  if (!post || typeof post !== "object") {
+    return null;
+  }
+
   const href = post.href || "#";
   const ctaHref = post.ctaHref || href;
   const title = post.title || "";
@@ -1379,7 +1406,7 @@ export default function ProfilePageClient() {
       return;
     }
 
-    const token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || undefined;
+    const token = readStoredToken();
     setAuthSession(token, apiProfile.user);
   }, [apiProfile]);
 
@@ -1415,15 +1442,61 @@ export default function ProfilePageClient() {
 
   const profileData = useMemo<ProfileDashboard>(() => buildProfileDashboard(apiProfile, user), [apiProfile, user]);
 
-  const followersList = Array.isArray(apiNetwork?.followers) ? apiNetwork.followers : followerCards;
-  const followingList = Array.isArray(apiNetwork?.following) ? apiNetwork.following : followingCards;
-  const suggestedList = Array.isArray(apiNetwork?.suggestions) ? apiNetwork.suggestions : suggestedResearchers;
-  const whoIsFollowingList = Array.isArray(apiNetwork?.whoIsFollowing) ? apiNetwork.whoIsFollowing : whoIsFollowing;
-  const videoList = Array.isArray(apiMedia?.videos) ? apiMedia.videos : videoCards;
-  const commentItems = Array.isArray(data?.comments) ? data.comments : defaultComments;
-  const researchImageList = Array.isArray(apiMedia?.researchImages) ? apiMedia.researchImages : fallbackResearchImages;
-  const eventList = Array.isArray(data?.events) ? data.events : fallbackEvents;
-  const timelinePosts = Array.isArray(data?.timeline) ? data.timeline : fallbackTimelinePosts;
+  const followersList = (Array.isArray(apiNetwork?.followers) ? apiNetwork.followers : followerCards).filter(
+    (person): person is PersonCard =>
+      isObjectRecord(person) &&
+      typeof person.name === "string" &&
+      typeof person.image === "string"
+  );
+  const followingList = (Array.isArray(apiNetwork?.following) ? apiNetwork.following : followingCards).filter(
+    (person): person is PersonCard =>
+      isObjectRecord(person) &&
+      typeof person.name === "string" &&
+      typeof person.image === "string"
+  );
+  const suggestedList = (Array.isArray(apiNetwork?.suggestions) ? apiNetwork.suggestions : suggestedResearchers).filter(
+    (person): person is PersonCard =>
+      isObjectRecord(person) &&
+      typeof person.name === "string" &&
+      typeof person.image === "string"
+  );
+  const whoIsFollowingList = (
+    Array.isArray(apiNetwork?.whoIsFollowing) ? apiNetwork.whoIsFollowing : whoIsFollowing
+  ).filter(
+    (person): person is PersonCard =>
+      isObjectRecord(person) &&
+      typeof person.name === "string" &&
+      typeof person.image === "string"
+  );
+  const videoList = (Array.isArray(apiMedia?.videos) ? apiMedia.videos : videoCards).filter(
+    (video): video is VideoCard =>
+      isObjectRecord(video) &&
+      typeof video.href === "string" &&
+      typeof video.image === "string" &&
+      typeof video.name === "string"
+  );
+  const commentItems = (Array.isArray(data?.comments) ? data.comments : defaultComments).filter(
+    (comment): comment is CommentItem =>
+      isObjectRecord(comment) &&
+      typeof comment.name === "string" &&
+      typeof comment.message === "string"
+  );
+  const researchImageList = (
+    Array.isArray(apiMedia?.researchImages) ? apiMedia.researchImages : fallbackResearchImages
+  ).filter((image): image is string => typeof image === "string" && image.trim().length > 0);
+  const eventList = (Array.isArray(data?.events) ? data.events : fallbackEvents).filter(
+    (event): event is EventCard =>
+      isObjectRecord(event) &&
+      typeof event.id === "string" &&
+      typeof event.title === "string"
+  );
+  const timelinePosts = (Array.isArray(data?.timeline) ? data.timeline : fallbackTimelinePosts).filter(
+    (post): post is ProfileTimelinePost =>
+      isObjectRecord(post) &&
+      typeof post.id === "string" &&
+      typeof post.type === "string" &&
+      typeof post.authorName === "string"
+  );
   const leadingTimelinePosts = timelinePosts.slice(0, 2);
   const trailingTimelinePosts = timelinePosts.slice(2);
   const displayAvatarUrl = localAvatarUrl || profileData.avatarUrl;
@@ -1473,11 +1546,9 @@ export default function ProfilePageClient() {
         setLocalCoverImageUrl(uploaded.url);
       }
 
-      if (typeof window !== "undefined") {
-        const token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || undefined;
-        if (updated.profile?.user) {
-          setAuthSession(token, updated.profile.user);
-        }
+      if (updated.profile?.user) {
+        const token = readStoredToken();
+        setAuthSession(token, updated.profile.user);
       }
     } catch (uploadMutationError) {
       setUploadError(getErrorMessage(uploadMutationError));
