@@ -37,6 +37,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Environment Variables
 
 - `NEXT_PUBLIC_API_URL` (default: `http://localhost:4000`)
+- `NEXT_PUBLIC_SITE_URL` (recommended in production, e.g. `https://www.extremis.top`)
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional, e.g. `G-XXXXXXXXXX`)
 - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (required for direct browser uploads)
 - `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` (required, unsigned preset)
@@ -58,6 +59,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `GET /api/auth/me`
 - `PATCH /api/auth/me`
 - `POST /api/uploads` (backend Express API, authenticated)
+
+## SEO Files
+
+- `GET /sitemap.xml` is generated from `app/sitemap.ts`
+- `GET /robots.txt` is generated from `app/robots.ts`
+- Set `NEXT_PUBLIC_SITE_URL` in Vercel for canonical URLs, sitemap, and robots host values
 
 ## Architecture
 
