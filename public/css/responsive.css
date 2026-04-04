@@ -1625,8 +1625,121 @@
 	    top: 2px;
 	}
 	
+	
 
 
 
+}
 
+@media screen and (min-width: 991px) and (max-width: 1440px) {
+	.login-theme-layout {
+		display: flex;
+		min-height: 100vh;
+	}
+	.login-theme-layout .authtication,
+	.login-theme-layout .auth-login {
+		float: none;
+		height: auto;
+		min-height: 100vh;
+	}
+	.login-theme-layout .authtication {
+		padding: 34px 30px;
+		width: 42%;
+	}
+	.login-theme-layout .auth-login {
+		padding: 34px 36px;
+		width: 58%;
+	}
+	.login-theme-layout .auth-login .logo {
+		left: 36px;
+		top: 34px;
+	}
+	.login-theme-layout .login-form {
+		padding: 0 40px;
+	}
+	.login-theme-layout ul.welcome-caro {
+		margin-top: 28px;
+	}
+	.login-theme-layout .welcome-box > h4 {
+		font-size: 22px;
+		line-height: 30px;
+	}
+	.login-theme-layout .welcome-box > p {
+		font-size: 14px;
+		line-height: 22px;
+	}
+}
+
+@media screen and (min-width: 991px) and (max-width: 1440px) and (max-height: 860px) {
+	.login-theme-layout .authtication,
+	.login-theme-layout .auth-login {
+		min-height: auto;
+	}
+	.login-theme-layout .mockup.left-bottom {
+		max-width: 110px;
+	}
+	.login-theme-layout .mockup.right {
+		max-width: 115px;
+	}
+}
+
+@media screen and (min-width: 991px) and (max-width: 1440px) {
+	.signup-theme-layout {
+		display: flex;
+		min-height: 100vh;
+	}
+	.signup-theme-layout .authtication,
+	.signup-theme-layout .auth-login {
+		align-items: center;
+		display: flex;
+		float: none;
+		height: auto;
+		min-height: 100vh;
+	}
+	.signup-theme-layout .authtication {
+		padding: 34px 30px;
+		width: 44%;
+	}
+	.signup-theme-layout .auth-login {
+		padding: 34px 36px;
+		width: 56%;
+	}
+	.signup-theme-layout .verticle-center {
+		display: block;
+		height: auto;
+		width: 100%;
+	}
+	.signup-theme-layout .welcome-note {
+		display: block;
+		margin: 0 auto;
+		max-width: 520px;
+	}
+	.signup-theme-layout .welcome-note > h1 {
+		font-size: 36px;
+		line-height: 44px;
+		margin-bottom: 16px;
+		margin-top: 16px;
+	}
+	.signup-theme-layout .welcome-note > p {
+		font-size: 15px;
+		line-height: 24px;
+	}
+	.signup-theme-layout .signup-form {
+		display: block;
+		padding: 0 22px;
+	}
+}
+
+@media screen and (min-width: 991px) and (max-width: 1440px) and (max-height: 860px) {
+	.signup-theme-layout .authtication,
+	.signup-theme-layout .auth-login {
+		align-items: flex-start;
+		min-height: auto;
+	}
+	.signup-theme-layout .welcome-note {
+		padding-top: 12px;
+	}
+	.signup-theme-layout .signup-form {
+		padding: 20px 16px;
+	}
 }

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <>
-      <div className="theme-layout">
+      <div className="theme-layout login-theme-layout">
         <div className="authtication bluesh high-opacity">
           <div
             className="bg-image"

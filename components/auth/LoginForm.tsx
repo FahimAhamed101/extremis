@@ -4,25 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLoginMutation } from "@/lib/services/authApi";
 import { setAuthSession } from "@/lib/auth/client";
-
-function getErrorMessage(error: unknown): string {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "data" in error &&
-    typeof (error as { data?: unknown }).data === "object" &&
-    (error as { data?: { message?: unknown } }).data?.message &&
-    typeof (error as { data?: { message?: unknown } }).data?.message === "string"
-  ) {
-    return (error as { data: { message: string } }).data.message;
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return "Login failed.";
-}
+import { extractApiErrorMessage } from "@/lib/utils/extractApiErrorMessage";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -49,7 +31,7 @@ export default function LoginForm() {
         router.replace("/");
       }, 900);
     } catch (error) {
-      setStatus({ text: getErrorMessage(error), error: true });
+      setStatus({ text: extractApiErrorMessage(error, "Login failed."), error: true });
     }
   };
 

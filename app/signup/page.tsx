@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function SignupPage() {
   return (
     <>
-      <div className="theme-layout">
+      <div className="theme-layout signup-theme-layout">
         <div className="authtication bluesh high-opacity">
           <div className="verticle-center">
             <div className="welcome-note">

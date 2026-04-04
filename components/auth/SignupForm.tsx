@@ -3,25 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSignupMutation } from "@/lib/services/authApi";
-
-function getErrorMessage(error: unknown): string {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "data" in error &&
-    typeof (error as { data?: unknown }).data === "object" &&
-    (error as { data?: { message?: unknown } }).data?.message &&
-    typeof (error as { data?: { message?: unknown } }).data?.message === "string"
-  ) {
-    return (error as { data: { message: string } }).data.message;
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return "Signup failed.";
-}
+import { extractApiErrorMessage } from "@/lib/utils/extractApiErrorMessage";
 
 export default function SignupForm() {
   const router = useRouter();
@@ -57,7 +39,7 @@ export default function SignupForm() {
         router.push("/login");
       }, 1100);
     } catch (error) {
-      setStatus({ text: getErrorMessage(error), error: true });
+      setStatus({ text: extractApiErrorMessage(error, "Signup failed."), error: true });
     }
   };
 
