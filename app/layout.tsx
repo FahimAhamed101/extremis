@@ -5,7 +5,6 @@ import PageLoader from "@/components/layout/PageLoader";
 import GlobalShellScripts from "@/components/layout/GlobalShellScripts";
 import { getSiteUrl } from "@/lib/utils/getSiteUrl";
 
-const gaMeasurementId = String(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-JKXRLTXSG5").trim();
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
@@ -75,24 +74,18 @@ export default function RootLayout({
           name="google-site-verification"
           content="7D5GsLCJIj5u-4aD5whqMuZuQK5y5czs2M-JKQ6Qybk"
         />
-        {gaMeasurementId ? (
-          <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-            ></script>
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${gaMeasurementId}');
-                `,
-              }}
-            />
-          </>
-        ) : null}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKXRLTXSG5"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-JKXRLTXSG5');
+`,
+          }}
+        />
         <link rel="icon" href="/images/fav.png" type="image/png" sizes="16x16" />
         <link rel="stylesheet" href="/css/main.min.css" />
         <link rel="stylesheet" href="/css/style.css" />
