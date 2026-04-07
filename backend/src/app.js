@@ -17,7 +17,8 @@ function normalizeOrigin(origin) {
   }
 
   try {
-    return new URL(normalized).origin.toLowerCase();
+    const value = normalized.includes("://") ? normalized : `https://${normalized}`;
+    return new URL(value).origin.toLowerCase();
   } catch {
     return null;
   }
@@ -42,10 +43,30 @@ function isWwwSiblingHost(firstHost, secondHost) {
 
 const allowedOrigins = Array.from(
   new Set(
-    String(process.env.CLIENT_ORIGIN || "")
-      .split(",")
+    [
+      ...String(process.env.CLIENT_ORIGIN || "").split(","),
+      process.env.NEXT_PUBLIC_SITE_URL,
+      process.env.VERCEL_PROJECT_PRODUCTION_URL,
+      process.env.VERCEL_URL,
+    ]
       .map((origin) => normalizeOrigin(origin))
       .filter(Boolean)
+      .flatMap((origin) => {
+        try {
+          const parsed = new URL(origin);
+          const variants = [parsed.origin];
+
+          if (parsed.hostname.startsWith("www.")) {
+            variants.push(`${parsed.protocol}//${parsed.hostname.replace(/^www\./, "")}`);
+          } else {
+            variants.push(`${parsed.protocol}//www.${parsed.hostname}`);
+          }
+
+          return variants;
+        } catch {
+          return [origin];
+        }
+      })
   )
 );
 

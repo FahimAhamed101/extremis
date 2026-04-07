@@ -3,9 +3,44 @@ import { AUTH_COOKIE_NAME, AUTH_TOKEN_STORAGE_KEY } from "@/lib/auth/constants";
 
 const rawApiBaseUrl = String(process.env.NEXT_PUBLIC_API_URL || "").trim();
 const normalizedApiBaseUrl = rawApiBaseUrl.replace(/\/+$/, "");
-export const apiBaseUrl = normalizedApiBaseUrl.endsWith("/api")
-  ? normalizedApiBaseUrl.slice(0, -4)
-  : normalizedApiBaseUrl;
+const envApiRoot = normalizedApiBaseUrl
+  ? normalizedApiBaseUrl.endsWith("/api")
+    ? normalizedApiBaseUrl
+    : `${normalizedApiBaseUrl}/api`
+  : "/api";
+
+function resolveApiRoot() {
+  if (typeof window === "undefined") {
+    return envApiRoot;
+  }
+
+  const pageHost = String(window.location.hostname || "").trim().toLowerCase();
+  const pageOrigin = String(window.location.origin || "").trim().toLowerCase();
+  const isLocalPage = pageHost === "localhost" || pageHost === "127.0.0.1";
+
+  if (!envApiRoot || envApiRoot === "/api") {
+    return "/api";
+  }
+
+  try {
+    const parsedApiRoot = new URL(envApiRoot);
+    const apiOrigin = parsedApiRoot.origin.toLowerCase();
+
+    // Prevent cross-origin API calls on deployed custom domains.
+    if (!isLocalPage && apiOrigin !== pageOrigin) {
+      return "/api";
+    }
+
+    return envApiRoot;
+  } catch {
+    return "/api";
+  }
+}
+
+const resolvedApiRoot = resolveApiRoot();
+export const apiBaseUrl = resolvedApiRoot.endsWith("/api")
+  ? resolvedApiRoot.slice(0, -4)
+  : resolvedApiRoot;
 const cloudinaryCloudName = String(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "").trim();
 const cloudinaryUploadPreset = String(process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "").trim();
 
@@ -528,7 +563,7 @@ export const authApi = createApi({
   reducerPath: "authApi",
   tagTypes: ["Auth", "Profile", "Posts", "Chat"],
   baseQuery: fetchBaseQuery({
-    baseUrl: `${apiBaseUrl}/api`,
+    baseUrl: resolvedApiRoot,
     prepareHeaders: (headers) => {
       if (typeof window !== "undefined") {
         let token: string | null = null;
