@@ -114,6 +114,7 @@ export default function HomeHeader() {
   }, [chatConversations]);
   const isHomePage = pathname === "/";
   const isVideosPage = pathname === "/videos" || pathname === "/videos.html";
+  const isBlogPage = pathname === "/blog";
   const isFriendsPage = pathname === "/friends";
 
   const handleLogout = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -537,7 +538,7 @@ export default function HomeHeader() {
                       </a>
                     </div>
                     <div className="link-item">
-                      <a href="blog.html" title="">
+                      <Link className={isBlogPage ? "active" : ""} href="/blog" title="Blog">
                         <i>
                           <svg
                             className="feather feather-layout"
@@ -557,7 +558,7 @@ export default function HomeHeader() {
                           </svg>
                         </i>
                         <p>Blog</p>
-                      </a>
+                      </Link>
                     </div>
                     <div className="link-item">
                       <a href="groups.html" title="">

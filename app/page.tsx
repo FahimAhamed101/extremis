@@ -74,7 +74,7 @@ export default function Home() {
 						</i> Blogs
 				</a>
 				<ul className="submenu">
-					<li><a href="blog.html" title="">Blog</a></li>
+					<li><a href="/blog" title="">Blog</a></li>
 					<li><a href="blog-detail.html" title="">Blog Detail</a></li>
 				</ul>
 			</li>

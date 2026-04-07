@@ -71,7 +71,7 @@ const sidebarMenu: MenuItem[] = [
     href: "#",
     iconClass: "icofont-coffee-cup",
     children: [
-      { label: "Blog", href: "blog.html" },
+      { label: "Blog", href: "/blog" },
       { label: "Blog Detail", href: "blog-detail.html" },
     ],
   },

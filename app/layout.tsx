@@ -5,7 +5,7 @@ import PageLoader from "@/components/layout/PageLoader";
 import GlobalShellScripts from "@/components/layout/GlobalShellScripts";
 import { getSiteUrl } from "@/lib/utils/getSiteUrl";
 
-const gaMeasurementId = String(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "").trim();
+const gaMeasurementId = String(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-JKXRLTXSG5").trim();
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
