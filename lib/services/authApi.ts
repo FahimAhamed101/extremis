@@ -2,39 +2,37 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_STORAGE_KEY } from "@/lib/auth/constants";
 
 const rawApiBaseUrl = String(process.env.NEXT_PUBLIC_API_URL || "").trim();
-const normalizedApiBaseUrl = rawApiBaseUrl.replace(/\/+$/, "");
-const envApiRoot = normalizedApiBaseUrl
-  ? normalizedApiBaseUrl.endsWith("/api")
+const DEFAULT_PROD_API_BASE_URL = "https://extremis-rho.vercel.app";
+
+function normalizeApiRoot(value: string): string {
+  const normalizedApiBaseUrl = String(value || "").trim().replace(/\/+$/, "");
+
+  if (!normalizedApiBaseUrl) {
+    return "";
+  }
+
+  return normalizedApiBaseUrl.endsWith("/api")
     ? normalizedApiBaseUrl
-    : `${normalizedApiBaseUrl}/api`
-  : "/api";
+    : `${normalizedApiBaseUrl}/api`;
+}
 
 function resolveApiRoot() {
-  if (typeof window === "undefined") {
-    return envApiRoot;
+  const configuredApiRoot = normalizeApiRoot(rawApiBaseUrl);
+
+  if (configuredApiRoot && configuredApiRoot !== "/api") {
+    return configuredApiRoot;
   }
 
-  const pageHost = String(window.location.hostname || "").trim().toLowerCase();
-  const pageOrigin = String(window.location.origin || "").trim().toLowerCase();
-  const isLocalPage = pageHost === "localhost" || pageHost === "127.0.0.1";
+  if (typeof window !== "undefined") {
+    const pageHost = String(window.location.hostname || "").trim().toLowerCase();
+    const isLocalPage = pageHost === "localhost" || pageHost === "127.0.0.1";
 
-  if (!envApiRoot || envApiRoot === "/api") {
-    return "/api";
-  }
-
-  try {
-    const parsedApiRoot = new URL(envApiRoot);
-    const apiOrigin = parsedApiRoot.origin.toLowerCase();
-
-    // Prevent cross-origin API calls on deployed custom domains.
-    if (!isLocalPage && apiOrigin !== pageOrigin) {
-      return "/api";
+    if (isLocalPage) {
+      return "http://localhost:4000/api";
     }
-
-    return envApiRoot;
-  } catch {
-    return "/api";
   }
+
+  return `${DEFAULT_PROD_API_BASE_URL}/api`;
 }
 
 const resolvedApiRoot = resolveApiRoot();
