@@ -132,7 +132,7 @@ export default function MessagesPageClient() {
       String(conversation.participant.id || "").trim() !== currentUserId
   );
   const contacts = contactsResponse?.data ?? [];
-  const requestedConversationId = String(searchParams.get("conversation") || "").trim();
+  const requestedConversationId = String(searchParams?.get("conversation") || "").trim();
 
   const headerItems: ChatHeaderItem[] = [
     ...conversations.map((conversation) => ({
