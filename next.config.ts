@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         source: "/courses.html",
         destination: "/courses",
       },
+      {
+        source: "/groups.html",
+        destination: "/groups",
+      },
     ];
   },
 };
