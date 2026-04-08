@@ -9,6 +9,12 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 const apiRouter = express.Router();
+const DEFAULT_CLIENT_ORIGINS = [
+  "https://www.extremis.top",
+  "https://extremis.top",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
 function normalizeOrigin(origin) {
   const normalized = String(origin || "").trim();
@@ -44,6 +50,7 @@ function isWwwSiblingHost(firstHost, secondHost) {
 const allowedOrigins = Array.from(
   new Set(
     [
+      ...DEFAULT_CLIENT_ORIGINS,
       ...String(process.env.CLIENT_ORIGIN || "").split(","),
       process.env.NEXT_PUBLIC_SITE_URL,
       process.env.VERCEL_PROJECT_PRODUCTION_URL,

@@ -24,6 +24,11 @@ function normalizeTemplateHtml(html: string): string {
   const bodyContent = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? html;
 
   return bodyContent
+    .replace(
+      /<div[^>]*id=["']page-loader["'][^>]*>[\s\S]*?<\/div>\s*<!--\s*page loader\s*-->/gi,
+      ""
+    )
+    .replace(/<div[^>]*id=["']page-loader["'][^>]*>[\s\S]*?<\/div>/gi, "")
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/\b(src|href)=["']images\//gi, '$1="/images/')
     .replace(/\b(src|href)=["']js\//gi, '$1="/js/')
