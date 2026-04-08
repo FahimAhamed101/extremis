@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_STORAGE_KEY } from "@/lib/auth/constants";
 
 const rawApiBaseUrl = String(process.env.NEXT_PUBLIC_API_URL || "").trim();
+const DEFAULT_PROD_API_BASE_URL = "https://extremis-rho.vercel.app";
 
 function normalizeApiRoot(value: string): string {
   const normalizedApiBaseUrl = String(value || "").trim().replace(/\/+$/, "");
@@ -19,23 +20,6 @@ function resolveApiRoot() {
   const configuredApiRoot = normalizeApiRoot(rawApiBaseUrl);
 
   if (configuredApiRoot) {
-    if (typeof window !== "undefined") {
-      const pageOrigin = String(window.location.origin || "").trim().toLowerCase();
-      const pageHost = String(window.location.hostname || "").trim().toLowerCase();
-      const isLocalPage = pageHost === "localhost" || pageHost === "127.0.0.1";
-
-      if (!isLocalPage && /^https?:\/\//i.test(configuredApiRoot)) {
-        try {
-          const configuredOrigin = new URL(configuredApiRoot).origin.toLowerCase();
-          if (configuredOrigin !== pageOrigin) {
-            return "/api";
-          }
-        } catch {
-          return "/api";
-        }
-      }
-    }
-
     return configuredApiRoot;
   }
 
@@ -48,7 +32,7 @@ function resolveApiRoot() {
     }
   }
 
-  return "/api";
+  return `${DEFAULT_PROD_API_BASE_URL}/api`;
 }
 
 const resolvedApiRoot = resolveApiRoot();
