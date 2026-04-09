@@ -1,4 +1,5 @@
 const Post = require("../models/Post");
+const mongoose = require("mongoose");
 const { toFeedPost, toTimelinePost } = require("../utils/postSerializer");
 
 const ALLOWED_AUDIENCES = new Set(["public", "private", "specific-friend", "only-friends", "joined-groups"]);
@@ -261,6 +262,11 @@ function canUserViewPost(post, userId) {
 }
 
 async function findPostForViewer(postId, userId) {
+  const normalizedPostId = String(postId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(normalizedPostId)) {
+    return null;
+  }
+
   const post = await Post.findById(postId)
     .populate("author")
     .populate("comments.user");
@@ -302,6 +308,38 @@ function getMutableReactions(post) {
     : [];
 
   return post.reactions;
+}
+
+function normalizeReactionUserId(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized || !mongoose.Types.ObjectId.isValid(normalized)) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function sanitizePostReactions(post) {
+  const sourceReactions = getMutableReactions(post);
+  const sanitizedReactions = [];
+  const seenUsers = new Set();
+
+  sourceReactions.forEach((reaction) => {
+    const userId = normalizeReactionUserId(getReactionUserId(reaction));
+    const type = String(reaction?.type || "").trim().toLowerCase();
+
+    if (!userId || !ALLOWED_REACTION_TYPES.has(type) || seenUsers.has(userId)) {
+      return;
+    }
+
+    seenUsers.add(userId);
+    sanitizedReactions.push({
+      user: new mongoose.Types.ObjectId(userId),
+      type,
+    });
+  });
+
+  post.reactions = sanitizedReactions;
 }
 
 function syncLegacyLikes(post) {
@@ -449,6 +487,7 @@ async function reactToPost(req, res, next) {
 
     const reactionType = normalizeReactionType(req.body.reactionType);
     const viewerId = String(req.user._id);
+    sanitizePostReactions(post);
     const reactions = getMutableReactions(post);
     const existingReactionIndex = reactions.findIndex(
       (reaction) => getReactionUserId(reaction) === viewerId
