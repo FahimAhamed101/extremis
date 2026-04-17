@@ -1,8 +1,8 @@
-const loadEnv = require("../config/loadEnv");
+const loadEnv = require("../backend/src/config/loadEnv");
 loadEnv();
 
-const app = require("../app");
-const connectDB = require("../config/db");
+const app = require("../backend/src/app");
+const connectDB = require("../backend/src/config/db");
 
 function applyCorsHeaders(req, res) {
   const requestOrigin = String(req.headers.origin || "").trim();
@@ -21,13 +21,24 @@ function applyCorsHeaders(req, res) {
     requestedHeaders || "Authorization,Content-Type,X-Requested-With"
   );
   res.setHeader("Access-Control-Max-Age", "86400");
+
+  return { allowed: true, origin: requestOrigin || null };
 }
 
-function buildRequestUrl(req) {
+function normalizePrefix(prefix) {
+  if (!prefix) {
+    return "";
+  }
+
+  return prefix.startsWith("/") ? prefix : `/${prefix}`;
+}
+
+function buildRequestUrl(req, prefix = "") {
   const protocol = String(req.headers["x-forwarded-proto"] || "https");
   const host = String(req.headers.host || "localhost");
   const url = new URL(req.url || "/", `${protocol}://${host}`);
   let pathname = url.pathname;
+  const normalizedPrefix = normalizePrefix(prefix);
 
   if (pathname === "/api") {
     pathname = "/";
@@ -39,15 +50,18 @@ function buildRequestUrl(req) {
     pathname = `/${pathname}`;
   }
 
+  if (
+    normalizedPrefix &&
+    pathname !== normalizedPrefix &&
+    !pathname.startsWith(`${normalizedPrefix}/`)
+  ) {
+    pathname = pathname === "/" ? normalizedPrefix : `${normalizedPrefix}${pathname}`;
+  }
+
   return `${pathname}${url.search}`;
 }
 
-function isHealthRequest(url) {
-  const pathname = String(url || "").split("?", 1)[0];
-  return pathname === "/health" || pathname === "/health/";
-}
-
-async function forwardToBackend(req, res) {
+async function forwardToBackend(req, res, options = {}) {
   applyCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
@@ -56,12 +70,8 @@ async function forwardToBackend(req, res) {
   }
 
   try {
-    req.url = buildRequestUrl(req);
-
-    if (!isHealthRequest(req.url)) {
-      await connectDB();
-    }
-
+    req.url = buildRequestUrl(req, options.prefix);
+    await connectDB();
     return app(req, res);
   } catch (error) {
     console.error("Vercel API error:", error);
