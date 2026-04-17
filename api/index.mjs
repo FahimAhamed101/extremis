@@ -1,4 +1,4 @@
-module.exports = (req, res) => {
+export default function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     res.status(405).json({
@@ -12,4 +12,4 @@ module.exports = (req, res) => {
     service: "extremis-api",
     health: "/api/health",
   });
-};
+}
