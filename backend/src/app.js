@@ -68,7 +68,9 @@ apiRouter.use("/posts", postRoutes);
 apiRouter.use("/profile", profileRoutes);
 apiRouter.use("/uploads", uploadRoutes);
 
-// Support both direct server mounts (/api/* locally) and stripped Vercel function paths.
+// The route modules above remain the source of truth for every backend endpoint.
+// Vercel forwards /api/* into this app through a single catch-all function, while
+// local backend development still uses the direct /api/* mount below.
 app.use("/api", apiRouter);
 app.use(apiRouter);
 

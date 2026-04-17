@@ -70,6 +70,8 @@ async function forwardToBackend(req, res, options = {}) {
   }
 
   try {
+    // Rewrite the incoming Vercel Function URL back to the Express route shape
+    // expected by backend/src/app.js before handing off to the shared router.
     req.url = buildRequestUrl(req, options.prefix);
     await connectDB();
     return app(req, res);
