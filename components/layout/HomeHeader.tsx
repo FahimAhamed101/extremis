@@ -50,7 +50,7 @@ function subscribeToAuthStorage(callback: () => void): () => void {
 export default function HomeHeader() {
   const router = useRouter();
   const pathname = usePathname();
-  const [sideSlideRoute, setSideSlideRoute] = useState<string | null>(null);
+  const [isSideSlideOpen, setIsSideSlideOpen] = useState(false);
   const [activeSideSlideTab, setActiveSideSlideTab] = useState<"messages" | "notifications">("messages");
   const userSnapshot = useSyncExternalStore(
     subscribeToAuthStorage,
@@ -132,13 +132,13 @@ export default function HomeHeader() {
     event.preventDefault();
     event.stopPropagation();
     setActiveSideSlideTab(tab);
-    setSideSlideRoute(pathname);
+    setIsSideSlideOpen(true);
   };
 
   useEffect(() => {
     const handleEscapeClose = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setSideSlideRoute(null);
+        setIsSideSlideOpen(false);
       }
     };
 
@@ -148,7 +148,9 @@ export default function HomeHeader() {
     };
   }, []);
 
-  const isSideSlideOpen = sideSlideRoute === pathname;
+  useEffect(() => {
+    setIsSideSlideOpen(false);
+  }, [pathname]);
 
   return (
     <>
@@ -630,7 +632,7 @@ export default function HomeHeader() {
         activeTab={activeSideSlideTab}
         conversations={chatConversations?.data || []}
         isOpen={isSideSlideOpen}
-        onClose={() => setSideSlideRoute(null)}
+        onClose={() => setIsSideSlideOpen(false)}
         onTabChange={setActiveSideSlideTab}
       />
 

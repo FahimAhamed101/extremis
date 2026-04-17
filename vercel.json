@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/[...path].js": {
+    "api/uploads/[...path].js": {
       "maxDuration": 60
     }
   }
