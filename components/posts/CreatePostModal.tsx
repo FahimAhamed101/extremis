@@ -139,18 +139,18 @@ export default function CreatePostModal() {
   const [uploadAsset] = useUploadProfileAssetMutation();
   const [createPost] = useCreatePostMutation();
 
+  function clearPendingClose() {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }
+
   useEffect(() => {
     return () => {
       clearPendingClose();
     };
   }, []);
-
-  const clearPendingClose = () => {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  };
 
   const resetForm = () => {
     clearPendingClose();
