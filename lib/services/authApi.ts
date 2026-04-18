@@ -27,19 +27,6 @@ function resolveApiRoot() {
     }
 
     if (configuredApiRoot) {
-      if (/^https?:\/\//i.test(configuredApiRoot)) {
-        try {
-          const configuredOrigin = new URL(configuredApiRoot).origin.toLowerCase();
-          const pageOrigin = String(window.location.origin || "").trim().toLowerCase();
-
-          if (configuredOrigin !== pageOrigin) {
-            return "/api";
-          }
-        } catch {
-          return "/api";
-        }
-      }
-
       return configuredApiRoot;
     }
 
@@ -47,18 +34,7 @@ function resolveApiRoot() {
   }
 
   if (configuredApiRoot) {
-    if (!/^https?:\/\//i.test(configuredApiRoot)) {
-      return configuredApiRoot;
-    }
-
-    try {
-      const configuredHost = new URL(configuredApiRoot).hostname.toLowerCase();
-      if (configuredHost === "localhost" || configuredHost === "127.0.0.1") {
-        return configuredApiRoot;
-      }
-    } catch {
-      return "/api";
-    }
+    return configuredApiRoot;
   }
 
   return "/api";
