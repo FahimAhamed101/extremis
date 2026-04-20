@@ -1,10 +1,9 @@
 # Webuzo Deployment
 
-For Webuzo, the most practical setup for this repo is:
+For Webuzo, the simplest setup for this repo is:
 
-1. Create only the frontend app in Webuzo on your main domain.
-2. Run the backend separately on an internal port such as `4000`.
-3. Reverse proxy `/api` to that backend process with NGINX.
+1. Deploy the frontend on `extremis.top`.
+2. Deploy the backend separately on `api.extremis.top`.
 
 ## Important
 
@@ -17,10 +16,10 @@ If your Webuzo dropdown only offers `Node.js 16`, this frontend will not run cor
 
 ## Recommended Webuzo Layout
 
-- `https://your-domain.com` -> Next.js frontend on port `3000`
-- `https://your-domain.com/api` -> Express backend on port `4000`
+- `https://extremis.top` -> Next.js frontend
+- `https://api.extremis.top` -> Express backend
 
-Webuzo does not let you attach two separate apps to the same domain and same base path `/`, so a single-domain setup needs a reverse proxy in front of the backend.
+This avoids the same-domain base-path limitation in Webuzo and does not require an NGINX `/api` reverse proxy.
 
 ## 1. Upload files
 
@@ -45,8 +44,8 @@ Use **Applications -> Add Applications -> Self Managed** and create a frontend a
 Frontend environment variables:
 
 - `NODE_ENV=production`
-- `NEXT_PUBLIC_SITE_URL=https://your-domain.com`
-- `NEXT_PUBLIC_API_URL=/api`
+- `NEXT_PUBLIC_SITE_URL=https://extremis.top`
+- `NEXT_PUBLIC_API_URL=https://api.extremis.top`
 - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=...`
 - `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...`
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID=...` (optional)
@@ -58,22 +57,31 @@ npm install
 npm run build
 ```
 
-## 3. Backend process
+## 3. API application in Webuzo
 
-Run the API outside the Webuzo app UI so it can stay on an internal port:
+Create a second **Self Managed** app with these values:
+
+- `Port`: any free port, for example `4000`
+- `Application Name`: `extremis-api`
+- `Deployment Domain`: `api.extremis.top`
+- `Base Application URL`: `/`
+- `Application Path`: `/home/extremis/extremis/backend`
+- `Application Type`: Node.js `20` or `22`
+- `Application startup file`: `src/server.js`
+- `Start Command`: `npm start`
+- `Deployment Environment`: `Production`
+
+After the app is created, open terminal/SSH in `/home/extremis/extremis/backend` and run:
 
 ```bash
-cd /home/extremis/extremis
 npm install
-pm2 start backend/src/server.js --name extremis-api
-pm2 save
 ```
 
 API environment variables:
 
 - `NODE_ENV=production`
 - `AUTH_PORT=4000`
-- `CLIENT_ORIGIN=https://your-domain.com,https://www.your-domain.com`
+- `CLIENT_ORIGIN=https://extremis.top,https://www.extremis.top`
 - `MONGODB_URI=...`
 - `MONGODB_DB=extremis`
 - `JWT_SECRET=...`
@@ -85,37 +93,22 @@ API environment variables:
 
 If you prefer, `PORT=4000` also works because the backend accepts either `AUTH_PORT` or `PORT`.
 
-## 4. NGINX reverse proxy
-
-Add an NGINX site/server block that forwards:
-
-- `/` -> `http://127.0.0.1:3000`
-- `/api/` -> `http://127.0.0.1:4000/`
-
-A ready-to-edit example is included at [deploy/nginx/extremis-single-domain.conf](/abs/path/c:/Users/Fahim/Desktop/extremis/deploy/nginx/extremis-single-domain.conf).
-
-After updating NGINX:
-
-```bash
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-## 5. DNS
+## 4. DNS
 
 Create or confirm these DNS records:
 
-- `@` or your root domain -> your server
-- `www` -> your server
+- `@` or your root domain -> frontend app
+- `www` -> frontend app
+- `api` -> backend app
 
-Then enable SSL for the main domain and `www` if you use it.
+Then enable SSL for both `extremis.top` and `api.extremis.top`.
 
-## 6. Health checks
+## 5. Health checks
 
 After deploy:
 
-- frontend: `https://your-domain.com`
-- API health: `https://your-domain.com/api/health`
+- frontend: `https://extremis.top`
+- API health: `https://api.extremis.top/api/health`
 
 Expected API response:
 
@@ -128,16 +121,6 @@ Expected API response:
 
 ## Notes
 
-- The frontend supports both absolute API URLs and relative `/api`.
-- In production, if `NEXT_PUBLIC_API_URL` is left empty, the frontend API layer also falls back to `/api` on non-local pages.
-- The backend now supports a comma-separated `CLIENT_ORIGIN` allowlist for CORS.
-- The backend is mounted both at `/api/*` and `/*`, which makes reverse-proxied `/api` traffic work without changing route modules.
-
-## Alternate Layout
-
-If you would rather avoid reverse proxy configuration, you can still deploy this repo with:
-
-- `https://your-domain.com` -> frontend
-- `https://api.your-domain.com` -> backend
-
-In that case, set `NEXT_PUBLIC_API_URL=https://api.your-domain.com` and create a second Webuzo app for the backend on the API subdomain.
+- The frontend supports absolute API URLs, so `https://api.extremis.top` works cleanly on Webuzo.
+- The backend supports a comma-separated `CLIENT_ORIGIN` allowlist for CORS.
+- A single-domain `/api` reverse proxy setup is still possible later if you decide to switch.
