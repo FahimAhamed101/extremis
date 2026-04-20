@@ -36,7 +36,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Environment Variables
 
-- `NEXT_PUBLIC_API_URL` (default: `http://localhost:4000`)
+- `NEXT_PUBLIC_API_URL` (local default: `http://localhost:4000`, production single-domain recommendation: `/api`)
 - `NEXT_PUBLIC_SITE_URL` (recommended in production, e.g. `https://www.extremis.top`)
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional, e.g. `G-XXXXXXXXXX`)
 - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (required for direct browser uploads)
@@ -50,6 +50,21 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `CLOUDINARY_API_KEY` (required for uploads)
 - `CLOUDINARY_API_SECRET` (required for uploads)
 - `CLOUDINARY_UPLOAD_TIMEOUT_MS` (optional, default: `15000`)
+
+## Production Deployment
+
+This repo supports two production layouts:
+
+- Single domain with reverse proxy:
+  `https://your-domain.com` -> Next.js frontend
+  `https://your-domain.com/api` -> Express backend
+- Split domains:
+  `https://your-domain.com` -> frontend
+  `https://api.your-domain.com` -> backend
+
+For the single-domain layout, set `NEXT_PUBLIC_API_URL=/api` and proxy `/api` to the backend process. A ready-to-adapt NGINX example lives at [deploy/nginx/extremis-single-domain.conf](/abs/path/c:/Users/Fahim/Desktop/extremis/deploy/nginx/extremis-single-domain.conf).
+
+The frontend API layer already falls back to `/api` on non-local production pages, and the backend mounts routes both with and without the `/api` prefix so reverse-proxied requests work cleanly.
 
 ## API Endpoints
 
