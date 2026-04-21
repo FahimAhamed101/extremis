@@ -12,21 +12,29 @@ This project uses:
 npm install
 ```
 
-2. Create environment file:
+2. Create frontend environment file:
 
 ```bash
 copy .env.example .env
 ```
 
-3. Update `.env` values (especially `MONGODB_URI` and `JWT_SECRET`).
+3. Create backend environment file:
 
-4. Run backend API:
+```bash
+copy backend\.env.example backend\.env
+```
+
+4. Update both env files.
+Frontend: set `NEXT_PUBLIC_API_URL` and site-related values.
+Backend: set `MONGODB_URI`, `JWT_SECRET`, and the other API secrets.
+
+5. Run backend API:
 
 ```bash
 npm run dev:backend
 ```
 
-5. Run frontend:
+6. Run frontend:
 
 ```bash
 npm run dev
@@ -36,11 +44,14 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Environment Variables
 
+Frontend env: [\.env.example](/abs/path/c:/Users/Fahim/Desktop/extremis/.env.example)
 - `NEXT_PUBLIC_API_URL` (local default: `http://localhost:4000`, production single-domain recommendation: `/api`)
 - `NEXT_PUBLIC_SITE_URL` (recommended in production, e.g. `https://www.extremis.top`)
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional, e.g. `G-XXXXXXXXXX`)
 - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (required for direct browser uploads)
 - `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` (required, unsigned preset)
+
+Backend env: [backend/.env.example](/abs/path/c:/Users/Fahim/Desktop/extremis/backend/.env.example)
 - `AUTH_PORT` (default: `4000`)
 - `CLIENT_ORIGIN` (default: `http://localhost:3000`)
 - `MONGODB_URI` (required)

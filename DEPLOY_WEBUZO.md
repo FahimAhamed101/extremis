@@ -124,3 +124,5 @@ Expected API response:
 - The frontend supports absolute API URLs, so `https://api.extremis.top` works cleanly on Webuzo.
 - The backend supports a comma-separated `CLIENT_ORIGIN` allowlist for CORS.
 - A single-domain `/api` reverse proxy setup is still possible later if you decide to switch.
+- The frontend example env lives at [\.env.example](/abs/path/c:/Users/Fahim/Desktop/extremis/.env.example).
+- The backend example env lives at [backend/.env.example](/abs/path/c:/Users/Fahim/Desktop/extremis/backend/.env.example).
