@@ -5,13 +5,10 @@
   "engines": {
     "node": ">=20.9.0"
   },
-  "scripts": {
+ "scripts": {
     "dev": "next dev",
-    "dev:backend": "node backend/src/server.js",
     "build": "next build",
-    "start": "next start",
-    "start:webuzo": "node webuzo-frontend.js",
-    "start:backend": "node backend/src/server.js",
+    "start": "node scripts/start-next.js",
     "lint": "eslint"
   },
   "dependencies": {
@@ -35,6 +32,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "5.9.3"
   }
 }
