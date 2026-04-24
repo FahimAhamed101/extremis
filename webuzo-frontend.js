@@ -1,5 +1,9 @@
 const http = require("node:http");
+const path = require("node:path");
 const next = require("next");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const port = Number.parseInt(process.env.PORT || "3000", 10) || 3000;
 const hostname = process.env.HOST || "0.0.0.0";
