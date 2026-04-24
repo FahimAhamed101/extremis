@@ -1,0 +1,12 @@
+:HL["/_next/static/chunks/811793a089767f87.css","style"]
+:HL["/css/main.min.css","style"]
+:HL["/css/style.css","style"]
+:HL["/css/color.css","style"]
+:HL["/css/responsive.css","style"]
+:HL["/images/resources/login-1.png","image"]
+:HL["/images/resources/login-2.png","image"]
+:HL["/images/resources/login-3.png","image"]
+:HL["/images/logo.png","image"]
+:HL["/images/mockup.png","image"]
+:HL["/images/star-shape.png","image"]
+0:{"buildId":"A7DH7tFL0CUQCXwdJq4La","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"login","paramType":null,"paramKey":"login","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}

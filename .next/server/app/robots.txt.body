@@ -1,0 +1,12 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /blog
+Disallow: /friends
+Disallow: /messages
+Disallow: /posts/
+Disallow: /profile
+Disallow: /videos
+
+Host: https://www.extremis.top
+Sitemap: https://www.extremis.top/sitemap.xml

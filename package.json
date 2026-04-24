@@ -9,6 +9,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "node scripts/start-next.js",
+    "start:webuzo": "node webuzo-frontend.js",
     "lint": "eslint"
   },
   "dependencies": {
