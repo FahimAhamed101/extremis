@@ -1,0 +1,19 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/blog/page": "/blog",
+  "/courses/page": "/courses",
+  "/favicon.ico/route": "/favicon.ico",
+  "/friends/page": "/friends",
+  "/groups/page": "/groups",
+  "/login/page": "/login",
+  "/messages/page": "/messages",
+  "/page": "/",
+  "/posts/[postId]/page": "/posts/[postId]",
+  "/profile/[userId]/page": "/profile/[userId]",
+  "/profile/page": "/profile",
+  "/robots.txt/route": "/robots.txt",
+  "/signup/page": "/signup",
+  "/sitemap.xml/route": "/sitemap.xml",
+  "/videos/page": "/videos"
+}

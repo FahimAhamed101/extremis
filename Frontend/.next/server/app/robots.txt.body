@@ -1,0 +1,12 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /blog
+Disallow: /friends
+Disallow: /messages
+Disallow: /posts/
+Disallow: /profile
+Disallow: /videos
+
+Host: http://localhost:3000
+Sitemap: http://localhost:3000/sitemap.xml
