@@ -8,10 +8,16 @@ const uploadRoutes = require("./routes/uploadRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 function getAllowedOrigins() {
-  return String(process.env.CLIENT_ORIGIN || "")
+  const configuredOrigins = String(process.env.CLIENT_ORIGIN || "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  if (process.env.NODE_ENV === "production") {
+    return configuredOrigins;
+  }
+
+  return [...new Set([...configuredOrigins, "http://localhost:3000"])];
 }
 
 const allowedOrigins = getAllowedOrigins();

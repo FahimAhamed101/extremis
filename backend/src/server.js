@@ -14,7 +14,10 @@ async function bootstrap() {
       console.log(`Auth API running on http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("Failed to start auth API:", error);
+    console.error(`Failed to start auth API: ${error.message}`);
+    if (error.cause) {
+      console.error(`Cause: ${error.cause.code || "ERROR"} ${error.cause.hostname || ""}`.trim());
+    }
     process.exit(1);
   }
 }

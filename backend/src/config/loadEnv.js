@@ -22,7 +22,7 @@ function loadEnv() {
   // Existing process env values are preserved by dotenv default behavior.
   for (const envPath of [...new Set(envCandidates)]) {
     if (fs.existsSync(envPath)) {
-      dotenv.config({ path: envPath });
+      dotenv.config({ path: envPath, quiet: true });
     }
   }
 
