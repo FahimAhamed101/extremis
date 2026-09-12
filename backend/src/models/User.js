@@ -75,6 +75,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    dateOfBirth: {
+      type: String,
+      default: null,
+    },
+    coordinates: {
+      lat: {
+        type: Number,
+        default: null,
+      },
+      lng: {
+        type: Number,
+        default: null,
+      },
+    },
     skypeId: {
       type: String,
       default: null,

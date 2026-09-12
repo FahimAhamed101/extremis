@@ -401,6 +401,7 @@ async function updateMyProfile(req, res, next) {
       "department",
       "position",
       "gender",
+      "dateOfBirth",
       "bio",
       "location",
       "phoneNumber",
@@ -486,6 +487,20 @@ async function updateMyProfile(req, res, next) {
       didUpdate = true;
     }
 
+    if (Object.prototype.hasOwnProperty.call(req.body, "coordinates")) {
+      if (req.body.coordinates && typeof req.body.coordinates === "object") {
+        const lat = Number(req.body.coordinates.lat ?? req.body.coordinates.latitude);
+        const lng = Number(req.body.coordinates.lng ?? req.body.coordinates.lon ?? req.body.coordinates.longitude);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          req.user.coordinates = { lat, lng };
+          didUpdate = true;
+        }
+      } else if (req.body.coordinates === null) {
+        req.user.coordinates = { lat: null, lng: null };
+        didUpdate = true;
+      }
+    }
+
     if (!didUpdate) {
       res.status(400).json({ message: "No profile fields were provided." });
       return;
@@ -561,10 +576,205 @@ async function toggleFollowUser(req, res, next) {
   }
 }
 
+const CITY_COORDINATES = {
+  "islamabad, pakistan": { lat: 33.6844, lng: 73.0479 },
+  "islamabad": { lat: 33.6844, lng: 73.0479 },
+  "london, uk": { lat: 51.5074, lng: -0.1278 },
+  "london": { lat: 51.5074, lng: -0.1278 },
+  "boston, usa": { lat: 42.3601, lng: -71.0589 },
+  "boston": { lat: 42.3601, lng: -71.0589 },
+  "toronto, canada": { lat: 43.6532, lng: -79.3832 },
+  "toronto": { lat: 43.6532, lng: -79.3832 },
+  "singapore": { lat: 1.3521, lng: 103.8198 },
+  "stockholm, sweden": { lat: 59.3293, lng: 18.0686 },
+  "stockholm": { lat: 59.3293, lng: 18.0686 },
+  "zurich, switzerland": { lat: 47.3769, lng: 8.5417 },
+  "zurich": { lat: 47.3769, lng: 8.5417 },
+  "melbourne, australia": { lat: -37.8136, lng: 144.9631 },
+  "melbourne": { lat: -37.8136, lng: 144.9631 },
+  "cairo, egypt": { lat: 30.0444, lng: 31.2357 },
+  "cairo": { lat: 30.0444, lng: 31.2357 },
+  "bengaluru, india": { lat: 12.9716, lng: 77.5946 },
+  "bengaluru": { lat: 12.9716, lng: 77.5946 },
+  "nairobi, kenya": { lat: -1.2921, lng: 36.8219 },
+  "nairobi": { lat: -1.2921, lng: 36.8219 },
+  "tokyo, japan": { lat: 35.6762, lng: 139.6503 },
+  "tokyo": { lat: 35.6762, lng: 139.6503 },
+  "paris, france": { lat: 48.8566, lng: 2.3522 },
+  "paris": { lat: 48.8566, lng: 2.3522 },
+  "new york, usa": { lat: 40.7128, lng: -74.006 },
+  "new york": { lat: 40.7128, lng: -74.006 },
+  "dhaka, bangladesh": { lat: 23.8103, lng: 90.4125 },
+  "dhaka": { lat: 23.8103, lng: 90.4125 },
+  "shibchar, bangladesh": { lat: 23.3472, lng: 90.1697 },
+  "shibchar": { lat: 23.3472, lng: 90.1697 },
+  "oxford, uk": { lat: 51.752, lng: -1.2577 },
+  "oxford": { lat: 51.752, lng: -1.2577 },
+  "cambridge, uk": { lat: 52.2053, lng: 0.1218 },
+  "cambridge": { lat: 52.2053, lng: 0.1218 },
+  "sydney, australia": { lat: -33.8688, lng: 151.2093 },
+  "san francisco, usa": { lat: 37.7749, lng: -122.4194 },
+  "berlin, germany": { lat: 52.52, lng: 13.405 },
+};
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
+function resolveUserCoordinates(user) {
+  if (
+    user.coordinates &&
+    Number.isFinite(user.coordinates.lat) &&
+    Number.isFinite(user.coordinates.lng)
+  ) {
+    return { lat: user.coordinates.lat, lng: user.coordinates.lng };
+  }
+
+  const loc = String(user.location || "").trim().toLowerCase();
+  if (loc && CITY_COORDINATES[loc]) {
+    return CITY_COORDINATES[loc];
+  }
+
+  for (const [cityName, coords] of Object.entries(CITY_COORDINATES)) {
+    if (loc && (loc.includes(cityName) || cityName.includes(loc))) {
+      return coords;
+    }
+  }
+
+  return null;
+}
+
+async function getNearbyPeople(req, res, next) {
+  try {
+    const viewerUser = req.user || null;
+    const viewerUserId = viewerUser ? String(viewerUser._id) : null;
+    const viewerFollowingIds = viewerUser ? getObjectIdStrings(viewerUser.following) : [];
+    const viewerFollowingSet = new Set(viewerFollowingIds);
+
+    let originLat = Number(req.query.lat);
+    let originLng = Number(req.query.lng);
+    let originLocation = String(req.query.location || "").trim();
+
+    if (!Number.isFinite(originLat) || !Number.isFinite(originLng)) {
+      if (viewerUser) {
+        const viewerCoords = resolveUserCoordinates(viewerUser);
+        if (viewerCoords) {
+          originLat = viewerCoords.lat;
+          originLng = viewerCoords.lng;
+          originLocation = originLocation || viewerUser.location || "";
+        }
+      }
+    }
+
+    if (!Number.isFinite(originLat) || !Number.isFinite(originLng)) {
+      originLat = 51.5074;
+      originLng = -0.1278;
+      originLocation = originLocation || "London, UK";
+    }
+
+    const radiusParam = req.query.radius;
+    const radiusKm = radiusParam && radiusParam !== "all" ? Number(radiusParam) : null;
+    const normalizedQuery = String(req.query.q || req.query.search || "").trim();
+    const searchQuery = normalizedQuery ? buildUserSearchQuery(normalizedQuery) : {};
+
+    const filter = { ...searchQuery };
+    if (viewerUserId) {
+      filter._id = { $ne: viewerUser._id };
+    }
+
+    const allUsers = await User.find(filter).limit(100);
+
+    const nearbyList = allUsers.map((user) => {
+      const publicUser = toPublicUser(user);
+      const coords = resolveUserCoordinates(user);
+      let distanceKm = null;
+      let distanceFormatted = "Global distance";
+
+      if (coords && Number.isFinite(originLat) && Number.isFinite(originLng)) {
+        distanceKm = calculateDistanceKm(originLat, originLng, coords.lat, coords.lng);
+        if (distanceKm < 1) {
+          distanceFormatted = `${Math.round(distanceKm * 1000)}m away`;
+        } else if (distanceKm < 10) {
+          distanceFormatted = `${distanceKm.toFixed(1)} km away`;
+        } else {
+          distanceFormatted = `${Math.round(distanceKm)} km away`;
+        }
+      }
+
+      const isFollowing = viewerFollowingSet.has(String(user._id));
+
+      return {
+        id: String(user._id),
+        name: getFullName(publicUser),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        avatarUrl: user.avatarUrl || "/images/resources/user.jpg",
+        position: user.position || "Researcher",
+        department: user.department || null,
+        institute: user.institute || null,
+        location: user.location || (coords ? `Coords: ${coords.lat}, ${coords.lng}` : "Global"),
+        coordinates: coords,
+        bio: user.bio,
+        disciplines: user.disciplines || [],
+        skills: user.skills || [],
+        distanceKm,
+        distanceFormatted,
+        isFollowing,
+        canFollow: viewerUserId ? viewerUserId !== String(user._id) : true,
+        profileHref: `/profile/${user._id}`,
+      };
+    });
+
+    let filtered = nearbyList;
+    if (radiusKm && Number.isFinite(radiusKm) && radiusKm > 0) {
+      filtered = filtered.filter(
+        (person) => person.distanceKm !== null && person.distanceKm <= radiusKm
+      );
+    }
+
+    filtered.sort((a, b) => {
+      if (a.distanceKm === null && b.distanceKm === null) return 0;
+      if (a.distanceKm === null) return 1;
+      if (b.distanceKm === null) return -1;
+      return a.distanceKm - b.distanceKm;
+    });
+
+    const limit = parsePositiveInteger(req.query.limit, 50);
+    const paginated = filtered.slice(0, limit);
+
+    res.status(200).json({
+      message: "Nearby people loaded successfully.",
+      origin: {
+        lat: originLat,
+        lng: originLng,
+        location: originLocation,
+      },
+      radiusKm: radiusKm || null,
+      totalCount: filtered.length,
+      users: paginated,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getDiscoverPeople,
   getProfileById,
   getMyProfile,
+  getNearbyPeople,
   toggleFollowUser,
   updateMyProfile,
 };
+

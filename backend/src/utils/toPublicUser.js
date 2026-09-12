@@ -30,6 +30,13 @@ function toPublicUser(user) {
     location: user.location || null,
     website: user.website || null,
     phoneNumber: user.phoneNumber || null,
+    dateOfBirth: user.dateOfBirth || null,
+    coordinates:
+      user.coordinates &&
+      Number.isFinite(user.coordinates.lat) &&
+      Number.isFinite(user.coordinates.lng)
+        ? { lat: user.coordinates.lat, lng: user.coordinates.lng }
+        : null,
     skypeId: user.skypeId || null,
     localTime: user.localTime || null,
     disciplines: sanitizeStringArray(user.disciplines),

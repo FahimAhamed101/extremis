@@ -87,6 +87,19 @@ async function signup(req, res, next) {
     const department = String(body.department || "").trim();
     const position = String(body.position || "").trim();
     const gender = String(body.gender || "").trim();
+    const phoneNumber = String(body.phoneNumber || body.phone || "").trim();
+    const dateOfBirth = String(body.dateOfBirth || body.dob || "").trim();
+    const location = String(body.location || "").trim();
+
+    let coordinates = null;
+    if (body.coordinates && typeof body.coordinates === "object") {
+      const lat = Number(body.coordinates.lat ?? body.coordinates.latitude);
+      const lng = Number(body.coordinates.lng ?? body.coordinates.lon ?? body.coordinates.longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        coordinates = { lat, lng };
+      }
+    }
+
     const termsAccepted = body.termsAccepted !== undefined ? Boolean(body.termsAccepted) : true;
 
     if (!email || !password) {
@@ -144,6 +157,10 @@ async function signup(req, res, next) {
       department: department || null,
       position: position || null,
       gender: gender || null,
+      phoneNumber: phoneNumber || null,
+      dateOfBirth: dateOfBirth || null,
+      location: location || null,
+      coordinates: coordinates || undefined,
     });
 
     const token = generateToken(user._id);

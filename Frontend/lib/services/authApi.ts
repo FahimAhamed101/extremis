@@ -62,11 +62,15 @@ export type SignupPayload = {
   lastName: string;
   email: string;
   password: string;
+  phoneNumber?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  location?: string;
+  coordinates?: { lat: number; lng: number } | null;
   researcherType?: string;
   institute?: string;
   department?: string;
   position?: string;
-  gender?: string;
   termsAccepted: boolean;
 };
 
@@ -80,6 +84,7 @@ export type UserDto = {
   firstName: string;
   lastName: string;
   email: string;
+  username?: string | null;
   researcherType: string | null;
   institute: string | null;
   department: string | null;
@@ -89,6 +94,8 @@ export type UserDto = {
   coverImageUrl: string | null;
   bio: string | null;
   location: string | null;
+  coordinates?: { lat: number; lng: number } | null;
+  dateOfBirth?: string | null;
   website: string | null;
   phoneNumber: string | null;
   skypeId: string | null;
@@ -568,9 +575,122 @@ export type DiscoverPeopleResponse = {
   users: ProfilePersonCard[];
 };
 
+export type NearbyPerson = {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  username: string | null;
+  avatarUrl: string;
+  position: string | null;
+  department: string | null;
+  institute: string | null;
+  location: string | null;
+  coordinates: { lat: number; lng: number } | null;
+  bio: string | null;
+  disciplines: string[];
+  skills: string[];
+  distanceKm: number | null;
+  distanceFormatted: string;
+  isFollowing: boolean;
+  canFollow: boolean;
+  profileHref: string;
+};
+
+export type NearbyPeopleResponse = {
+  message: string;
+  origin: { lat: number; lng: number; location: string };
+  radiusKm: number | null;
+  totalCount: number;
+  users: NearbyPerson[];
+};
+
+export type NearbyPeopleParams = {
+  lat?: number;
+  lng?: number;
+  radius?: number | string;
+  search?: string;
+  q?: string;
+  limit?: number;
+};
+
+export type TourismPlaceItem = {
+  id: string;
+  _id?: string;
+  title: string;
+  location: string;
+  country: string;
+  category: "nature" | "historic" | "beach" | "city" | "research" | "adventure";
+  coordinates: { lat: number; lng: number };
+  coverImage?: string | null;
+  images: string[];
+  videoUrl?: string | null;
+  description: string;
+  highlights: string[];
+  bestTimeToVisit?: string;
+  likesCount: number;
+  isMyPost: boolean;
+  author?: {
+    _id: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string;
+    username?: string;
+  } | null;
+  createdAt?: string;
+};
+
+export type TourismPlacesResponse = {
+  message: string;
+  total: number;
+  places: TourismPlaceItem[];
+};
+
+export type CreateTourismPlacePayload = {
+  title: string;
+  location: string;
+  country: string;
+  category: string;
+  lat: number;
+  lng: number;
+  coverImage?: string | null;
+  images?: string[];
+  videoUrl?: string | null;
+  description: string;
+  highlights?: string[];
+  bestTimeToVisit?: string;
+};
+
+export type StoryItem = {
+  id: string;
+  authorId: string | null;
+  authorName: string;
+  authorAvatar: string;
+  authorHeadline: string;
+  mediaUrl: string;
+  mediaType: "image" | "video";
+  caption: string;
+  viewsCount: number;
+  createdAt: string;
+  isMine: boolean;
+  isViewed: boolean;
+};
+
+export type StoriesResponse = {
+  message: string;
+  stories: StoryItem[];
+};
+
+export type CreateStoryPayload = {
+  mediaUrl: string;
+  mediaType?: "image" | "video";
+  caption?: string;
+};
+
 export const authApi = createApi({
   reducerPath: "authApi",
-  tagTypes: ["Auth", "Profile", "Posts", "Chat"],
+  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories"],
   baseQuery: fetchBaseQuery({
     baseUrl: resolvedApiRoot,
     prepareHeaders: (headers) => {
@@ -736,6 +856,60 @@ export const authApi = createApi({
         params: params?.limit ? { limit: params.limit } : undefined,
       }),
       providesTags: ["Profile"],
+    }),
+    getNearbyPeople: builder.query<NearbyPeopleResponse, NearbyPeopleParams | void>({
+      query: (params) => ({
+        url: "/profile/nearby",
+        method: "GET",
+        params: params
+          ? {
+              ...(params.lat != null ? { lat: params.lat } : {}),
+              ...(params.lng != null ? { lng: params.lng } : {}),
+              ...(params.radius != null ? { radius: params.radius } : {}),
+              ...(params.search ? { search: params.search } : {}),
+              ...(params.q ? { q: params.q } : {}),
+              ...(params.limit ? { limit: params.limit } : {}),
+            }
+          : undefined,
+      }),
+      providesTags: ["Profile"],
+    }),
+    getTourismPlaces: builder.query<TourismPlacesResponse, { category?: string; search?: string; myOnly?: boolean } | void>({
+      query: (params) => ({
+        url: "/tourism",
+        method: "GET",
+        params: params
+          ? {
+              ...(params.category && params.category !== "all" ? { category: params.category } : {}),
+              ...(params.search ? { search: params.search } : {}),
+              ...(params.myOnly ? { myOnly: "true" } : {}),
+            }
+          : undefined,
+      }),
+      providesTags: ["Posts"],
+    }),
+    createTourismPlace: builder.mutation<{ message: string; place: TourismPlaceItem }, CreateTourismPlacePayload>({
+      query: (body) => ({
+        url: "/tourism",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Posts"],
+    }),
+    updateTourismPlace: builder.mutation<{ message: string; place: TourismPlaceItem }, { id: string; body: Partial<CreateTourismPlacePayload> }>({
+      query: ({ id, body }) => ({
+        url: `/tourism/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Posts"],
+    }),
+    deleteTourismPlace: builder.mutation<{ message: string; id: string }, string>({
+      query: (id) => ({
+        url: `/tourism/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Posts"],
     }),
     toggleFollowUser: builder.mutation<ToggleFollowUserResponse, string>({
       query: (userId) => ({
@@ -903,6 +1077,34 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Posts", "Profile"],
     }),
+    getStories: builder.query<StoriesResponse, void>({
+      query: () => ({
+        url: "/stories",
+        method: "GET",
+      }),
+      providesTags: ["Stories"],
+    }),
+    createStory: builder.mutation<{ message: string; story: StoryItem }, CreateStoryPayload>({
+      query: (body) => ({
+        url: "/stories",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Stories"],
+    }),
+    viewStory: builder.mutation<{ message: string; viewsCount: number }, string>({
+      query: (storyId) => ({
+        url: `/stories/${storyId}/view`,
+        method: "POST",
+      }),
+    }),
+    deleteStory: builder.mutation<{ message: string; id: string }, string>({
+      query: (storyId) => ({
+        url: `/stories/${storyId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Stories"],
+    }),
     createOrder: builder.mutation<CreateOrderResponse, CreateOrderPayload>({
       query: (body) => ({
         url: "/orders",
@@ -987,6 +1189,11 @@ export const {
   useGetMyProfileQuery,
   useGetProfileByIdQuery,
   useGetDiscoverPeopleQuery,
+  useGetNearbyPeopleQuery,
+  useGetTourismPlacesQuery,
+  useCreateTourismPlaceMutation,
+  useUpdateTourismPlaceMutation,
+  useDeleteTourismPlaceMutation,
   useToggleFollowUserMutation,
   useUpdateMyProfileMutation,
   useUploadProfileAssetMutation,
@@ -996,5 +1203,9 @@ export const {
   useAddPostCommentMutation,
   useSharePostMutation,
   useCreateOrderMutation,
+  useGetStoriesQuery,
+  useCreateStoryMutation,
+  useViewStoryMutation,
+  useDeleteStoryMutation,
 } = authApi;
 

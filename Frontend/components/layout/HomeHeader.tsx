@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { MouseEvent, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { MouseEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAuthSession } from "@/lib/auth/client";
 import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants";
@@ -119,6 +119,65 @@ export default function HomeHeader() {
   const isBlogPage = pathname === "/blog";
   const isGroupsPage = pathname === "/groups";
   const isFriendsPage = pathname === "/friends";
+  const isNearbyPage = pathname === "/nearby" || pathname.startsWith("/nearby");
+  const isWorldTourPage = pathname === "/world-tour" || pathname.startsWith("/world-tour");
+
+  const navScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkNavScroll = useCallback(() => {
+    const el = navScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 6);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    const el = navScrollRef.current;
+    if (!el) return;
+    checkNavScroll();
+    const t = setTimeout(checkNavScroll, 120);
+    el.addEventListener("scroll", checkNavScroll, { passive: true });
+    window.addEventListener("resize", checkNavScroll);
+    return () => {
+      clearTimeout(t);
+      el.removeEventListener("scroll", checkNavScroll);
+      window.removeEventListener("resize", checkNavScroll);
+    };
+  }, [checkNavScroll]);
+
+  useEffect(() => {
+    const el = navScrollRef.current;
+    if (!el) return;
+    const t = setTimeout(() => {
+      const activeLink = el.querySelector(".link-item > a.active");
+      if (activeLink) {
+        activeLink.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+      checkNavScroll();
+    }, 150);
+    return () => clearTimeout(t);
+  }, [pathname, checkNavScroll]);
+
+  const handleNavScroll = (direction: "left" | "right") => {
+    const el = navScrollRef.current;
+    if (!el) return;
+    const scrollAmount = 260;
+    if (direction === "left") {
+      if (el.scrollLeft <= 10) {
+        el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      }
+    } else {
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      }
+    }
+  };
 
   const handleLogout = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -408,6 +467,16 @@ export default function HomeHeader() {
                   </a>
                 </li>
                 <li>
+                  <Link href="/nearby" title="Nearby">
+                    <i className="icofont-location-pin"></i> Nearby People
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/world-tour" title="World Tour">
+                    <i className="icofont-globe"></i> World Tour
+                  </Link>
+                </li>
+                <li>
                   <a href="price-plan.html" title="">
                     <i className="icofont-flash"></i> Upgrade
                   </a>
@@ -480,166 +549,257 @@ export default function HomeHeader() {
                   </div>
                 </div>
                 <div className="col-lg-9 col-md-9 col-8">
-                  <div className="page-caro header-nav-shortcuts">
-                    <div className="link-item">
-                      <Link className={isHomePage ? "active" : ""} href="/" title="">
-                        <i>
-                          <svg
-                            className="feather feather-zap"
-                            strokeLinejoin="round"
-                            strokeLinecap="round"
-                            strokeWidth="2"
-                            stroke="currentColor"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            height="24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                          </svg>
-                        </i>
-                        <p>Newsfeed</p>
-                      </Link>
+                  <div className="header-nav-scroll-container">
+                    <button
+                      type="button"
+                      className="header-nav-scroll-btn btn-prev"
+                      onClick={() => handleNavScroll("left")}
+                      aria-label="Scroll left"
+                      title="Scroll left"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#0284c7"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                      </svg>
+                    </button>
+
+                    <div ref={navScrollRef} className="header-nav-shortcuts header-nav-scroll-track">
+                      <div className="link-item">
+                        <Link className={isHomePage ? "active" : ""} href="/" title="Newsfeed">
+                          <i>
+                            <svg
+                              className="feather feather-zap"
+                              strokeLinejoin="round"
+                              strokeLinecap="round"
+                              strokeWidth="2"
+                              stroke="currentColor"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              height="24"
+                              width="24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                            </svg>
+                          </i>
+                          <p>Newsfeed</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isVideosPage ? "active" : ""} href="/videos" title="Videos">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-youtube"
+                            >
+                              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                              <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                            </svg>
+                          </i>
+                          <p>Videos</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isCoursesPage ? "active" : ""} href="/courses" title="Courses">
+                          <i>
+                            <svg
+                              className="feather feather-airplay"
+                              strokeLinejoin="round"
+                              strokeLinecap="round"
+                              strokeWidth="2"
+                              stroke="currentColor"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              height="24"
+                              width="24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1" />
+                              <polygon points="12 15 17 21 7 21 12 15" />
+                            </svg>
+                          </i>
+                          <p>Courses</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isProductsPage ? "active" : ""} href="/products" title="Products">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-shopping-bag"
+                            >
+                              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                              <line x1="3" y1="6" x2="21" y2="6"></line>
+                              <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                          </i>
+                          <p>Products</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isBlogPage ? "active" : ""} href="/blog" title="Blog">
+                          <i>
+                            <svg
+                              className="feather feather-layout"
+                              strokeLinejoin="round"
+                              strokeLinecap="round"
+                              strokeWidth="2"
+                              stroke="currentColor"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              height="24"
+                              width="24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <rect ry="2" rx="2" height="18" width="18" y="3" x="3" />
+                              <line y2="9" x2="21" y1="9" x1="3" />
+                              <line y2="9" x2="9" y1="21" x1="9" />
+                            </svg>
+                          </i>
+                          <p>Blog</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isGroupsPage ? "active" : ""} href="/groups" title="Groups">
+                          <i>
+                            <svg
+                              className="feather feather-users"
+                              strokeLinejoin="round"
+                              strokeLinecap="round"
+                              strokeWidth="2"
+                              stroke="currentColor"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              height="24"
+                              width="24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                              <circle r="4" cy="7" cx="9" />
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                          </i>
+                          <p>Groups</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isFriendsPage ? "active" : ""} href="/friends" title="Friends">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-user-plus"
+                            >
+                              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="8.5" cy="7" r="4"></circle>
+                              <line x1="20" y1="8" x2="20" y2="14"></line>
+                              <line x1="17" y1="11" x2="23" y2="11"></line>
+                            </svg>
+                          </i>
+                          <p>Friends</p>
+                        </Link>
+                      </div>
+                      <div className="link-item link-item-highlight">
+                        <Link className={isNearbyPage ? "active" : ""} href="/nearby" title="Nearby People">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-map-pin"
+                            >
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                              <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                          </i>
+                          <p>Nearby</p>
+                        </Link>
+                      </div>
+                      <div className="link-item link-item-highlight">
+                        <Link className={isWorldTourPage ? "active" : ""} href="/world-tour" title="World Tour">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-globe"
+                            >
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="2" y1="12" x2="22" y2="12"></line>
+                              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                          </i>
+                          <p>World Tour</p>
+                        </Link>
+                      </div>
                     </div>
-                    <div className="link-item">
-                      <Link className={isVideosPage ? "active" : ""} href="/videos" title="Videos">
-                        <i>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="feather feather-youtube"
-                          >
-                            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
-                            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
-                          </svg>
-                        </i>
-                        <p>Videos</p>
-                      </Link>
-                    </div>
-                    <div className="link-item">
-                      <Link className={isCoursesPage ? "active" : ""} href="/courses" title="Courses">
-                        <i>
-                          <svg
-                            className="feather feather-airplay"
-                            strokeLinejoin="round"
-                            strokeLinecap="round"
-                            strokeWidth="2"
-                            stroke="currentColor"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            height="24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1" />
-                            <polygon points="12 15 17 21 7 21 12 15" />
-                          </svg>
-                        </i>
-                        <p>Courses</p>
-                      </Link>
-                    </div>
-                    <div className="link-item">
-                      <Link className={isProductsPage ? "active" : ""} href="/products" title="Products">
-                        <i>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="feather feather-shopping-bag"
-                          >
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <path d="M16 10a4 4 0 0 1-8 0"></path>
-                          </svg>
-                        </i>
-                        <p>Products</p>
-                      </Link>
-                    </div>
-                    <div className="link-item">
-                      <Link className={isBlogPage ? "active" : ""} href="/blog" title="Blog">
-                        <i>
-                          <svg
-                            className="feather feather-layout"
-                            strokeLinejoin="round"
-                            strokeLinecap="round"
-                            strokeWidth="2"
-                            stroke="currentColor"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            height="24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect ry="2" rx="2" height="18" width="18" y="3" x="3" />
-                            <line y2="9" x2="21" y1="9" x1="3" />
-                            <line y2="9" x2="9" y1="21" x1="9" />
-                          </svg>
-                        </i>
-                        <p>Blog</p>
-                      </Link>
-                    </div>
-                    <div className="link-item">
-                      <Link className={isGroupsPage ? "active" : ""} href="/groups" title="Groups">
-                        <i>
-                          <svg
-                            className="feather feather-users"
-                            strokeLinejoin="round"
-                            strokeLinecap="round"
-                            strokeWidth="2"
-                            stroke="currentColor"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            height="24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                            <circle r="4" cy="7" cx="9" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                          </svg>
-                        </i>
-                        <p>Groups</p>
-                      </Link>
-                    </div>
-                    <div className="link-item">
-                      <Link className={isFriendsPage ? "active" : ""} href="/friends" title="Friends">
-                        <i>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="feather feather-user-plus"
-                          >
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="8.5" cy="7" r="4"></circle>
-                            <line x1="20" y1="8" x2="20" y2="14"></line>
-                            <line x1="17" y1="11" x2="23" y2="11"></line>
-                          </svg>
-                        </i>
-                        <p>Friends</p>
-                      </Link>
-                    </div>
+
+                    <button
+                      type="button"
+                      className="header-nav-scroll-btn btn-next"
+                      onClick={() => handleNavScroll("right")}
+                      aria-label="Scroll right"
+                      title="Scroll right"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#0284c7"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
                   </div>
                 </div>
                 <div className="col-lg-2">

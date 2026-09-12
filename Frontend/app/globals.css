@@ -7,87 +7,317 @@ body {
   pointer-events: none;
 }
 
-.header-shortcuts .page-caro,
-.header-shortcuts .header-nav-shortcuts,
-.header-shortcuts .page-caro:not(.owl-loaded) {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: space-around !important;
-  flex-wrap: nowrap !important;
+/* ==========================================================================
+   BLUE UI NAVIGATION SHORTCUTS & HORIZONTAL SCROLL (PIXEL-PERFECT)
+   ========================================================================== */
+
+.header-shortcuts {
+  background: linear-gradient(135deg, #075985 0%, #0369a1 40%, #0284c7 100%) !important;
+  border-bottom: 2px solid #38bdf8 !important;
+  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.35) !important;
+  position: relative !important;
+  z-index: 99 !important;
   width: 100% !important;
-  gap: 0 !important;
+  padding: 0 !important;
+  transition: all 0.3s ease;
+}
+
+.header-shortcuts .white-bg {
+  background: transparent !important;
+  padding: 5px 0 !important;
+  min-height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.header-shortcuts .menu-caro {
+  display: block !important;
+  line-height: normal !important;
+  width: 100% !important;
+  border-bottom: none !important;
   margin: 0 !important;
   padding: 0 !important;
 }
 
-.header-shortcuts .link-item,
-.header-shortcuts .page-caro:not(.owl-loaded) .link-item {
-  flex: 1 1 0px !important;
-  min-width: 0 !important;
-  text-align: center !important;
+.header-shortcuts .menu-caro .row {
+  align-items: center !important;
+  margin: 0 !important;
 }
 
-.header-shortcuts .link-item > a,
-.header-shortcuts .page-caro:not(.owl-loaded) .link-item > a {
+.header-shortcuts .sidemenu {
+  display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
+  height: 52px !important;
+  cursor: pointer !important;
+}
+
+.header-shortcuts .sidemenu i svg {
+  color: #e0f2fe !important;
+  stroke: #e0f2fe !important;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.header-shortcuts .sidemenu:hover i svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  transform: scale(1.1);
+}
+
+.header-shortcuts .user-inf {
   display: flex !important;
   flex-direction: column !important;
+  align-items: flex-end !important;
   justify-content: center !important;
-  padding: 8px 4px 6px 4px !important;
-  min-height: 64px !important;
-  width: 100% !important;
-  text-decoration: none !important;
-  border-bottom: 3px solid transparent !important;
-  transition: all 0.2s ease-in-out !important;
+  height: 52px !important;
+  margin: 0 !important;
+  line-height: normal !important;
 }
 
+.header-shortcuts .user-inf .folowerz {
+  color: #f0f9ff !important;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+  line-height: 1.2 !important;
+  margin-bottom: 2px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.header-shortcuts .user-inf .stars {
+  line-height: normal !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  display: flex !important;
+  gap: 2px !important;
+}
+
+.header-shortcuts .user-inf .stars li i {
+  color: #facc15 !important;
+  font-size: 11px !important;
+}
+
+/* Scroll wrapper layout: buttons flanking the track */
+.header-shortcuts .header-nav-scroll-container {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  position: relative !important;
+  width: 100% !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+/* Scroll buttons (Arrows) - High Contrast & Always Visible */
+.header-shortcuts .header-nav-scroll-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: 2px solid #38bdf8 !important;
+  color: #0284c7 !important;
+  cursor: pointer !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 !important;
+  z-index: 20 !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.header-shortcuts .header-nav-scroll-btn svg {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  stroke: #0284c7 !important;
+  transition: stroke 0.2s ease, transform 0.2s ease !important;
+}
+
+.header-shortcuts .header-nav-scroll-btn:hover {
+  background: #38bdf8 !important;
+  border-color: #ffffff !important;
+  transform: scale(1.12) !important;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.6) !important;
+}
+
+.header-shortcuts .header-nav-scroll-btn:hover svg {
+  stroke: #ffffff !important;
+}
+
+.header-shortcuts .header-nav-scroll-btn:active {
+  transform: scale(0.92) !important;
+}
+
+/* Scrollable items track */
+.header-shortcuts .header-nav-scroll-track {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-behavior: smooth !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 2px 2px !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.header-shortcuts .header-nav-scroll-track::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Nav Item Container */
+.header-shortcuts .link-item {
+  flex: 0 0 auto !important;
+  min-width: 78px !important;
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.header-shortcuts .link-item > a {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px 10px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  border-radius: 10px !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  background: transparent !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: visible !important;
+  gap: 2px !important;
+}
+
+/* Icons: override old template translate and visibility rules */
 .header-shortcuts .link-item > a > i,
-.header-shortcuts .page-caro:not(.owl-loaded) .link-item > a > i {
+.header-shortcuts .link-item > a:hover i,
+.header-shortcuts .link-item > a.active i {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transform: translateY(0) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  margin-bottom: 3px !important;
-  height: 22px !important;
-  width: 22px !important;
-  color: #707e94 !important;
-  stroke: #707e94 !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-.header-shortcuts .link-item > a p,
-.header-shortcuts .page-caro:not(.owl-loaded) .link-item > a p {
-  display: block !important;
-  transform: translateY(0) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  line-height: 1.2 !important;
+  height: 20px !important;
+  width: 20px !important;
+  min-height: 20px !important;
+  min-width: 20px !important;
   margin: 0 !important;
-  color: #3d3d49 !important;
-  white-space: nowrap !important;
-  text-align: center !important;
-  transition: all 0.2s ease-in-out !important;
+  padding: 0 !important;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: color 0.2s ease, stroke 0.2s ease, transform 0.2s ease !important;
 }
 
-.header-shortcuts .link-item > a:hover,
-.header-shortcuts .link-item > a.active {
-  border-bottom: 3px solid #088dcd !important;
+.header-shortcuts .link-item > a > i svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: inherit !important;
+  fill: none !important;
 }
 
-.header-shortcuts .link-item > a:hover i,
-.header-shortcuts .link-item > a.active i,
+.header-shortcuts .link-item > a:not(.active) > i {
+  color: #bae6fd !important;
+  stroke: #bae6fd !important;
+}
+
+/* Text labels: explicitly disable old template translateY(22px) that cut off text */
+.header-shortcuts .link-item > a p,
 .header-shortcuts .link-item > a:hover p,
 .header-shortcuts .link-item > a.active p {
-  color: #088dcd !important;
-  stroke: #088dcd !important;
+  display: block !important;
+  transform: none !important;
   opacity: 1 !important;
   visibility: visible !important;
-  transform: translateY(0) !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  transition: color 0.2s ease !important;
+  letter-spacing: 0.1px !important;
+}
+
+.header-shortcuts .link-item > a:not(.active) p {
+  color: #e0f2fe !important;
+}
+
+/* Hover State */
+.header-shortcuts .link-item > a:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.16) !important;
+  transform: translateY(-1px) !important;
+}
+
+.header-shortcuts .link-item > a:hover:not(.active) i {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  transform: scale(1.08) !important;
+}
+
+.header-shortcuts .link-item > a:hover:not(.active) p {
+  color: #ffffff !important;
+}
+
+/* Active State: Clean White Pill fitted inside the bar */
+.header-shortcuts .link-item > a.active {
+  background: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22) !important;
+  transform: translateY(-1px) !important;
+}
+
+.header-shortcuts .link-item > a.active i {
+  color: #0284c7 !important;
+  stroke: #0284c7 !important;
+}
+
+.header-shortcuts .link-item > a.active p {
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+}
+
+/* Nearby & World Tour badges */
+.header-shortcuts .link-item-highlight > a {
+  position: relative !important;
+}
+
+.header-shortcuts .link-item-highlight > a::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 4px !important;
+  right: 8px !important;
+  width: 6px !important;
+  height: 6px !important;
+  background-color: #38bdf8 !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 6px #38bdf8 !important;
+}
+
+.header-shortcuts .link-item-highlight > a.active::after {
+  background-color: #0284c7 !important;
+  box-shadow: 0 0 6px #0284c7 !important;
 }
 
 .post-subject {
@@ -2313,6 +2543,298 @@ body {
     padding: 28px 20px;
   }
 }
+
+/* Auth Tooltips & Select Dropdowns */
+.auth-label-with-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.auth-label-with-tip .auth-input-label {
+  margin-bottom: 0;
+}
+
+.auth-tooltip-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  border-radius: 50%;
+  transition: color 0.15s ease;
+  line-height: 1;
+}
+
+.auth-tooltip-trigger:hover,
+.auth-tooltip-trigger:focus-within {
+  color: #088dcd;
+}
+
+.auth-tooltip-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: normal;
+  width: 220px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  z-index: 50;
+  text-align: center;
+}
+
+.auth-tooltip-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
+}
+
+.auth-tooltip-trigger:hover .auth-tooltip-bubble,
+.auth-tooltip-trigger:focus-within .auth-tooltip-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.auth-dob-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.auth-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.auth-select-field {
+  width: 100%;
+  height: 46px;
+  padding: 0 32px 0 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-select-field:focus {
+  background: #ffffff;
+  border-color: #088dcd;
+  box-shadow: 0 0 0 4px rgba(8, 141, 205, 0.12);
+}
+
+.auth-select-arrow {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Location auto-detected badge / indicator */
+.auth-location-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.auth-location-preview .auth-location-icon {
+  color: #088dcd;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.auth-location-preview .auth-location-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-location-preview .auth-location-badge {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.auth-location-btn {
+  background: none;
+  border: none;
+  color: #088dcd;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+
+.auth-location-btn:hover {
+  color: #0274ac;
+}
+
+/* Location Field & Status Badges */
+.auth-location-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.auth-location-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  line-height: 1.4;
+}
+
+.auth-location-status-badge.detected {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.auth-location-status-badge.not-detected {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.auth-location-status-badge.locating {
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+
+.auth-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.auth-status-dot.dot-green {
+  background: #16a34a;
+}
+
+.auth-status-dot.dot-red {
+  background: #dc2626;
+}
+
+.auth-status-dot.pulse-yellow {
+  background: #ca8a04;
+  animation: pulseYellow 1.5s infinite;
+}
+
+@keyframes pulseYellow {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+.auth-input-action-btn {
+  position: absolute;
+  right: 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #088dcd;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.auth-input-action-btn:hover:not(:disabled) {
+  background: #e0f2fe;
+  border-color: #bae6fd;
+  color: #0274ac;
+}
+
+.auth-input-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-field-hint {
+  font-size: 11.5px;
+  margin-top: 5px;
+  margin-bottom: 0;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.auth-field-hint.hint-success {
+  color: #15803d;
+}
+
+.auth-field-hint.hint-warning {
+  color: #b91c1c;
+}
+
+.auth-field-hint.hint-info {
+  color: #64748b;
+}
+
+.auth-input-field.field-not-detected {
+  border-color: #fca5a5;
+  background-color: #fffafb;
+}
+
+
 
 
 
