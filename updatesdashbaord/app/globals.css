@@ -1,0 +1,45 @@
+/* Socimo Dashboard Global Styles */
+.page-loader.hidden {
+  display: none !important;
+  pointer-events: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Fix switch buttons and switches */
+.switch-btn input[type="checkbox"] {
+  display: none;
+}
+
+.switch {
+  cursor: pointer;
+}
+
+.actions-btn .iconbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.productss a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+  text-decoration: none;
+}
+
+.productss img {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+}

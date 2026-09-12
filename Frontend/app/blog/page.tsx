@@ -41,8 +41,8 @@ type Follower = {
 };
 
 export const metadata: Metadata = {
-  title: "Extremis | Blog",
-  description: "Read the latest posts, insights and updates on Extremis.",
+  title: "Updates | Blog",
+  description: "Read the latest posts, insights and updates on Updates.",
 };
 
 const sidebarMenu: MenuItem[] = [
@@ -463,7 +463,7 @@ export default function BlogPage() {
           <div className="container">
             <div className="row">
               <div className="col-lg-12">
-                <span>&copy; copyright All rights reserved by Extremis 2020</span>
+                <span>&copy; copyright All rights reserved by Updates 2020</span>
               </div>
             </div>
           </div>

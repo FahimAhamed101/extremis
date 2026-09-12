@@ -9,9 +9,17 @@ const postCommentSchema = new mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 2000,
+    },
+    attachmentUrl: {
+      type: String,
+      default: null,
+    },
+    attachmentType: {
+      type: String,
+      default: null,
+      enum: [null, "image", "video", "gif"],
     },
   },
   {
@@ -29,7 +37,7 @@ const postReactionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["like", "love", "haha", "wow", "sad"],
+      enum: ["like", "love", "haha", "wow", "sad", "angry"],
       required: true,
       default: "like",
     },
@@ -111,9 +119,15 @@ const postSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    group: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
+      default: null,
+      index: true,
+    },
     postType: {
       type: String,
-      enum: ["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor"],
+      enum: ["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor", "party", "bg"],
       default: "custom",
       index: true,
     },
@@ -122,6 +136,16 @@ const postSchema = new mongoose.Schema(
       default: null,
       trim: true,
       maxlength: 120,
+    },
+    feeling: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    location: {
+      type: String,
+      default: null,
+      trim: true,
     },
     title: {
       type: String,
@@ -242,6 +266,20 @@ const postSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+    viewCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    savedBy: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
     },
   },
   {

@@ -16,26 +16,6 @@ export default function ProfilePage() {
             (function () {
               var carouselConfigs = [
                 {
-                  selector: ".header-shortcuts .page-caro",
-                  options: {
-                    items: 6,
-                    loop: true,
-                    margin: 0,
-                    autoplay: false,
-                    autoplayTimeout: 2500,
-                    smartSpeed: 1000,
-                    autoplayHoverPause: true,
-                    nav: false,
-                    dots: false,
-                    responsiveClass: true,
-                    responsive: {
-                      0: { items: 5 },
-                      600: { items: 5 },
-                      1000: { items: 6 }
-                    }
-                  }
-                },
-                {
                   selector: ".suggested-caro",
                   options: {
                     items: 3,

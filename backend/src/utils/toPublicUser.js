@@ -18,6 +18,7 @@ function toPublicUser(user) {
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
+    username: user.username || null,
     researcherType: user.researcherType || null,
     institute: user.institute || null,
     department: user.department || null,

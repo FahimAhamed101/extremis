@@ -3,2071 +3,1426 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
+import { useState, useRef, ChangeEvent, FormEvent, useEffect, useMemo, useSyncExternalStore } from "react";
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type AnchorHTMLAttributes,
-  type ChangeEvent,
-  type ReactNode,
-} from "react";
-import { useRouter } from "next/navigation";
-import PostInteractions, { type PostInteractionStats } from "@/components/posts/PostInteractions";
-import { clearAuthSession, setAuthSession } from "@/lib/auth/client";
-import {
-  AUTH_STORAGE_EVENT,
-  AUTH_TOKEN_STORAGE_KEY,
-  AUTH_USER_STORAGE_KEY,
-} from "@/lib/auth/constants";
-import {
-  type ProfileDashboard,
-  type ProfileEvent,
-  type ProfilePersonCard,
-  type ProfileTimelinePost,
-  type ProfileVideoCard,
-  type UserDto,
   useGetMyProfileQuery,
-  useToggleFollowUserMutation,
+  useGetCurrentUserQuery,
   useUpdateMyProfileMutation,
   useUploadProfileAssetMutation,
+  useToggleFollowUserMutation,
+  useCreatePostMutation,
+  useReactToPostMutation,
+  useAddPostCommentMutation,
+  useSharePostMutation,
+  useGetDiscoverPeopleQuery,
 } from "@/lib/services/authApi";
+import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants";
+import { setAuthSession } from "@/lib/auth/client";
 
-type ProfileTab = "timeline" | "followers" | "follow" | "about";
-type UploadKind = "avatar" | "cover";
-const MAX_PROFILE_MEDIA_BYTES = 10 * 1024 * 1024;
+type ProfileTab = "posts" | "pictures" | "videos" | "friends" | "about";
 
-type MenuItem = {
-  title: string;
-  href: string;
-  iconClass: string;
-  active?: boolean;
-  children?: Array<{ label: string; href: string }>;
-};
-
-type PersonCard = ProfilePersonCard;
-type VideoCard = ProfileVideoCard;
-type CommentItem = {
-  id?: string;
-  userId?: string | null;
-  name: string;
-  image: string;
-  time: string;
-  message: string;
-  link?: string;
-};
-type EventCard = ProfileEvent;
-
-type ProfilePostProps = {
-  postId?: string;
-  authorName: string;
-  authorImage: string;
-  activity: string;
-  published: string;
-  children: ReactNode;
-  emojiCount?: string;
-  commentsOpen?: boolean;
-  comments?: CommentItem[];
-  shareUrl?: string;
-  stats?: PostInteractionStats;
-};
-
-type SmartLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
-  href: string;
-  children: ReactNode;
-};
-
-const sidebarMenu: MenuItem[] = [
-  {
-    title: "Home",
-    href: "#",
-    iconClass: "icofont-home",
-    active: true,
-    children: [
-      { label: "Newsfeed", href: "/" },
-      { label: "Company Home", href: "company-home.html" },
-      { label: "User Profile", href: "/profile" },
-      { label: "Messages", href: "/messages" },
-      { label: "Notifications", href: "notifications.html" },
-      { label: "Search Result", href: "search-result.html" },
-    ],
-  },
-  {
-    title: "Features",
-    href: "#",
-    iconClass: "icofont-light-bulb",
-    children: [
-      { label: "Videos", href: "/videos" },
-      { label: "Live Stream", href: "live-stream.html" },
-      { label: "Events Page", href: "event-page.html" },
-      { label: "QA", href: "Q-A.html" },
-      { label: "Support", href: "help-faq.html" },
-    ],
-  },
-  {
-    title: "Market Place",
-    href: "#",
-    iconClass: "icofont-shopping-cart",
-    children: [
-      { label: "Books", href: "books.html" },
-      { label: "Courses", href: "courses.html" },
-      { label: "Add New Course", href: "add-new-course.html" },
-      { label: "Cart", href: "product-cart.html" },
-      { label: "Checkout", href: "product-checkout.html" },
-    ],
-  },
-  {
-    title: "Blogs",
-    href: "#",
-    iconClass: "icofont-coffee-cup",
-    children: [
-      { label: "Blog", href: "/blog" },
-      { label: "Blog Detail", href: "blog-detail.html" },
-    ],
-  },
-  {
-    title: "Featured Pages",
-    href: "#",
-    iconClass: "icofont-file-text",
-    children: [
-      { label: "404", href: "404.html" },
-      { label: "Coming Soon", href: "coming-soon.html" },
-      { label: "Badges", href: "badges.html" },
-      { label: "Thank You", href: "thank-you.html" },
-    ],
-  },
-  {
-    title: "Authentications",
-    href: "#",
-    iconClass: "icofont-lock",
-    children: [
-      { label: "Sign In", href: "/login" },
-      { label: "Sign Up", href: "/signup" },
-      { label: "Forgot Password", href: "forgot-password.html" },
-    ],
-  },
-  {
-    title: "University Profile",
-    href: "about-university.html",
-    iconClass: "icofont-users-social",
-  },
-  {
-    title: "Live Chat",
-    href: "/messages",
-    iconClass: "icofont-ui-messaging",
-  },
-  {
-    title: "Privacy Policies",
-    href: "privacy-n-policy.html",
-    iconClass: "icofont-shield-alt",
-  },
-  {
-    title: "Web Settings",
-    href: "settings.html",
-    iconClass: "icofont-settings",
-  },
-  {
-    title: "Development Tools",
-    href: "#",
-    iconClass: "icofont-tools",
-    children: [
-      { label: "Widgets Collection", href: "widgets.html" },
-      { label: "Web Component", href: "development-component.html" },
-      { label: "Web Elements", href: "development-elements.html" },
-      { label: "Loader Spinners", href: "loader-spiners.html" },
-    ],
-  },
-];
-
-const followerCards: PersonCard[] = [
-  { name: "Amy Watson", subtitle: "Bz University, Pakistan", image: "/images/resources/speak-1.jpg", actionLabel: "Follow" },
-  { name: "Muhammad Khan", subtitle: "Oxford University, UK", image: "/images/resources/speak-2.jpg", actionLabel: "Follow" },
-  { name: "Sadia Gill", subtitle: "Wb University, USA", image: "/images/resources/speak-3.jpg", actionLabel: "Follow" },
-  { name: "Rjapal", subtitle: "Km University, India", image: "/images/resources/speak-4.jpg", actionLabel: "Follow" },
-  { name: "Amy Watson", subtitle: "Oxford University, UK", image: "/images/resources/speak-5.jpg", actionLabel: "Follow" },
-  { name: "Bob Frank", subtitle: "WB University, Canada", image: "/images/resources/speak-6.jpg", actionLabel: "Follow" },
-];
-
-const followingCards: PersonCard[] = [
-  { name: "Amy Watson", subtitle: "Bz University, Pakistan", image: "/images/resources/speak-10.jpg", actionLabel: "Unfollow" },
-  { name: "Muhammad Khan", subtitle: "Oxford University, UK", image: "/images/resources/speak-11.jpg", actionLabel: "Unfollow" },
-  { name: "Sadia Gill", subtitle: "WB University, USA", image: "/images/resources/speak-12.jpg", actionLabel: "Unfollow" },
-  { name: "Rjapal", subtitle: "Km University, India", image: "/images/resources/speak-4.jpg", actionLabel: "Unfollow" },
-  { name: "Amy Watson", subtitle: "Oxford University, UK", image: "/images/resources/speak-1.jpg", actionLabel: "Unfollow" },
-  { name: "Bob Frank", subtitle: "WB University, Canada", image: "/images/resources/speak-2.jpg", actionLabel: "Unfollow" },
-];
-
-const suggestedResearchers: PersonCard[] = [
-  { name: "Amy Watson", subtitle: "Department of Sociology", image: "/images/resources/speak-1.jpg", actionLabel: "Follow" },
-  { name: "Muhammad Khan", subtitle: "Department of Sociology", image: "/images/resources/speak-2.jpg", actionLabel: "Follow" },
-  { name: "Sadia Gill", subtitle: "Department of Sociology", image: "/images/resources/speak-3.jpg", actionLabel: "Follow" },
-  { name: "Aykash Verma", subtitle: "Department of Sociology", image: "/images/resources/speak-4.jpg", actionLabel: "Follow" },
-];
-
-const whoIsFollowing: PersonCard[] = [
-  { name: "Kelly Bill", subtitle: "Dept colleague", image: "/images/resources/friend-avatar.jpg", actionLabel: "Follow" },
-  { name: "Issabel", subtitle: "Dept colleague", image: "/images/resources/friend-avatar2.jpg", actionLabel: "Follow" },
-  { name: "Andrew", subtitle: "Dept colleague", image: "/images/resources/friend-avatar3.jpg", actionLabel: "Follow" },
-  { name: "Sophia", subtitle: "Dept colleague", image: "/images/resources/friend-avatar4.jpg", actionLabel: "Follow" },
-  { name: "Allen", subtitle: "Dept colleague", image: "/images/resources/friend-avatar5.jpg", actionLabel: "Follow" },
-];
-
-const videoCards: VideoCard[] = [
-  { href: "https://www.youtube.com/watch?v=8iZTb9NWbz8", image: "/images/resources/user4.jpg", name: "Frank J.", meta: "1 year ago", views: "3.1k" },
-  { href: "https://www.youtube.com/watch?v=8itUNRIWVIs", image: "/images/resources/user2.jpg", name: "Maria K.", meta: "2 weeks ago", views: "1.1k" },
-  { href: "https://www.youtube.com/watch?v=JpxsRwnRwCQ", image: "/images/resources/user1.jpg", name: "Jack Carter", meta: "4 weeks ago", views: "20k" },
-  { href: "https://www.youtube.com/watch?v=WNeLUngb-Xg", image: "/images/resources/user3.jpg", name: "Fawad Jan", meta: "1 month ago", views: "8k" },
-];
-
-const defaultComments: CommentItem[] = [
-  {
-    name: "Jack Carter",
-    image: "/images/resources/user1.jpg",
-    time: "2 hours ago",
-    message: "I think that somehow we learn who we really are and then live with that decision. Great post!",
-    link: "https://www.youtube.com/watch?v=HpZgwHU1GcI",
-  },
-  {
-    name: "Ching xang",
-    image: "/images/resources/user2.jpg",
-    time: "2 hours ago",
-    message: "I think that somehow we learn who we really are and then live with that decision. Great post!",
-  },
-];
-
-const fallbackResearchImages = [
-  "/images/resources/image1.jpg",
-  "/images/resources/image2.jpg",
-  "/images/resources/image3.jpg",
-  "/images/resources/image4.jpg",
-  "/images/resources/image5.jpg",
-  "/images/resources/image6.jpg",
-];
-
-const fallbackTimelinePosts: ProfileTimelinePost[] = [
-  {
-    id: "article-post",
-    type: "article",
-    authorName: "Jack Carter",
-    authorImage: "/images/resources/user1.jpg",
-    activity: "shared a post",
-    published: "Sep 15, 2020",
-    title: "Supervision as a Personnel Development Device",
-    description:
-      "Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero.",
-    href: "post-detail.html",
-  },
-  {
-    id: "premium-post",
-    type: "premium",
-    authorName: "Maria K.",
-    authorImage: "/images/resources/user2.jpg",
-    activity: "shared a premium product",
-    published: "Sep 15, 2020",
-    title: "Technical Words 2026 Book World",
-    description:
-      "Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero.",
-    href: "book-detail.html",
-    image: "/images/resources/book5.jpg",
-    ctaLabel: "Buy Now",
-    ctaHref: "book-detail.html",
-    commentsOpen: true,
-  },
-  {
-    id: "image-post",
-    type: "image",
-    authorName: "Turgut Alp",
-    authorImage: "/images/resources/user3.jpg",
-    activity: "created a post",
-    published: "Sep 15, 2020",
-    title: "Supervision as a Personnel Development Device",
-    description:
-      "Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero.",
-    href: "post-detail.html",
-    image: "/images/resources/study.jpg",
-    emojiCount: "30+",
-  },
-  {
-    id: "album-post",
-    type: "album",
-    authorName: "Saim Turan",
-    authorImage: "/images/resources/user4.jpg",
-    activity: "added an image album",
-    published: "Sep 15, 2020",
-    title: "Visual research notes from the latest field study",
-    description:
-      "Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero.",
-    href: "post-detail.html",
-    images: [
-      "/images/resources/album1.jpg",
-      "/images/resources/album2.jpg",
-      "/images/resources/album6.jpg",
-      "/images/resources/album5.jpg",
-      "/images/resources/album4.jpg",
-    ],
-    morePhotosCount: 15,
-    emojiCount: "50+",
-  },
-  {
-    id: "link-post",
-    type: "link",
-    authorName: "Andrew Jhon",
-    authorImage: "/images/resources/user5.jpg",
-    activity: "shared a link",
-    published: "Sep 15, 2020",
-    title: "Winku Social Network with Company Pages Theme",
-    description:
-      "Winku is a social community mobile app kit with features for sharing blogs, posts, timeline updates, groups, pages, messages, videos and Q&A content.",
-    href: "https://themeforest.net/item/winku-social-network-toolkit-responsive-template/22363538",
-    image: "/images/resources/laptop.png",
-    fetchedImageLabel: "fetched-image",
-    commentsOpen: true,
-  },
-  {
-    id: "video-post",
-    type: "video",
-    authorName: "Maria K.",
-    authorImage: "/images/resources/user2.jpg",
-    activity: "shared a video",
-    published: "Sep 15, 2020",
-    description:
-      "Cookie? Biscuit? Bikkie? They all mean the same thing. This lesson compares pronunciation and vocabulary differences across Australia, America and England.",
-    embedUrl: "https://www.youtube.com/embed/zdow47FQRfQ",
-    emojiCount: "20+",
-  },
-  {
-    id: "gif-post",
-    type: "gif",
-    authorName: "Maria K.",
-    authorImage: "/images/resources/user2.jpg",
-    activity: "shared a gif",
-    published: "Sep 15, 2020",
-    gifPreview: "/images/giphy.png",
-    gifDataUrl: "/images/giphy-sample.gif",
-    emojiCount: "20+",
-  },
-];
-
-const fallbackEvents: EventCard[] = [
-  {
-    id: "networking-night",
-    title: "BZ University networking night in Columbia",
-    iconClass: "icofont-gift",
-    themeClass: "bg-purple",
-    image: "/images/clock.png",
-    href: "#",
-  },
-  {
-    id: "conference-2026",
-    title: "The 3rd International Conference 2026",
-    iconClass: "icofont-microphone",
-    themeClass: "bg-blue",
-    image: "/images/clock.png",
-    href: "#",
-  },
-];
-
-function readStoredUser(): UserDto | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  let rawUser: string | null = null;
-
+function getStoredUserSnapshot(): string | null {
+  if (typeof window === "undefined") return null;
   try {
-    rawUser = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-
-  if (!rawUser) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(rawUser) as UserDto;
-    return parsed && typeof parsed === "object" ? parsed : null;
+    return window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
   } catch {
     return null;
   }
 }
 
-function readStoredToken(): string | undefined {
-  if (typeof window === "undefined") {
-    return undefined;
-  }
-
-  try {
-    return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object";
-}
-
-function getFullName(user: UserDto | null): string {
-  if (!user) {
-    return "Guest User";
-  }
-
-  return `${user.firstName} ${user.lastName}`.trim() || user.email;
-}
-
-function getUserHandle(user: UserDto | null): string {
-  if (!user) {
-    return "@guest";
-  }
-
-  const emailPrefix = String(user.email || "").split("@")[0]?.trim();
-  if (emailPrefix) {
-    return `@${emailPrefix}`;
-  }
-
-  const normalizedName = getFullName(user).toLowerCase().replace(/[^a-z0-9]+/g, "");
-  return `@${normalizedName || "researcher"}`;
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) {
-    return "Not available";
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return "Not available";
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(parsed);
-}
-
-function formatOptionalValue(value: string | null | undefined, fallback: string): string {
-  const normalized = String(value || "").trim();
-  return normalized || fallback;
-}
-
-function normalizeStringList(value: unknown, fallback: string[]): string[] {
-  const normalized = Array.from(
-    new Set(
-      (Array.isArray(value) ? value : [])
-        .map((entry) => String(entry || "").trim())
-        .filter(Boolean),
-    ),
-  );
-
-  return normalized.length > 0 ? normalized : fallback;
-}
-
-function normalizePercent(value: unknown, fallback: number): number {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(100, Math.max(0, Math.round(parsed)));
-}
-
-function getCompletion(user: UserDto | null): number {
-  if (!user) {
-    return 0;
-  }
-
-  const fields = [
-    user.firstName,
-    user.lastName,
-    user.email,
-    user.researcherType,
-    user.institute,
-    user.department,
-    user.position,
-    user.gender,
-    user.avatarUrl,
-    user.coverImageUrl,
-  ];
-
-  const completed = fields.filter((field) => String(field || "").trim()).length;
-  return Math.round((completed / fields.length) * 100);
-}
-
-function getErrorMessage(error: unknown): string {
-  if (error && typeof error === "object") {
-    if ("data" in error) {
-      const data = (error as { data?: unknown }).data;
-      if (typeof data === "string" && data.trim()) {
-        return data.trim();
-      }
-
-      if (
-        isObjectRecord(data) &&
-        typeof (data as { message?: unknown }).message === "string"
-      ) {
-        return String((data as { message: string }).message);
-      }
-    }
-
-    if ("message" in error && typeof (error as { message?: unknown }).message === "string") {
-      return String((error as { message?: unknown }).message);
-    }
-  }
-
-  return "We could not load your profile from the backend.";
-}
-
-function getCountFromLabel(value: string | undefined, fallback = 0): number {
-  const parsed = Number.parseInt(String(value || "").replace(/[^\d]/g, ""), 10);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function getFallbackStats(emojiCount: string | undefined, commentCount: number): PostInteractionStats {
-  const likeCount = getCountFromLabel(emojiCount, 10);
-  const shareCount = 205;
-
-  return {
-    viewCount: Math.max(1, likeCount + commentCount + shareCount + 1),
-    likeCount,
-    commentCount,
-    shareCount,
-    likedByViewer: false,
+function subscribeToAuthStorage(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const onStorageUpdate = () => callback();
+  window.addEventListener("storage", onStorageUpdate);
+  window.addEventListener(AUTH_STORAGE_EVENT, onStorageUpdate);
+  return () => {
+    window.removeEventListener("storage", onStorageUpdate);
+    window.removeEventListener(AUTH_STORAGE_EVENT, onStorageUpdate);
   };
-}
-
-function getResolvedUser(user: Partial<UserDto> | null | undefined, fallbackUser: UserDto | null): UserDto {
-  const baseUser = user && typeof user === "object" ? user : fallbackUser;
-
-  return {
-    id: formatOptionalValue(baseUser?.id, ""),
-    firstName: formatOptionalValue(baseUser?.firstName, "Guest"),
-    lastName: formatOptionalValue(baseUser?.lastName, "User"),
-    email: formatOptionalValue(baseUser?.email, "guest@example.com"),
-    researcherType: baseUser?.researcherType ?? null,
-    institute: baseUser?.institute ?? null,
-    department: baseUser?.department ?? null,
-    position: baseUser?.position ?? null,
-    gender: baseUser?.gender ?? null,
-    avatarUrl: baseUser?.avatarUrl ?? null,
-    coverImageUrl: baseUser?.coverImageUrl ?? null,
-    bio: baseUser?.bio ?? null,
-    location: baseUser?.location ?? null,
-    website: baseUser?.website ?? null,
-    phoneNumber: baseUser?.phoneNumber ?? null,
-    skypeId: baseUser?.skypeId ?? null,
-    localTime: baseUser?.localTime ?? null,
-    disciplines: normalizeStringList(baseUser?.disciplines, []),
-    skills: normalizeStringList(baseUser?.skills, []),
-    createdAt: formatOptionalValue(baseUser?.createdAt, ""),
-  };
-}
-
-function buildProfileDashboard(profile: Partial<ProfileDashboard> | null | undefined, fallbackUser: UserDto | null): ProfileDashboard {
-  const resolvedUser = getResolvedUser(profile?.user, fallbackUser);
-  const fullName = formatOptionalValue(profile?.fullName, getFullName(resolvedUser));
-  const institute = formatOptionalValue(profile?.institute, formatOptionalValue(resolvedUser.institute, "Oxford University"));
-  const department = formatOptionalValue(profile?.department, formatOptionalValue(resolvedUser.department, "Department not added"));
-  const position = formatOptionalValue(profile?.position, formatOptionalValue(resolvedUser.position, "Professor Associate"));
-  const researcherType = formatOptionalValue(
-    profile?.researcherType,
-    formatOptionalValue(resolvedUser.researcherType, "Educational leadership"),
-  );
-  const gender = formatOptionalValue(profile?.gender, formatOptionalValue(resolvedUser.gender, "Not specified"));
-  const avatarUrl = formatOptionalValue(profile?.avatarUrl, formatOptionalValue(resolvedUser.avatarUrl, "/images/resources/user.jpg"));
-  const coverImageUrl = formatOptionalValue(
-    profile?.coverImageUrl,
-    formatOptionalValue(resolvedUser.coverImageUrl, "/images/resources/top-bg.jpg"),
-  );
-  const location = formatOptionalValue(
-    profile?.location,
-    formatOptionalValue(resolvedUser.location, [department, institute].filter(Boolean).join(", ")),
-  );
-  const joined = formatOptionalValue(profile?.joined, formatDate(resolvedUser.createdAt));
-  const completion = normalizePercent(profile?.completion, getCompletion(resolvedUser));
-  const disciplines = normalizeStringList(profile?.disciplines, [
-    ...resolvedUser.disciplines,
-    researcherType,
-    department,
-    "Educational assessment",
-    "Educational management",
-    "Social Psychology",
-    "Qualitative social research",
-  ]);
-  const skills = normalizeStringList(profile?.skills, [
-    ...resolvedUser.skills,
-    position,
-    institute,
-    "Research collaboration",
-    "Mentoring",
-    "Conference speaking",
-    `Profile completion ${completion}%`,
-  ]);
-  const contact = profile?.contact;
-  const analytics = profile?.analytics;
-
-  return {
-    user: resolvedUser,
-    fullName,
-    handle: formatOptionalValue(profile?.handle, getUserHandle(resolvedUser)),
-    institute,
-    department,
-    position,
-    researcherType,
-    gender,
-    avatarUrl,
-    coverImageUrl,
-    location,
-    joined,
-    completion,
-    disciplines,
-    skills,
-    bio: formatOptionalValue(
-      profile?.bio,
-      formatOptionalValue(
-        resolvedUser.bio,
-        `${fullName} is building research collaborations, sharing field notes, and contributing to academic conversations across the Extremis network.`,
-      ),
-    ),
-    headline: formatOptionalValue(profile?.headline, `${position} at ${institute}`),
-    contact: {
-      emailAddress: formatOptionalValue(contact?.emailAddress, resolvedUser.email),
-      phoneNumber: formatOptionalValue(contact?.phoneNumber, formatOptionalValue(resolvedUser.phoneNumber, "Not added")),
-      skypeId: formatOptionalValue(contact?.skypeId, formatOptionalValue(resolvedUser.skypeId, "Not added")),
-      website: formatOptionalValue(contact?.website, formatOptionalValue(resolvedUser.website, "Not added")),
-      localTime: formatOptionalValue(contact?.localTime, formatOptionalValue(resolvedUser.localTime, "3:40AM")),
-    },
-    analytics: {
-      profileCompletion: normalizePercent(analytics?.profileCompletion, completion),
-      researcherType: formatOptionalValue(analytics?.researcherType, researcherType),
-      institute: formatOptionalValue(analytics?.institute, institute),
-      joined: formatOptionalValue(analytics?.joined, joined),
-      followerCount: Number.isFinite(Number(analytics?.followerCount))
-        ? Number(analytics?.followerCount)
-        : followerCards.length,
-      followingCount: Number.isFinite(Number(analytics?.followingCount))
-        ? Number(analytics?.followingCount)
-        : followingCards.length,
-    },
-  };
-}
-
-function SmartLink({ href, children, ...props }: SmartLinkProps) {
-  if (href.startsWith("/")) {
-    return (
-      <Link href={href} {...props}>
-        {children}
-      </Link>
-    );
-  }
-
-  return (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  );
-}
-
-function PostMoreOptions() {
-  return (
-    <div className="more">
-      <div className="more-post-optns">
-        <i className="icofont-navigation-menu"></i>
-        <ul>
-          <li>
-            <i className="icofont-pen-alt-1"></i>Edit Post
-            <span>Edit this post within an hour</span>
-          </li>
-          <li>
-            <i className="icofont-ban"></i>Hide Post
-            <span>Hide this post from your timeline</span>
-          </li>
-          <li>
-            <i className="icofont-ui-delete"></i>Delete Post
-            <span>Remove the post permanently</span>
-          </li>
-          <li>
-            <i className="icofont-flag"></i>Report
-            <span>Flag inappropriate content</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function WeVideoInfo() {
-  return (
-    <div className="we-video-info">
-      <ul>
-        <li>
-          <span title="views" className="views">
-            <i className="icofont-eye-open"></i>
-            <ins>1.2k</ins>
-          </span>
-        </li>
-        <li>
-          <span title="Comments" className="Recommend">
-            <i className="icofont-comment"></i>
-            <ins>54</ins>
-          </span>
-        </li>
-        <li>
-          <span title="follow" className="Follow">
-            <i className="icofont-star"></i>
-            <ins>5k</ins>
-          </span>
-        </li>
-        <li>
-          <span className="share-pst" title="Share">
-            <i className="icofont-share"></i>
-            <ins>205</ins>
-          </span>
-        </li>
-      </ul>
-      <SmartLink href="post-detail.html" title="" className="reply">
-        Reply <i className="icofont-reply"></i>
-      </SmartLink>
-    </div>
-  );
-}
-
-function EmojiState({ count }: { count: string }) {
-  return (
-    <div className="emoji-state">
-      <div className="popover_wrapper">
-        <a className="popover_title" href="#" title="">
-          <img alt="" src="/images/smiles/thumb.png" />
-        </a>
-        <div className="popover_content">
-          <span>
-            <img alt="" src="/images/smiles/thumb.png" /> Likes
-          </span>
-          <ul className="namelist">
-            <li>Jhon Doe</li>
-            <li>Amara Sin</li>
-            <li>Sarah K.</li>
-            <li>
-              <span>20+ more</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="popover_wrapper">
-        <a className="popover_title" href="#" title="">
-          <img alt="" src="/images/smiles/heart.png" />
-        </a>
-        <div className="popover_content">
-          <span>
-            <img alt="" src="/images/smiles/heart.png" /> Love
-          </span>
-          <ul className="namelist">
-            <li>Amara Sin</li>
-            <li>Jhon Doe</li>
-            <li>
-              <span>10+ more</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="popover_wrapper">
-        <a className="popover_title" href="#" title="">
-          <img alt="" src="/images/smiles/smile.png" />
-        </a>
-        <div className="popover_content">
-          <span>
-            <img alt="" src="/images/smiles/smile.png" /> Happy
-          </span>
-          <ul className="namelist">
-            <li>Sarah K.</li>
-            <li>Jhon Doe</li>
-            <li>Amara Sin</li>
-            <li>
-              <span>100+ more</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="popover_wrapper">
-        <a className="popover_title" href="#" title="">
-          <img alt="" src="/images/smiles/weep.png" />
-        </a>
-        <div className="popover_content">
-          <span>
-            <img alt="" src="/images/smiles/weep.png" /> Dislike
-          </span>
-          <ul className="namelist">
-            <li>Danial Carbal</li>
-            <li>Amara Sin</li>
-            <li>Sarah K.</li>
-            <li>
-              <span>15+ more</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <p>{count}</p>
-    </div>
-  );
-}
-
-function CommentSection({ open, comments }: { open: boolean; comments: CommentItem[] }) {
-  return (
-    <div className="new-comment" style={{ display: open ? "block" : "none" }}>
-      <form method="post">
-        <input type="text" placeholder="write comment" />
-        <button type="submit">
-          <i className="icofont-paper-plane"></i>
-        </button>
-      </form>
-      <div className="comments-area">
-        <ul>
-          {comments.map((comment) => (
-            <li key={`${comment.name}-${comment.image}`}>
-              <figure>
-                <img alt="" src={comment.image} />
-              </figure>
-              <div className="commenter">
-                <h5>
-                  <a title="" href="#">
-                    {comment.name}
-                  </a>
-                </h5>
-                <span>{comment.time}</span>
-                <p>{comment.message}</p>
-                {comment.link ? (
-                  <>
-                    <span>you can view the more detail via link</span>
-                    <a title="" href={comment.link} target="_blank" rel="noreferrer">
-                      {comment.link}
-                    </a>
-                  </>
-                ) : null}
-              </div>
-              <a title="Like" href="#">
-                <i className="icofont-heart"></i>
-              </a>
-              <a title="Reply" href="#" className="reply-coment">
-                <i className="icofont-reply"></i>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function PostActions({
-  openComments,
-  emojiCount = "10+",
-  comments,
-}: {
-  openComments: boolean;
-  emojiCount?: string;
-  comments: CommentItem[];
-}) {
-  return (
-    <div className="stat-tools">
-      <div className="box">
-        <div className="Like">
-          <a className="Like__link" href="#">
-            <i className="icofont-like"></i> Like
-          </a>
-          <div className="Emojis">
-            <div className="Emoji Emoji--like">
-              <div className="icon icon--like"></div>
-            </div>
-            <div className="Emoji Emoji--love">
-              <div className="icon icon--heart"></div>
-            </div>
-            <div className="Emoji Emoji--haha">
-              <div className="icon icon--haha"></div>
-            </div>
-            <div className="Emoji Emoji--wow">
-              <div className="icon icon--wow"></div>
-            </div>
-            <div className="Emoji Emoji--sad">
-              <div className="icon icon--sad"></div>
-            </div>
-            <div className="Emoji Emoji--angry">
-              <div className="icon icon--angry"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <a title="" href="#" className="comment-to">
-        <i className="icofont-comment"></i> Comment
-      </a>
-      <a title="" href="#" className="share-to">
-        <i className="icofont-share-alt"></i> Share
-      </a>
-      <EmojiState count={emojiCount} />
-      <CommentSection open={openComments} comments={comments} />
-    </div>
-  );
-}
-
-function ProfilePost({
-  postId,
-  authorName,
-  authorImage,
-  activity,
-  published,
-  children,
-  commentsOpen = false,
-  emojiCount = "10+",
-  comments = defaultComments,
-  shareUrl,
-  stats,
-}: ProfilePostProps) {
-  return (
-    <div className="main-wraper">
-      <div className="user-post">
-        <div className="friend-info">
-          <figure>
-            <img alt="" src={authorImage} />
-          </figure>
-          <div className="friend-name">
-            <PostMoreOptions />
-            <ins>
-              <SmartLink title="" href="/profile">
-                {authorName}
-              </SmartLink>{" "}
-              {activity}
-            </ins>
-            <span>
-              <i className="icofont-globe"></i> published: {published}
-            </span>
-          </div>
-          <div className="post-meta">
-            {children}
-            <PostInteractions
-              postId={postId}
-              initialStats={stats || getFallbackStats(emojiCount, comments.length)}
-              initialComments={comments}
-              shareUrl={shareUrl}
-              defaultCommentsOpen={commentsOpen}
-              postDetailHref={postId ? `/posts/${postId}` : undefined}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function renderTimelinePost(post: ProfileTimelinePost, comments: CommentItem[]) {
-  if (!post || typeof post !== "object") {
-    return null;
-  }
-
-  const href = post.href || "#";
-  const ctaHref = post.ctaHref || href;
-  const title = post.title || "";
-  const description = post.description || "";
-  const emojiCount = post.emojiCount || "10+";
-  const image = post.image || "";
-  const images = post.images || [];
-  const resolvedComments = post.comments && post.comments.length > 0 ? post.comments : comments;
-  const resolvedStats = post.stats || getFallbackStats(emojiCount, resolvedComments.length);
-  const persistedPostId = post.type === "custom" ? post.id : undefined;
-
-  switch (post.type) {
-    case "article":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={href}
-          stats={resolvedStats}
-        >
-          <SmartLink href={href} className="post-title" title="">
-            {title}
-          </SmartLink>
-          <p>{description}</p>
-        </ProfilePost>
-      );
-    case "premium":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={ctaHref}
-          stats={resolvedStats}
-        >
-          <figure className="premium-post">
-            <img src={image} alt={title} />
-          </figure>
-          <div className="premium">
-            <SmartLink href={href} className="post-title" title="">
-              {title}
-            </SmartLink>
-            <p>{description}</p>
-            <SmartLink href={ctaHref} className="main-btn purchase-btn" title="">
-              <i className="icofont-cart-alt"></i> {post.ctaLabel || "Buy Now"}
-            </SmartLink>
-          </div>
-        </ProfilePost>
-      );
-    case "image":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={href}
-          stats={resolvedStats}
-        >
-          <figure>
-            <a data-toggle="modal" data-target="#img-comt" href={image}>
-              <img src={image} alt={title} />
-            </a>
-          </figure>
-          <SmartLink href={href} className="post-title" title="">
-            {title}
-          </SmartLink>
-          <p>{description}</p>
-        </ProfilePost>
-      );
-    case "album":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={href}
-          stats={resolvedStats}
-        >
-          <figure>
-            <div className="img-bunch">
-              <div className="row">
-                <div className="col-lg-6 col-md-6 col-sm-6">
-                  {images.slice(0, 2).map((albumImage) => (
-                    <figure key={albumImage}>
-                      <a data-toggle="modal" data-target="#img-comt" href={albumImage}>
-                        <img src={albumImage} alt={title} />
-                      </a>
-                    </figure>
-                  ))}
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-6">
-                  {images.slice(2).map((albumImage, index, rest) => (
-                    <figure key={albumImage}>
-                      <a data-toggle="modal" data-target="#img-comt" href={albumImage}>
-                        <img src={albumImage} alt={title} />
-                      </a>
-                      {index === rest.length - 1 && post.morePhotosCount ? (
-                        <div className="more-photos">
-                          <span>+{post.morePhotosCount}</span>
-                        </div>
-                      ) : null}
-                    </figure>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </figure>
-          <SmartLink href={href} className="post-title" title="">
-            {title}
-          </SmartLink>
-          <p>{description}</p>
-        </ProfilePost>
-      );
-    case "link":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={href}
-          stats={resolvedStats}
-        >
-          <em>
-            <a href={href} title="" target="_blank" rel="noreferrer">
-              {href}
-            </a>
-          </em>
-          <figure>
-            <span>{post.fetchedImageLabel || "fetched-image"}</span>
-            <img src={image} alt={title} />
-          </figure>
-          <a href={href} className="post-title" target="_blank" rel="noreferrer">
-            {title}
-          </a>
-          <p>{description}</p>
-        </ProfilePost>
-      );
-    case "video":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={post.embedUrl || href}
-          stats={resolvedStats}
-        >
-          <em>
-            <a href={post.embedUrl || href} title="" target="_blank" rel="noreferrer">
-              {post.embedUrl || href}
-            </a>
-          </em>
-          <iframe
-            title={`${post.authorName} shared video`}
-            height="285"
-            src={post.embedUrl}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-          <p>{description}</p>
-        </ProfilePost>
-      );
-    case "audio":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={post.linkUrl || href}
-          stats={resolvedStats}
-        >
-          {title ? (
-            <SmartLink href={href} className="post-title" title="">
-              {title}
-            </SmartLink>
-          ) : null}
-          {description ? <p>{description}</p> : null}
-          {post.audioSources && post.audioSources.length > 0 ? (
-            <div className="aud-vid">
-              <audio className="audio-player" controls>
-                {post.audioSources.map((source) => (
-                  <source
-                    key={`${source.url}-${source.mimeType || "audio"}`}
-                    src={source.url}
-                    type={source.mimeType || undefined}
-                  />
-                ))}
-              </audio>
-            </div>
-          ) : null}
-        </ProfilePost>
-      );
-    case "gif":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={href}
-          stats={resolvedStats}
-        >
-          <img className="gif" src={post.gifPreview} data-gif={post.gifDataUrl} alt={title || "Shared gif"} />
-        </ProfilePost>
-      );
-    case "sponsor":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={href}
-          stats={resolvedStats}
-        >
-          <ul className="sponsored-caro">
-            {(post.sponsorItems || []).map((item) => (
-              <li key={item.id}>
-                {item.image ? (
-                  <figure>
-                    <img src={item.image} alt={item.title} />
-                  </figure>
-                ) : null}
-                <div className="sponsor-prod-name">
-                  <a href={item.href || "#"} title={item.title}>
-                    {item.title}
-                  </a>
-                  {item.priceLabel ? <span>{item.priceLabel}</span> : null}
-                </div>
-                <a href={item.href || "#"} title={item.title} className="shop-btn">
-                  {item.ctaLabel || "Shop Now"}
-                </a>
-                {item.shareLabel || item.likeLabel ? (
-                  <div className="share-info">
-                    {item.shareLabel ? <span>{item.shareLabel}</span> : null}
-                    {item.likeLabel ? <span>{item.likeLabel}</span> : null}
-                  </div>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </ProfilePost>
-      );
-    case "custom":
-      return (
-        <ProfilePost
-          key={post.id}
-          postId={persistedPostId}
-          authorName={post.authorName}
-          authorImage={post.authorImage}
-          activity={post.activity}
-          published={post.published}
-          emojiCount={emojiCount}
-          commentsOpen={Boolean(post.commentsOpen)}
-          comments={resolvedComments}
-          shareUrl={post.linkUrl || href}
-          stats={resolvedStats}
-        >
-          {post.linkUrl ? (
-            <em>
-              <a href={post.linkUrl} title="" target="_blank" rel="noreferrer">
-                {post.linkUrl}
-              </a>
-            </em>
-          ) : null}
-          {post.description ? <p>{post.description}</p> : null}
-          {post.embedUrl ? (
-            <iframe
-              title={`${post.authorName} shared video`}
-              height="285"
-              src={post.embedUrl}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-          ) : null}
-          {!post.embedUrl && post.videoUrl ? (
-            <div className="custom-post-video">
-              <video controls preload="metadata" src={post.videoUrl}></video>
-            </div>
-          ) : null}
-          {post.attachmentType === "image" && post.attachmentUrl ? (
-            <figure>
-              <img src={post.attachmentUrl} alt={post.attachmentName || "Post attachment"} />
-            </figure>
-          ) : null}
-          {post.attachmentType === "video" && post.attachmentUrl ? (
-            <div className="custom-post-video">
-              <video controls preload="metadata" src={post.attachmentUrl}></video>
-            </div>
-          ) : null}
-          {post.attachmentType === "file" && post.attachmentUrl ? (
-            <a
-              href={post.attachmentUrl}
-              className="post-title custom-post-attachment"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {post.attachmentName || "Open attachment"}
-            </a>
-          ) : null}
-          {post.status === "scheduled" ? (
-            <p className="create-post-status is-success">Scheduled for {post.published}</p>
-          ) : null}
-        </ProfilePost>
-      );
-    default:
-      return null;
-  }
-}
-
-function SidebarNav() {
-  return (
-    <nav className="sidebar">
-      <ul className="menu-slide">
-        {sidebarMenu.map((item) => (
-          <li
-            key={item.title}
-            className={`${item.children ? "menu-item-has-children" : ""} ${item.active ? "active" : ""}`.trim()}
-          >
-            <a className="" href={item.href} title={item.title}>
-              <i className={item.iconClass}></i> {item.title}
-            </a>
-            {item.children ? (
-              <ul className="submenu">
-                {item.children.map((child) => (
-                  <li key={`${item.title}-${child.label}`}>
-                    <SmartLink href={child.href} title={child.label}>
-                      {child.label}
-                    </SmartLink>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
-type PersonGridProps = {
-  emptyMessage: string;
-  onToggleFollow: (person: PersonCard) => void;
-  people: PersonCard[];
-  pendingUserId: string | null;
-};
-
-function PersonGrid({ emptyMessage, onToggleFollow, people, pendingUserId }: PersonGridProps) {
-  if (!people.length) {
-    return (
-      <div className="main-wraper">
-        <p className="profile-page-two-empty">{emptyMessage}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="row merged-10 col-xs-6">
-      {people.map((person) => (
-        <div className="col-lg-4 col-md-4 col-sm-6" key={`${person.name}-${person.image}`}>
-          <div className="friendz">
-            <figure>
-              <img src={person.image} alt={person.name} />
-            </figure>
-            <span>
-              <SmartLink href={person.profileHref || "#"} title={person.name}>
-                {person.name}
-              </SmartLink>
-            </span>
-            <ins>{person.subtitle}</ins>
-            {person.canFollow && person.id ? (
-              <button
-                className="profile-follow-action"
-                disabled={pendingUserId === person.id}
-                type="button"
-                onClick={() => onToggleFollow(person)}
-              >
-                <i className="icofont-star"></i>{" "}
-                {pendingUserId === person.id ? "Updating..." : person.isFollowing ? "Following" : "Follow"}
-              </button>
-            ) : (
-              <span className="profile-follow-action is-static">
-                <i className="icofont-star"></i> {person.actionLabel}
-              </span>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export default function ProfilePageClient() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<ProfileTab>("timeline");
-  const [storedUser, setStoredUser] = useState<UserDto | null>(null);
-  const [uploadingKind, setUploadingKind] = useState<UploadKind | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [followError, setFollowError] = useState<string | null>(null);
-  const [pendingFollowUserId, setPendingFollowUserId] = useState<string | null>(null);
-  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
-  const [localCoverImageUrl, setLocalCoverImageUrl] = useState<string | null>(null);
-  const avatarInputRef = useRef<HTMLInputElement | null>(null);
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
-  const { data, error, isLoading } = useGetMyProfileQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
-  const [updateMyProfile] = useUpdateMyProfileMutation();
-  const [uploadProfileAsset] = useUploadProfileAssetMutation();
+  const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
+  const [picturesFilter, setPicturesFilter] = useState("all");
+  const [videosFilter, setVideosFilter] = useState("all");
+  const [friendsFilter, setFriendsFilter] = useState("all");
+
+  const userSnapshot = useSyncExternalStore(
+    subscribeToAuthStorage,
+    getStoredUserSnapshot,
+    () => null
+  );
+
+  const localUser = useMemo(() => {
+    if (!userSnapshot) return null;
+    try {
+      return JSON.parse(userSnapshot);
+    } catch {
+      return null;
+    }
+  }, [userSnapshot]);
+
+  const { data: profileData, refetch: refetchProfile } = useGetMyProfileQuery();
+  const { data: currentUserData, refetch: refetchUser } = useGetCurrentUserQuery();
+  const { data: discoverPeopleData } = useGetDiscoverPeopleQuery({ limit: 8 });
+  const [updateProfile, { isLoading: isUpdating }] = useUpdateMyProfileMutation();
+  const [uploadAsset, { isLoading: isUploading }] = useUploadProfileAssetMutation();
   const [toggleFollowUser] = useToggleFollowUserMutation();
-  const apiProfile = data?.profile ?? null;
-  const apiNetwork = data?.network ?? null;
-  const apiMedia = data?.media ?? null;
+  const [createPostMutation, { isLoading: isCreatingPost }] = useCreatePostMutation();
+  const [reactToPostMutation] = useReactToPostMutation();
+  const [addPostCommentMutation] = useAddPostCommentMutation();
+  const [sharePostMutation] = useSharePostMutation();
 
-  useEffect(() => {
-    if (!apiProfile?.user || typeof window === "undefined") {
-      return;
+  const user = profileData?.profile?.user || currentUserData?.user || localUser;
+  const profile = profileData?.profile;
+
+  const displayName = useMemo(() => {
+    if (profile?.fullName) return profile.fullName;
+    if (user?.firstName || user?.lastName) {
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim();
     }
+    return user?.email?.split("@")[0] || "Fahim Tomal";
+  }, [user, profile]);
 
-    const token = readStoredToken();
-    setAuthSession(token, apiProfile.user);
-  }, [apiProfile]);
+  const handle = useMemo(() => {
+    if (profile?.handle) return `@${profile.handle.replace(/^@/, "")}`;
+    if (user?.email) return `@${user.email.split("@")[0]}`;
+    return `@${displayName.toLowerCase().replace(/[^a-z0-9]+/g, "") || "admin"}`;
+  }, [profile, user, displayName]);
 
-  useEffect(() => {
-    const status =
-      error && typeof error === "object" && "status" in error
-        ? (error as { status?: number | string }).status
-        : null;
+  const avatarUrl = profile?.avatarUrl || user?.avatarUrl || "/images/resources/user.jpg";
+  const coverUrl = profile?.coverImageUrl || user?.coverImageUrl || "/images/resources/profile-banner.jpg";
 
-    if (status !== 401) {
-      return;
-    }
+  const stats = useMemo(() => {
+    const postCount = profileData?.timeline?.length ?? 7;
+    const followerCount = profile?.analytics?.followerCount ?? 0;
+    const followingCount = profile?.analytics?.followingCount ?? 0;
 
-    clearAuthSession();
-    router.replace("/login");
-  }, [error, router]);
-
-  useEffect(() => {
-    const handleStorage = () => {
-      setStoredUser(readStoredUser());
+    return {
+      posts: postCount,
+      followers: followerCount,
+      following: followingCount,
     };
+  }, [profileData, profile]);
 
-    handleStorage();
-    window.addEventListener("storage", handleStorage);
-    window.addEventListener(AUTH_STORAGE_EVENT, handleStorage);
+  // Form states for profile editing in About tab
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [bio, setBio] = useState("");
+  const [location, setLocation] = useState("");
+  const [website, setWebsite] = useState("");
+  const [profileSaveStatus, setProfileSaveStatus] = useState("");
 
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener(AUTH_STORAGE_EVENT, handleStorage);
-    };
-  }, []);
+  // Modals & Popups
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteStatus, setInviteStatus] = useState("");
 
-  const user = apiProfile?.user || storedUser;
+  const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+  const [questionTitle, setQuestionTitle] = useState("");
+  const [questionContent, setQuestionContent] = useState("");
+  const [questionStatus, setQuestionStatus] = useState("");
 
-  const profileData = useMemo<ProfileDashboard>(() => buildProfileDashboard(apiProfile, user), [apiProfile, user]);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
+  const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
+  const [activeChatTab, setActiveChatTab] = useState<"all" | "active" | "groups">("all");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const followersList = (Array.isArray(apiNetwork?.followers) ? apiNetwork.followers : followerCards).filter(
-    (person): person is PersonCard =>
-      isObjectRecord(person) &&
-      typeof person.name === "string" &&
-      typeof person.image === "string"
-  );
-  const followingList = (Array.isArray(apiNetwork?.following) ? apiNetwork.following : followingCards).filter(
-    (person): person is PersonCard =>
-      isObjectRecord(person) &&
-      typeof person.name === "string" &&
-      typeof person.image === "string"
-  );
-  const suggestedList = (Array.isArray(apiNetwork?.suggestions) ? apiNetwork.suggestions : suggestedResearchers).filter(
-    (person): person is PersonCard =>
-      isObjectRecord(person) &&
-      typeof person.name === "string" &&
-      typeof person.image === "string"
-  );
-  const whoIsFollowingList = (
-    Array.isArray(apiNetwork?.whoIsFollowing) ? apiNetwork.whoIsFollowing : whoIsFollowing
-  ).filter(
-    (person): person is PersonCard =>
-      isObjectRecord(person) &&
-      typeof person.name === "string" &&
-      typeof person.image === "string"
-  );
+  // New Post state
+  const [newPostText, setNewPostText] = useState("");
+  const [newPostsList, setNewPostsList] = useState<
+    Array<{
+      id: string;
+      content: string;
+      title?: string;
+      published: string;
+      authorName: string;
+      authorImage: string;
+      image?: string;
+      videoUrl?: string;
+      comments: Array<{ name: string; avatar: string; time: string; message: string }>;
+      stats: { viewCount: number; likeCount: number; commentCount: number; shareCount: number };
+    }>
+  >([]);
 
-  const handleToggleFollow = async (person: PersonCard) => {
-    if (!person.id || !person.canFollow || pendingFollowUserId) {
-      return;
+  // Post Interactions
+  const [postLikes, setPostLikes] = useState<Record<string, number>>({});
+  const [activeReaction, setActiveReaction] = useState<Record<string, string>>({});
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [postCommentsList, setPostCommentsList] = useState<
+    Record<string, Array<{ name: string; avatar: string; time: string; message: string }>>
+  >({});
+
+  const [followedPeople, setFollowedPeople] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (user || profile) {
+      setFirstName(user?.firstName || "");
+      setLastName(user?.lastName || "");
+      setHeadline(profile?.headline || profile?.department || "Lead Researcher & Developer");
+      setBio(
+        profile?.bio ||
+          user?.bio ||
+          "Building research collaborations, sharing field notes, and contributing to academic conversations across the Extremis network."
+      );
+      setLocation(profile?.location || user?.location || "Oxford, United Kingdom");
+      setWebsite(profile?.contact?.website || user?.website || "https://extremis.top");
     }
+  }, [user, profile]);
 
-    setFollowError(null);
-    setPendingFollowUserId(person.id);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     try {
-      await toggleFollowUser(person.id).unwrap();
-    } catch (toggleError) {
-      setFollowError(getErrorMessage(toggleError));
-    } finally {
-      setPendingFollowUserId(null);
+      const res = await uploadAsset({ file, kind: "avatar" }).unwrap();
+      if (res?.url) {
+        await updateProfile({ avatarUrl: res.url }).unwrap();
+        refetchProfile();
+        refetchUser();
+        if (localUser) {
+          setAuthSession(undefined, { ...localUser, avatarUrl: res.url });
+        }
+      }
+    } catch {
+      // handled gracefully
     }
   };
-  const videoList = (Array.isArray(apiMedia?.videos) ? apiMedia.videos : videoCards).filter(
-    (video): video is VideoCard =>
-      isObjectRecord(video) &&
-      typeof video.href === "string" &&
-      typeof video.image === "string" &&
-      typeof video.name === "string"
-  );
-  const commentItems = (Array.isArray(data?.comments) ? data.comments : defaultComments).filter(
-    (comment): comment is CommentItem =>
-      isObjectRecord(comment) &&
-      typeof comment.name === "string" &&
-      typeof comment.message === "string"
-  );
-  const researchImageList = (
-    Array.isArray(apiMedia?.researchImages) ? apiMedia.researchImages : fallbackResearchImages
-  ).filter((image): image is string => typeof image === "string" && image.trim().length > 0);
-  const eventList = (Array.isArray(data?.events) ? data.events : fallbackEvents).filter(
-    (event): event is EventCard =>
-      isObjectRecord(event) &&
-      typeof event.id === "string" &&
-      typeof event.title === "string"
-  );
-  const timelinePosts = (Array.isArray(data?.timeline) ? data.timeline : fallbackTimelinePosts).filter(
-    (post): post is ProfileTimelinePost =>
-      isObjectRecord(post) &&
-      typeof post.id === "string" &&
-      typeof post.type === "string" &&
-      typeof post.authorName === "string"
-  );
-  const leadingTimelinePosts = timelinePosts.slice(0, 2);
-  const trailingTimelinePosts = timelinePosts.slice(2);
-  const displayAvatarUrl = localAvatarUrl || profileData.avatarUrl;
-  const displayCoverImageUrl = localCoverImageUrl || profileData.coverImageUrl;
-  const profileFirstName = profileData.fullName.trim().split(/\s+/)[0] || "Researcher";
 
-  const openFilePicker = (kind: UploadKind) => {
-    setUploadError(null);
-    if (kind === "avatar") {
-      avatarInputRef.current?.click();
-      return;
-    }
-
-    coverInputRef.current?.click();
-  };
-
-  const handleMediaUpload = async (kind: UploadKind, event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-
-    if (!file) {
-      return;
-    }
-
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Please choose an image file for your profile media.");
-      return;
-    }
-
-    if (file.size > MAX_PROFILE_MEDIA_BYTES) {
-      setUploadError("Please choose an image smaller than 10MB.");
-      return;
-    }
-
-    setUploadingKind(kind);
-    setUploadError(null);
+  const handleCoverUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     try {
-      const uploaded = await uploadProfileAsset({ file, kind }).unwrap();
-      const updated = await updateMyProfile(
-        kind === "avatar" ? { avatarUrl: uploaded.url } : { coverImageUrl: uploaded.url },
-      ).unwrap();
-
-      if (kind === "avatar") {
-        setLocalAvatarUrl(uploaded.url);
-      } else {
-        setLocalCoverImageUrl(uploaded.url);
+      const res = await uploadAsset({ file, kind: "cover" }).unwrap();
+      if (res?.url) {
+        await updateProfile({ coverImageUrl: res.url }).unwrap();
+        refetchProfile();
+        refetchUser();
+        if (localUser) {
+          setAuthSession(undefined, { ...localUser, coverImageUrl: res.url });
+        }
       }
-
-      if (updated.profile?.user) {
-        const token = readStoredToken();
-        setAuthSession(token, updated.profile.user);
-      }
-    } catch (uploadMutationError) {
-      setUploadError(getErrorMessage(uploadMutationError));
-    } finally {
-      setUploadingKind(null);
+    } catch {
+      // handled gracefully
     }
   };
 
-  if (!user && !data?.profile && isLoading) {
-    return (
-      <section>
-        <div className="gap">
-          <div className="container">
-            <div className="main-wraper">
-              <h3 className="main-title">Loading profile</h3>
-              <p>Fetching your account details and building the TSX profile layout.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const handleSaveProfileInfo = async (e: FormEvent) => {
+    e.preventDefault();
+    setProfileSaveStatus("Saving changes...");
+    try {
+      const res = await updateProfile({
+        firstName,
+        lastName,
+        department: headline,
+        bio,
+        location,
+        website,
+      }).unwrap();
 
-  if (!user && !data?.profile && error) {
-    return (
-      <section>
-        <div className="gap">
-          <div className="container">
-            <div className="main-wraper">
-              <h3 className="main-title">Profile unavailable</h3>
-              <p>{getErrorMessage(error)}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+      if (res?.profile?.user && localUser) {
+        setAuthSession(undefined, {
+          ...localUser,
+          firstName: res.profile.user.firstName || firstName,
+          lastName: res.profile.user.lastName || lastName,
+          bio: res.profile.bio || bio,
+          location: res.profile.location || location,
+          website: res.profile.contact?.website || website,
+        });
+      }
+
+      setProfileSaveStatus("Profile updated successfully!");
+      refetchProfile();
+      refetchUser();
+      setTimeout(() => setProfileSaveStatus(""), 2500);
+    } catch {
+      setProfileSaveStatus("Failed to update profile.");
+      setTimeout(() => setProfileSaveStatus(""), 2500);
+    }
+  };
+
+  const handleCreatePost = async (e: FormEvent) => {
+    e.preventDefault();
+    const text = newPostText.trim();
+    if (!text) return;
+
+    try {
+      await createPostMutation({ content: text }).unwrap();
+      refetchProfile();
+    } catch {
+      // optimistic
+    }
+
+    setNewPostsList((prev) => [
+      {
+        id: `local-${Date.now()}`,
+        content: text,
+        published: "Just now",
+        authorName: displayName,
+        authorImage: avatarUrl,
+        comments: [],
+        stats: { viewCount: 1, likeCount: 0, commentCount: 0, shareCount: 0 },
+      },
+      ...prev,
+    ]);
+    setNewPostText("");
+  };
+
+  const handleAskQuestion = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!questionTitle.trim()) return;
+
+    try {
+      await createPostMutation({
+        title: questionTitle.trim(),
+        content: questionContent.trim(),
+        type: "article",
+      }).unwrap();
+      refetchProfile();
+      setQuestionStatus("Question posted successfully to research forum!");
+      setTimeout(() => {
+        setQuestionStatus("");
+        setQuestionTitle("");
+        setQuestionContent("");
+        setIsQuestionModalOpen(false);
+      }, 1200);
+    } catch {
+      setQuestionStatus("Question posted to local feed!");
+      setTimeout(() => {
+        setQuestionStatus("");
+        setIsQuestionModalOpen(false);
+      }, 1200);
+    }
+  };
+
+  const handleReaction = async (postId: string, emoji: string = "like") => {
+    setActiveReaction((prev) => ({ ...prev, [postId]: emoji }));
+    setPostLikes((prev) => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
+
+    if (postId && !postId.startsWith("local-")) {
+      try {
+        await reactToPostMutation({ postId, reactionType: emoji as any }).unwrap();
+        refetchProfile();
+      } catch {
+        // fallback
+      }
+    }
+  };
+
+  const toggleComment = (postId: string) => {
+    setOpenComments((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const handleAddComment = async (postId: string, e: FormEvent) => {
+    e.preventDefault();
+    const comment = commentInputs[postId]?.trim();
+    if (!comment) return;
+
+    if (postId && !postId.startsWith("local-")) {
+      try {
+        await addPostCommentMutation({ postId, message: comment }).unwrap();
+        refetchProfile();
+      } catch {
+        // fallback
+      }
+    }
+
+    setPostCommentsList((prev) => ({
+      ...prev,
+      [postId]: [
+        ...(prev[postId] || []),
+        {
+          name: displayName,
+          avatar: avatarUrl,
+          time: "Just now",
+          message: comment,
+        },
+      ],
+    }));
+
+    setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
+  };
+
+  const handleToggleFollow = async (userId: string, name: string) => {
+    setFollowedPeople((prev) => ({ ...prev, [name]: !prev[name] }));
+
+    if (userId && !userId.startsWith("local-")) {
+      try {
+        await toggleFollowUser(userId).unwrap();
+        refetchProfile();
+      } catch {
+        // fallback
+      }
+    }
+  };
+
+  // Follow people suggestions from backend
+  const followPeopleList = useMemo(() => {
+    const backendSuggestions = profileData?.network?.suggestions;
+    if (backendSuggestions && backendSuggestions.length > 0) {
+      return backendSuggestions;
+    }
+    const discoverUsers = discoverPeopleData?.users;
+    if (discoverUsers && discoverUsers.length > 0) {
+      return discoverUsers;
+    }
+    return [
+      { id: "1", name: "Dr. Sarah Lin", subtitle: "AI Research Lead", image: "/images/resources/user-pic1.jpg" },
+      { id: "2", name: "Prof. Marcus Vance", subtitle: "Neuroscience Chair", image: "/images/resources/user-pic2.jpg" },
+      { id: "3", name: "Elena Rostova", subtitle: "Quantum Computing", image: "/images/resources/user-pic3.jpg" },
+      { id: "4", name: "David Kim", subtitle: "Data Science Fellow", image: "/images/resources/user-pic4.jpg" },
+    ];
+  }, [profileData, discoverPeopleData]);
+
+  // Combined posts list
+  const combinedPosts = useMemo(() => {
+    const backendPosts = (profileData?.timeline || []).map((p) => ({
+      id: String(p.id),
+      content: p.content || p.description || "",
+      title: p.title,
+      published: p.published || "Recently",
+      authorName: p.authorName || displayName,
+      authorImage: p.authorImage || avatarUrl,
+      image: p.image || p.attachmentUrl || undefined,
+      videoUrl: p.videoUrl || p.embedUrl || undefined,
+      comments: (p.comments || []).map((c) => ({
+        name: c.name,
+        avatar: c.image || "/images/resources/user.jpg",
+        time: c.time,
+        message: c.message,
+      })),
+      stats: {
+        viewCount: p.stats?.viewCount ?? 120,
+        likeCount: p.stats?.likeCount ?? 15,
+        commentCount: p.stats?.commentCount ?? (p.comments?.length || 0),
+        shareCount: p.stats?.shareCount ?? 4,
+      },
+    }));
+
+    return [...newPostsList, ...backendPosts];
+  }, [newPostsList, profileData, displayName, avatarUrl]);
 
   return (
     <>
-      <SidebarNav />
-
-      <div className="gap no-gap">
-        <div className="top-area mate-black low-opacity">
-          <div className="bg-image" style={{ backgroundImage: `url(${displayCoverImageUrl})` }}></div>
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-12">
-                <div className="post-subject">
-                  <button
-                    type="button"
-                    className="profile-cover-trigger"
-                    onClick={() => openFilePicker("cover")}
-                    disabled={uploadingKind !== null}
-                    aria-label={uploadingKind === "cover" ? "Updating banner image" : "Change banner image"}
-                    title={uploadingKind === "cover" ? "Updating banner..." : "Change banner"}
-                  >
-                    <i className={uploadingKind === "cover" ? "icofont-spinner-alt-4" : "icofont-camera"}></i>
-                  </button>
-                  <div className="university-tag">
-                    <figure className="profile-avatar-figure">
-                      <img src={displayAvatarUrl} alt={profileData.fullName} />
-                      <button
-                        type="button"
-                        className="profile-avatar-trigger"
-                        onClick={() => openFilePicker("avatar")}
-                        disabled={uploadingKind !== null}
-                        aria-label={uploadingKind === "avatar" ? "Updating profile photo" : "Change profile photo"}
-                        title={uploadingKind === "avatar" ? "Updating profile photo..." : "Change profile photo"}
-                      >
-                        <i className={uploadingKind === "avatar" ? "icofont-spinner-alt-4" : "icofont-camera"}></i>
-                      </button>
-                    </figure>
-                    <div className="uni-name">
-                      <h4>{profileData.fullName}</h4>
-                      <span>{profileData.handle}</span>
-                      {uploadError ? <p className="profile-media-error">{uploadError}</p> : null}
-                    </div>
-                    <ul className="sharing-options">
-                      <li>
-                        <a title="Invite Colleagues" href="#" data-toggle="tooltip">
-                          <i className="icofont-id-card"></i>
-                        </a>
-                      </li>
-                      <li>
-                        <a title="Follow" href="#" data-toggle="tooltip">
-                          <i className="icofont-star"></i>
-                        </a>
-                      </li>
-                      <li>
-                        <a title="Share" href="#" data-toggle="tooltip">
-                          <i className="icofont-share-alt"></i>
-                        </a>
-                      </li>
-                    </ul>
-                    <a data-ripple="" title="" href="#" className="invite">
-                      Invite Colleagues
-                    </a>
-                  </div>
-                  <input
-                    ref={avatarInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="profile-media-input"
-                    onChange={(event) => handleMediaUpload("avatar", event)}
-                  />
-                  <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="profile-media-input"
-                    onChange={(event) => handleMediaUpload("cover", event)}
-                  />
-
-                  <ul className="nav nav-tabs post-detail-btn" role="tablist">
-                    <li className="nav-item">
-                      <a
-                        className={activeTab === "timeline" ? "active" : ""}
-                        href="#timeline"
-                        role="tab"
-                        aria-selected={activeTab === "timeline"}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setActiveTab("timeline");
-                        }}
-                      >
-                        Timeline
-                      </a>
-                    </li>
-                    <li className="nav-item">
-                      <a
-                        className={activeTab === "followers" ? "active" : ""}
-                        href="#followers"
-                        role="tab"
-                        aria-selected={activeTab === "followers"}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setActiveTab("followers");
-                        }}
-                      >
-                        Followers
-                      </a>
-                      <span>{followersList.length}</span>
-                    </li>
-                    <li className="nav-item">
-                      <a
-                        className={activeTab === "follow" ? "active" : ""}
-                        href="#follow"
-                        role="tab"
-                        aria-selected={activeTab === "follow"}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setActiveTab("follow");
-                        }}
-                      >
-                        Follow
-                      </a>
-                      <span>{followingList.length}</span>
-                    </li>
-                    <li className="nav-item">
-                      <a
-                        className={activeTab === "about" ? "active" : ""}
-                        href="#about"
-                        role="tab"
-                        aria-selected={activeTab === "about"}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setActiveTab("about");
-                        }}
-                      >
-                        About
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      {/* Profile Container Section */}
       <section>
         <div className="gap">
           <div className="container">
             <div className="row">
               <div className="col-lg-12">
                 <div id="page-contents" className="row merged20">
-                  <div className="col-lg-8">
-                    <div className="tab-content">
-                      <div className={`tab-pane fade ${activeTab === "timeline" ? "active show" : ""}`} id="timeline">
-                        <div className="main-wraper">
-                          <span className="new-title">Create New Post</span>
-                          <div className="new-post">
-                            <form method="post">
-                              <i className="icofont-pen-alt-1"></i>
-                              <input type="text" placeholder="Create New Post" />
-                            </form>
-                            <ul className="upload-media">
-                              <li>
-                                <i>
-                                  <img src="/images/image.png" alt="" />
-                                </i>
-                                <span>Photo/Video</span>
-                              </li>
-                              <li>
-                                <i>
-                                  <img src="/images/activity.png" alt="" />
-                                </i>
-                                <span>Feeling/Activity</span>
-                              </li>
-                              <li>
-                                <i>
-                                  <img src="/images/live-stream.png" alt="" />
-                                </i>
-                                <span>Live Stream</span>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        {leadingTimelinePosts.map((post) => renderTimelinePost(post, commentItems))}
-
-                        <div className="main-wraper">
-                          <div className="wraper-title">
-                            <span>
-                              <i className="icofont-video-alt"></i> Videos Play List
-                            </span>
-                            <SmartLink href="/videos" title="">
-                              See all Videos
-                            </SmartLink>
-                          </div>
-                          <div className="videos-caro">
-                            {videoList.map((video) => (
-                              <div className="item-video" data-merge="2" key={video.href}>
-                                <a className="owl-video" href={video.href}></a>
-                                <div className="posted-user">
-                                  <img src={video.image} alt={video.name} />
-                                  <span>{video.name}</span>
-                                </div>
-                                <div className="vid-info">
-                                  <span>{video.meta}</span>
-                                  <span>
-                                    <i className="icofont-eye-open"></i> {video.views}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {trailingTimelinePosts.map((post) => renderTimelinePost(post, commentItems))}
-
-                        <div className="main-wraper">
-                          <div className="user-post">
-                            <div className="friend-info">
-                              <figure>
-                                <i className="icofont-learn"></i>
-                              </figure>
-                              <div className="friend-name">
-                                <ins>
-                                  <a title="" href="#">
-                                    Suggested
-                                  </a>
-                                </ins>
-                                <span>
-                                  <i className="icofont-runner-alt-1"></i> Follow similar research people
-                                </span>
-                              </div>
-                              <ul className="suggested-caro">
-                                {suggestedList.map((person) => (
-                                  <li key={`${person.name}-${person.image}`}>
-                                    <figure>
-                                      <img src={person.image} alt={person.name} />
-                                    </figure>
-                                    <span>{person.name}</span>
-                                    <ins>{person.subtitle}</ins>
-                                    <a href="#" title="" data-ripple="">
-                                      <i className="icofont-star"></i> {person.actionLabel}
-                                    </a>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className={`tab-pane fade ${activeTab === "followers" ? "active show" : ""}`} id="followers">
-                        <PersonGrid
-                          emptyMessage="No followers yet. Share posts and invite colleagues to grow your research network."
-                          onToggleFollow={handleToggleFollow}
-                          pendingUserId={pendingFollowUserId}
-                          people={followersList}
-                        />
-                        {followError ? <p className="profile-follow-error">{followError}</p> : null}
-                      </div>
-
-                      <div className={`tab-pane fade ${activeTab === "follow" ? "active show" : ""}`} id="follow">
-                        <PersonGrid
-                          emptyMessage="You are not following anyone yet. Start with the suggested researchers below."
-                          onToggleFollow={handleToggleFollow}
-                          pendingUserId={pendingFollowUserId}
-                          people={followingList}
-                        />
-                        {!followingList.length ? (
-                          <div className="main-wraper">
-                            <h3 className="main-title">Suggested Researchers</h3>
-                            <PersonGrid
-                              emptyMessage="No suggested researchers are available right now."
-                              onToggleFollow={handleToggleFollow}
-                              pendingUserId={pendingFollowUserId}
-                              people={suggestedList}
-                            />
-                          </div>
-                        ) : null}
-                        {followError ? <p className="profile-follow-error">{followError}</p> : null}
-                      </div>
-
-                      <div className={`tab-pane fade ${activeTab === "about" ? "active show" : ""}`} id="about">
-                        <div className="main-wraper">
-                          <h3 className="main-title">About {profileFirstName}</h3>
-                          <div className="lang">
-                            <h6>Profile Snapshot</h6>
-                            <span>
-                              {profileData.researcherType}, {profileData.gender}
-                            </span>
-                          </div>
-                          <p>{profileData.bio}</p>
-
-                          <div className="dis-n-exp">
-                            <h6>Disciplines</h6>
-                            {profileData.disciplines.map((discipline) => (
-                              <span key={discipline}>{discipline}</span>
-                            ))}
-                          </div>
-                          <div className="dis-n-exp">
-                            <h6>Skills &amp; Expertise</h6>
-                            {profileData.skills.map((skill) => (
-                              <span key={skill}>{skill}</span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="main-wraper">
-                          <h3 className="main-title">Professional Experience</h3>
-                          <div className="exp-col">
-                            <div className="exp-meta">
-                              <h5>
-                                <i className="icofont-university"></i> {profileData.institute}
-                              </h5>
-                              <p>Joined {profileData.joined}</p>
-                              <span>Position</span>
-                              <ins>{profileData.position}</ins>
-                            </div>
-                            <img src="/images/resources/uni1.jpg" alt="" />
-                          </div>
-                          <div className="exp-col">
-                            <div className="exp-meta">
-                              <h5>
-                                <i className="icofont-university"></i> {profileData.department}
-                              </h5>
-                              <p>Current department focus</p>
-                              <span>Research area</span>
-                              <ins>{profileData.researcherType}</ins>
-                            </div>
-                            <img src="/images/resources/uni3.jpg" alt="" />
-                          </div>
-                          <div className="exp-col">
-                            <div className="exp-meta">
-                              <h5>
-                                <i className="icofont-university"></i> Account profile
-                              </h5>
-                              <p>{profileData.location}</p>
-                              <span>Completion</span>
-                              <ins>{profileData.completion}% complete</ins>
-                            </div>
-                            <img src="/images/resources/uni4.jpg" alt="" />
-                          </div>
-                        </div>
-
-                        <div className="main-wraper">
-                          <h3 className="main-title">Research Images &amp; PDF</h3>
-                          <div className="row merged-10">
-                            {researchImageList.map((image) => (
-                              <div className="col-lg-4" key={image}>
-                                <figure className="research-avatar">
-                                  <a className="uk-inline" href={image} data-fancybox="">
-                                    <img src={image} alt="" />
-                                  </a>
-                                </figure>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="col-lg-4">
-                    <aside className="sidebar static right">
+                  {/* LEFT SIDEBAR (3 Columns) */}
+                  <div className="col-lg-3">
+                    <aside className="sidebar static left">
+                      {/* Sponsored */}
                       <div className="widget">
-                        <h4 className="widget-title">Post Analytics</h4>
-                        <ul className="widget-analytics">
+                        <span>
+                          <i className="icofont-globe"></i> Sponsored
+                        </span>
+                        <ul className="sponsors-ad">
                           <li>
-                            Profile completion <span>{profileData.analytics.profileCompletion}%</span>
+                            <figure>
+                              <img alt="IQ Options" src="/images/resources/sponsor.jpg" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px" }} />
+                            </figure>
+                            <div className="sponsor-meta">
+                              <h5>
+                                <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                                  IQ Options Broker
+                                </a>
+                              </h5>
+                              <a target="_blank" rel="noopener noreferrer" title="" href="https://iqvie.com">
+                                www.iqvie.com
+                              </a>
+                            </div>
                           </li>
                           <li>
-                            Researcher type <span>{profileData.analytics.researcherType}</span>
-                          </li>
-                          <li>
-                            Institute <span>{profileData.analytics.institute}</span>
-                          </li>
-                          <li>
-                            Joined <span>{profileData.analytics.joined}</span>
+                            <figure>
+                              <img alt="BM Fashion" src="/images/resources/sponsor2.jpg" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px" }} />
+                            </figure>
+                            <div className="sponsor-meta">
+                              <h5>
+                                <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                                  BM Fashion Designer
+                                </a>
+                              </h5>
+                              <a target="_blank" rel="noopener noreferrer" title="" href="https://abcd.com">
+                                www.abcd.com
+                              </a>
+                            </div>
                           </li>
                         </ul>
                       </div>
+
+                      {/* Your Groups */}
+                      <div className="widget">
+                        <h4 className="widget-title">Your Groups</h4>
+                        <ul className="ak-groups">
+                          <li>
+                            <figure>
+                              <img alt="Good Group" src="/images/resources/your-group1.jpg" style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }} />
+                            </figure>
+                            <div className="your-grp">
+                              <h5>
+                                <Link title="" href="/groups">
+                                  Good Group
+                                </Link>
+                              </h5>
+                              <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                                <i className="icofont-bell-alt"></i> Notifications <span>13</span>
+                              </a>
+                              <Link className="promote" title="" href="/groups">
+                                view feed
+                              </Link>
+                            </div>
+                          </li>
+                          <li>
+                            <figure>
+                              <img alt="E-course Group" src="/images/resources/your-group2.jpg" style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }} />
+                            </figure>
+                            <div className="your-grp">
+                              <h5>
+                                <Link title="" href="/groups">
+                                  E-course Group
+                                </Link>
+                              </h5>
+                              <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                                <i className="icofont-bell-alt"></i> Notifications <span>13</span>
+                              </a>
+                              <Link className="promote" title="" href="/groups">
+                                view feed
+                              </Link>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Suggested Group */}
+                      <div className="widget">
+                        <h4 className="widget-title">Suggested Group</h4>
+                        <div className="sug-caro">
+                          <div className="friend-box" style={{ marginBottom: "15px" }}>
+                            <figure>
+                              <img alt="Social Research" src="/images/resources/sidebar-info.jpg" style={{ width: "100%", height: "130px", objectFit: "cover", borderRadius: "8px" }} />
+                              <span>Members: 505K</span>
+                            </figure>
+                            <div className="frnd-meta">
+                              <img alt="" src="/images/resources/user.jpg" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
+                              <div className="frnd-name">
+                                <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                                  Social Research
+                                </a>
+                                <span>@biolabest</span>
+                              </div>
+                              <a
+                                className="main-btn2"
+                                href="#"
+                                title=""
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  alert("Joined Social Research Community!");
+                                }}
+                              >
+                                Join Community
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ask Research Question */}
                       <div className="widget">
                         <h4 className="widget-title">Ask Research Question?</h4>
                         <div className="ask-question">
                           <i className="icofont-question-circle"></i>
-                          <h6>
-                            {profileData.fullName} can start a new research discussion or ask for help from experts in
-                            the field.
-                          </h6>
-                          <a className="ask-qst" href="#" title="">
+                          <h6>Ask questions in Q&amp;A to get help from experts in your field.</h6>
+                          <a
+                            className="ask-qst"
+                            href="#"
+                            title=""
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setIsQuestionModalOpen(true);
+                            }}
+                          >
                             Ask a question
                           </a>
                         </div>
                       </div>
+
+                      {/* Explore Events */}
                       <div className="widget">
                         <h4 className="widget-title">
                           Explore Events{" "}
-                          <a className="see-all" href="#" title="">
+                          <a className="see-all" href="#" title="" onClick={(e) => e.preventDefault()}>
                             See All
                           </a>
                         </h4>
-                        {eventList.map((event) => (
-                          <div className={`rec-events ${event.themeClass}`} key={event.id}>
-                            <i className={event.iconClass}></i>
-                            <h6>
-                              <a title="" href={event.href || "#"}>
-                                {event.title}
-                              </a>
-                            </h6>
-                            <img alt="" src={event.image} />
-                          </div>
-                        ))}
+                        <div className="rec-events bg-purple" style={{ marginBottom: "10px" }}>
+                          <i className="icofont-gift"></i>
+                          <h6>
+                            <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                              International Research Conference 2026
+                            </a>
+                          </h6>
+                          <img alt="" src="/images/clock.png" />
+                        </div>
+                        <div className="rec-events bg-blue">
+                          <i className="icofont-microphone"></i>
+                          <h6>
+                            <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                              Global Academic AI Symposium
+                            </a>
+                          </h6>
+                          <img alt="" src="/images/clock.png" />
+                        </div>
                       </div>
-                      <div className="widget stick-widget">
-                        <h4 className="widget-title">Who&apos;s following</h4>
-                        <ul className="followers">
-                          {whoIsFollowingList.map((person) => (
-                            <li key={`${person.name}-${person.image}`}>
-                              <figure>
-                                <img alt={person.name} src={person.image} />
-                              </figure>
-                              <div className="friend-meta">
-                                <h4>
-                                  <a title="" href="time-line.html">
-                                    {person.name}
-                                  </a>
-                                  <span>{person.subtitle}</span>
-                                </h4>
-                                <a className="underline" title="" href="#">
-                                  {person.actionLabel}
-                                </a>
-                              </div>
+                    </aside>
+                  </div>
+
+                  {/* MAIN PROFILE & FEEDS COLUMN (9 Columns) */}
+                  <div className="col-lg-9">
+                    <div className="group-feed">
+                      {/* Group/Profile Avatar & Banner Header */}
+                      <div className="group-avatar" style={{ position: "relative", borderRadius: "12px", overflow: "hidden" }}>
+                        <img
+                          src={coverUrl}
+                          alt="Cover"
+                          style={{ width: "100%", height: "320px", objectFit: "cover" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => coverInputRef.current?.click()}
+                          style={{
+                            position: "absolute",
+                            top: "20px",
+                            right: "20px",
+                            background: "rgba(0,0,0,0.65)",
+                            color: "#fff",
+                            border: "1px solid rgba(255,255,255,0.3)",
+                            padding: "8px 16px",
+                            borderRadius: "20px",
+                            fontSize: "13px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            zIndex: 10,
+                            backdropFilter: "blur(6px)",
+                          }}
+                        >
+                          <i className="icofont-camera"></i> {isUploading ? "Uploading..." : "Change Cover"}
+                        </button>
+                        <input
+                          type="file"
+                          ref={coverInputRef}
+                          onChange={handleCoverUpload}
+                          accept="image/*"
+                          style={{ display: "none" }}
+                        />
+
+                        {/* Edit Profile / Share button on banner */}
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("about")}
+                          style={{
+                            position: "absolute",
+                            bottom: "20px",
+                            right: "20px",
+                            background: "#088dcd",
+                            color: "#fff",
+                            border: "none",
+                            padding: "8px 20px",
+                            borderRadius: "25px",
+                            fontSize: "13px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            zIndex: 10,
+                            boxShadow: "0 4px 12px rgba(8, 141, 205, 0.4)",
+                          }}
+                        >
+                          <i className="icofont-edit"></i> Edit Profile
+                        </button>
+
+                        <figure className="group-dp" style={{ position: "relative" }}>
+                          <img
+                            src={avatarUrl}
+                            alt={displayName}
+                            style={{ width: "130px", height: "130px", borderRadius: "50%", objectFit: "cover", border: "4px solid #fff", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = "/images/resources/user.jpg";
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => avatarInputRef.current?.click()}
+                            style={{
+                              position: "absolute",
+                              bottom: "8px",
+                              right: "8px",
+                              background: "#088dcd",
+                              color: "#fff",
+                              border: "2px solid #fff",
+                              borderRadius: "50%",
+                              width: "32px",
+                              height: "32px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                            }}
+                            title="Upload Avatar"
+                          >
+                            <i className="icofont-camera"></i>
+                          </button>
+                          <input
+                            type="file"
+                            ref={avatarInputRef}
+                            onChange={handleAvatarUpload}
+                            accept="image/*"
+                            style={{ display: "none" }}
+                          />
+                        </figure>
+                      </div>
+
+                      {/* Profile Metadata & Tabs */}
+                      <div className="grp-info about">
+                        <h4>
+                          {displayName} <span>{handle}</span>
+                        </h4>
+                        <ul className="joined-info">
+                          <li><span>Joined:</span> {profile?.joined || "April 2024"}</li>
+                          <li><span>Following:</span> {stats.following}</li>
+                          <li><span>Followers:</span> {stats.followers}</li>
+                          <li><span>Posts:</span> {combinedPosts.length}</li>
+                        </ul>
+                        <ul className="nav nav-tabs about-btn">
+                          {(["posts", "pictures", "videos", "friends", "about"] as const).map((tab) => (
+                            <li className="nav-item" key={tab}>
+                              <a
+                                className={activeTab === tab ? "active" : ""}
+                                href={`#${tab}`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setActiveTab(tab);
+                                }}
+                              >
+                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                              </a>
                             </li>
                           ))}
                         </ul>
                       </div>
-                    </aside>
+
+                      {/* About Me Banner with Badges & Social Sharing */}
+                      <div className="main-wraper">
+                        <div className="grp-about">
+                          <div className="row align-items-center">
+                            <div className="col-lg-8 col-md-6">
+                              <h4>About Me!</h4>
+                              <p>{bio}</p>
+                              <ul className="badges">
+                                {[2, 3, 4, 5, 7, 8].map((b) => (
+                                  <li key={b}>
+                                    <img src={`/images/badges/badge${b}.png`} alt="Badge" />
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div className="col-lg-4 col-md-6">
+                              <div className="share-article">
+                                <span>Share Profile</span>
+                                <a href="#" title="Facebook" className="facebook" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }}><i className="icofont-facebook"></i></a>
+                                <a href="#" title="Pinterest" className="pinterest" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }}><i className="icofont-pinterest"></i></a>
+                                <a href="#" title="Instagram" className="instagram" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }}><i className="icofont-instagram"></i></a>
+                                <a href="#" title="Twitter" className="twitter" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }}><i className="icofont-twitter"></i></a>
+                                <a href="#" title="Google" className="google" onClick={(e) => { e.preventDefault(); setIsShareModalOpen(true); }}><i className="icofont-google-plus"></i></a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* TAB CONTENT PANES */}
+                      <div className="row">
+                        <div className="col-lg-12">
+                          <div className="tab-content">
+                            {/* ================= POSTS TAB ================= */}
+                            {activeTab === "posts" && (
+                              <div className="tab-pane active fade show" id="posts">
+                                <div className="row merged20">
+                                  <div className="col-lg-8">
+                                    {/* Create New Post Box */}
+                                    <div className="main-wraper">
+                                      <span className="new-title">Create New Post</span>
+                                      <div className="new-post">
+                                        <form onSubmit={handleCreatePost}>
+                                          <i className="icofont-pen-alt-1"></i>
+                                          <input
+                                            type="text"
+                                            placeholder="What's On Your Mind?"
+                                            value={newPostText}
+                                            onChange={(e) => setNewPostText(e.target.value)}
+                                          />
+                                          <button
+                                            type="submit"
+                                            className="main-btn"
+                                            style={{
+                                              position: "absolute",
+                                              right: "10px",
+                                              top: "8px",
+                                              padding: "6px 14px",
+                                              fontSize: "12px",
+                                              borderRadius: "6px",
+                                            }}
+                                            disabled={isCreatingPost || !newPostText.trim()}
+                                          >
+                                            {isCreatingPost ? "Posting..." : "Publish"}
+                                          </button>
+                                        </form>
+                                        <ul className="upload-media">
+                                          <li>
+                                            <a href="#" title="" onClick={(e) => { e.preventDefault(); setIsQuestionModalOpen(true); }}>
+                                              <i><img src="/images/image.png" alt="" /></i>
+                                              <span>Research Paper</span>
+                                            </a>
+                                          </li>
+                                          <li>
+                                            <a href="#" title="" onClick={(e) => { e.preventDefault(); setIsQuestionModalOpen(true); }}>
+                                              <i><img src="/images/activity.png" alt="" /></i>
+                                              <span>Field Note</span>
+                                            </a>
+                                          </li>
+                                          <li>
+                                            <a href="#" title="" onClick={(e) => { e.preventDefault(); setIsCreateRoomModalOpen(true); }}>
+                                              <i><img src="/images/live-stream.png" alt="" /></i>
+                                              <span>Live Stream</span>
+                                            </a>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    </div>
+
+                                    {/* Dynamic Posts from Backend and Local Feed */}
+                                    {combinedPosts.map((post) => {
+                                      const pLikes = postLikes[post.id] ?? post.stats.likeCount;
+                                      const pComments = [
+                                        ...post.comments,
+                                        ...(postCommentsList[post.id] || []),
+                                      ];
+
+                                      return (
+                                        <div className="main-wraper" key={post.id}>
+                                          <div className="user-post">
+                                            <div className="friend-info">
+                                              <figure>
+                                                <img
+                                                  alt=""
+                                                  src={post.authorImage || "/images/resources/user.jpg"}
+                                                  style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }}
+                                                  onError={(e) => {
+                                                    (e.currentTarget as HTMLImageElement).src = "/images/resources/user.jpg";
+                                                  }}
+                                                />
+                                              </figure>
+                                              <div className="friend-name">
+                                                <ins>
+                                                  <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                                                    {post.authorName}
+                                                  </a>{" "}
+                                                  Published
+                                                </ins>
+                                                <span>
+                                                  <i className="icofont-globe"></i> {post.published}
+                                                </span>
+                                              </div>
+                                              <div className="post-meta">
+                                                {post.title && (
+                                                  <h5 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px", color: "#1e293b" }}>
+                                                    {post.title}
+                                                  </h5>
+                                                )}
+                                                <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155" }}>
+                                                  {post.content}
+                                                </p>
+
+                                                {post.image && (
+                                                  <figure
+                                                    style={{ cursor: "pointer", marginTop: "12px", borderRadius: "8px", overflow: "hidden" }}
+                                                    onClick={() => setPreviewImage(post.image || null)}
+                                                  >
+                                                    <img src={post.image} alt="Attachment" style={{ width: "100%", maxHeight: "360px", objectFit: "cover" }} />
+                                                  </figure>
+                                                )}
+
+                                                <div className="we-video-info">
+                                                  <ul>
+                                                    <li>
+                                                      <span title="views" className="views">
+                                                        <i>
+                                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                                                        </i>
+                                                        <ins>{post.stats.viewCount}</ins>
+                                                      </span>
+                                                    </li>
+                                                    <li>
+                                                      <span
+                                                        title="Comments"
+                                                        className="Recommend"
+                                                        style={{ cursor: "pointer" }}
+                                                        onClick={() => toggleComment(post.id)}
+                                                      >
+                                                        <i>
+                                                          <svg className="feather feather-message-square" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                                                        </i>
+                                                        <ins>{pComments.length}</ins>
+                                                      </span>
+                                                    </li>
+                                                    <li>
+                                                      <span
+                                                        className="share-pst"
+                                                        title="Share"
+                                                        style={{ cursor: "pointer" }}
+                                                        onClick={() => setIsShareModalOpen(true)}
+                                                      >
+                                                        <i>
+                                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-share-2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
+                                                        </i>
+                                                        <ins>{post.stats.shareCount}</ins>
+                                                      </span>
+                                                    </li>
+                                                  </ul>
+                                                  <a href="#" title="" className="reply" onClick={(e) => { e.preventDefault(); toggleComment(post.id); }}>
+                                                    Reply <i className="icofont-reply"></i>
+                                                  </a>
+                                                </div>
+
+                                                <div className="stat-tools">
+                                                  <div className="box">
+                                                    <div className="Like">
+                                                      <a
+                                                        className="Like__link"
+                                                        onClick={() => handleReaction(post.id, "like")}
+                                                        style={{ cursor: "pointer", color: activeReaction[post.id] ? "#088dcd" : "inherit" }}
+                                                      >
+                                                        <i className="icofont-like"></i> {activeReaction[post.id] ? activeReaction[post.id].toUpperCase() : "Like"}
+                                                      </a>
+                                                      <div className="Emojis">
+                                                        <div className="Emoji Emoji--like" onClick={() => handleReaction(post.id, "like")}>
+                                                          <div className="icon icon--like"></div>
+                                                        </div>
+                                                        <div className="Emoji Emoji--love" onClick={() => handleReaction(post.id, "love")}>
+                                                          <div className="icon icon--heart"></div>
+                                                        </div>
+                                                        <div className="Emoji Emoji--haha" onClick={() => handleReaction(post.id, "haha")}>
+                                                          <div className="icon icon--haha"></div>
+                                                        </div>
+                                                        <div className="Emoji Emoji--wow" onClick={() => handleReaction(post.id, "wow")}>
+                                                          <div className="icon icon--wow"></div>
+                                                        </div>
+                                                        <div className="Emoji Emoji--sad" onClick={() => handleReaction(post.id, "sad")}>
+                                                          <div className="icon icon--sad"></div>
+                                                        </div>
+                                                        <div className="Emoji Emoji--angry" onClick={() => handleReaction(post.id, "angry")}>
+                                                          <div className="icon icon--angry"></div>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <a
+                                                    title=""
+                                                    href="#"
+                                                    className="comment-to"
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      toggleComment(post.id);
+                                                    }}
+                                                  >
+                                                    <i className="icofont-comment"></i> Comment
+                                                  </a>
+                                                  <a
+                                                    title=""
+                                                    href="#"
+                                                    className="share-to"
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      setIsShareModalOpen(true);
+                                                    }}
+                                                  >
+                                                    <i className="icofont-share-alt"></i> Share
+                                                  </a>
+                                                  <div className="emoji-state">
+                                                    <p>{pLikes}+ Reactions</p>
+                                                  </div>
+
+                                                  {/* Comments drawer */}
+                                                  {openComments[post.id] && (
+                                                    <div className="new-comment" style={{ display: "block", marginTop: "15px" }}>
+                                                      <form onSubmit={(e) => handleAddComment(post.id, e)}>
+                                                        <input
+                                                          type="text"
+                                                          placeholder="Write comment..."
+                                                          value={commentInputs[post.id] || ""}
+                                                          onChange={(e) =>
+                                                            setCommentInputs({ ...commentInputs, [post.id]: e.target.value })
+                                                          }
+                                                        />
+                                                        <button type="submit">
+                                                          <i className="icofont-paper-plane"></i>
+                                                        </button>
+                                                      </form>
+                                                      <div className="comments-area">
+                                                        <ul>
+                                                          {pComments.map((c, idx) => (
+                                                            <li key={idx}>
+                                                              <figure>
+                                                                <img
+                                                                  alt=""
+                                                                  src={c.avatar || "/images/resources/user.jpg"}
+                                                                  style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }}
+                                                                  onError={(e) => {
+                                                                    (e.currentTarget as HTMLImageElement).src = "/images/resources/user.jpg";
+                                                                  }}
+                                                                />
+                                                              </figure>
+                                                              <div className="commenter">
+                                                                <h5>
+                                                                  <a title="" href="#" onClick={(e) => e.preventDefault()}>
+                                                                    {c.name}
+                                                                  </a>
+                                                                </h5>
+                                                                <span>{c.time || "Just now"}</span>
+                                                                <p>{c.message}</p>
+                                                              </div>
+                                                            </li>
+                                                          ))}
+                                                        </ul>
+                                                      </div>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Right Sidebar Inside Feed */}
+                                  <div className="col-lg-4">
+                                    <aside className="sidebar static left">
+                                      {/* Advertisement Box */}
+                                      <div className="advertisment-box">
+                                        <h4>
+                                          <i className="icofont-info-circle"></i> Advertisement
+                                        </h4>
+                                        <figure style={{ borderRadius: "8px", overflow: "hidden" }}>
+                                          <a href="#" title="Advertisement" onClick={(e) => e.preventDefault()}>
+                                            <img src="/images/resources/sidebar-info.jpg" alt="Summit" style={{ width: "100%", height: "200px", objectFit: "cover" }} />
+                                          </a>
+                                        </figure>
+                                      </div>
+
+                                      {/* Follow People */}
+                                      <div className="widget">
+                                        <h4 className="widget-title">
+                                          Follow People{" "}
+                                          <a title="" href="#" className="see-all" onClick={(e) => { e.preventDefault(); setActiveTab("friends"); }}>
+                                            See All
+                                          </a>
+                                        </h4>
+                                        <ul className="invitepage">
+                                          {followPeopleList.map((person: any, i: number) => {
+                                            const pName = person.name || "Colleague";
+                                            const isFollowed = followedPeople[pName] || person.isFollowing;
+                                            return (
+                                              <li key={person.id || i}>
+                                                <figure>
+                                                  <img
+                                                    alt=""
+                                                    src={person.image || person.avatarUrl || "/images/resources/user.jpg"}
+                                                    style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
+                                                    onError={(e) => {
+                                                      (e.currentTarget as HTMLImageElement).src = "/images/resources/user.jpg";
+                                                    }}
+                                                  />
+                                                  <a href="#" onClick={(e) => e.preventDefault()}>
+                                                    {pName}
+                                                  </a>
+                                                </figure>
+                                                <button
+                                                  className="sug-like"
+                                                  onClick={() => handleToggleFollow(person.id || String(i), pName)}
+                                                  style={{
+                                                    background: isFollowed ? "#088dcd" : "transparent",
+                                                    color: isFollowed ? "#fff" : "inherit",
+                                                  }}
+                                                >
+                                                  <i className="invit">
+                                                    {isFollowed ? "Following" : "Follow"}
+                                                  </i>
+                                                  <i className="icofont-check-alt"></i>
+                                                </button>
+                                              </li>
+                                            );
+                                          })}
+                                        </ul>
+                                      </div>
+
+                                      {/* Recent Media */}
+                                      <div className="widget">
+                                        <h4 className="widget-title">Recent Media</h4>
+                                        <div className="recent-media">
+                                          <figure style={{ cursor: "pointer" }} onClick={() => setPreviewImage("/images/resources/user-video7.jpg")}>
+                                            <img src="/images/resources/user-video7.jpg" alt="" />
+                                            <span className="play-btn">
+                                              <i className="icofont-play"></i>
+                                            </span>
+                                            <span>Lab Workshop 2026</span>
+                                          </figure>
+                                          <figure style={{ cursor: "pointer" }} onClick={() => setPreviewImage("/images/resources/user-video10.jpg")}>
+                                            <img src="/images/resources/user-video10.jpg" alt="" />
+                                            <span className="play-btn">
+                                              <i className="icofont-play"></i>
+                                            </span>
+                                            <span>AI Research Symposium</span>
+                                          </figure>
+                                        </div>
+                                      </div>
+                                    </aside>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ================= PICTURES TAB ================= */}
+                            {activeTab === "pictures" && (
+                              <div className="tab-pane active fade show" id="pictures">
+                                <h5 className="tab-title">
+                                  Pictures <span>15</span>
+                                </h5>
+                                <ul className="pix-filter">
+                                  {["all", "profile", "albums", "mobile"].map((filter) => (
+                                    <li key={filter}>
+                                      <a
+                                        className={picturesFilter === filter ? "active" : ""}
+                                        href="#"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          setPicturesFilter(filter);
+                                        }}
+                                      >
+                                        {filter === "all" ? "All Photos" : filter === "profile" ? "Profile Pictures" : filter === "albums" ? "Albums" : "From Mobile"}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                                <div className="row merged-10">
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                                    <div className="col-lg-3 col-md-4 col-sm-6" key={n}>
+                                      <div
+                                        className="uzr-pictures"
+                                        style={{ cursor: "pointer", marginBottom: "15px", borderRadius: "8px", overflow: "hidden" }}
+                                        onClick={() => setPreviewImage(`/images/resources/user-pic${n}.jpg`)}
+                                      >
+                                        <img alt="" src={`/images/resources/user-pic${n}.jpg`} style={{ width: "100%", height: "180px", objectFit: "cover" }} />
+                                        <ul className="hover-action">
+                                          <li>
+                                            <span style={{ color: "#fff" }}><i className="icofont-like"></i> {n * 7 + 3}</span>
+                                          </li>
+                                          <li>
+                                            <span style={{ color: "#fff" }}><i className="icofont-chat"></i> {n * 3}</span>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ================= VIDEOS TAB ================= */}
+                            {activeTab === "videos" && (
+                              <div className="tab-pane active fade show" id="videos">
+                                <h5 className="tab-title">
+                                  Videos <span>12</span>
+                                </h5>
+                                <ul className="pix-filter">
+                                  {["all", "views", "newest", "mobile"].map((filter) => (
+                                    <li key={filter}>
+                                      <a
+                                        className={videosFilter === filter ? "active" : ""}
+                                        href="#"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          setVideosFilter(filter);
+                                        }}
+                                      >
+                                        {filter === "all" ? "All Videos" : filter === "views" ? "Most Views" : filter === "newest" ? "Newest" : "Mobile Videos"}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                                <div className="row merged-10">
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                                    <div className="col-lg-4 col-md-4 col-sm-6" key={n}>
+                                      <div className="user-video" style={{ marginBottom: "20px" }}>
+                                        <figure
+                                          style={{ cursor: "pointer", borderRadius: "8px", overflow: "hidden" }}
+                                          onClick={() => setPreviewImage(`/images/resources/user-video${n}.jpg`)}
+                                        >
+                                          <img alt="" src={`/images/resources/user-video${n}.jpg`} style={{ width: "100%", height: "160px", objectFit: "cover" }} />
+                                          <span className="play-btn">
+                                            <i className="icofont-play"></i>
+                                          </span>
+                                        </figure>
+                                        <span>Research Session #{n}</span>
+                                        <ul className="vid-action">
+                                          <li>
+                                            <a href="#" title="" onClick={(e) => e.preventDefault()}>
+                                              <i className="icofont-like"></i> {n * 8 + 12}
+                                            </a>
+                                          </li>
+                                          <li>
+                                            <a href="#" title="" onClick={(e) => e.preventDefault()}>
+                                              <i className="icofont-chat"></i> {n * 4}
+                                            </a>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ================= FRIENDS TAB ================= */}
+                            {activeTab === "friends" && (
+                              <div className="tab-pane active fade show" id="friends">
+                                <h5 className="tab-title">
+                                  Network &amp; Colleagues <span>{profileData?.network?.followers?.length || 8}</span>
+                                </h5>
+                                <ul className="pix-filter">
+                                  {["all", "followers", "following"].map((filter) => (
+                                    <li key={filter}>
+                                      <a
+                                        className={friendsFilter === filter ? "active" : ""}
+                                        href="#"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          setFriendsFilter(filter);
+                                        }}
+                                      >
+                                        {filter === "all" ? "All Colleagues" : filter === "followers" ? "Followers" : "Following"}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                                <div className="row merged-10">
+                                  {(profileData?.network?.followers || [
+                                    { id: "f1", name: "Dr. Amy Watson", subtitle: "Oxford University, UK", image: "/images/resources/user-pic1.jpg" },
+                                    { id: "f2", name: "Prof. Muhammad Khan", subtitle: "Harvard Medical School", image: "/images/resources/user-pic2.jpg" },
+                                    { id: "f3", name: "Dr. Sadia Gill", subtitle: "Stanford Research Lab", image: "/images/resources/user-pic3.jpg" },
+                                    { id: "f4", name: "Rajpal Sharma", subtitle: "Cambridge University", image: "/images/resources/user-pic4.jpg" },
+                                    { id: "f5", name: "Bob Frank", subtitle: "MIT Technology Review", image: "/images/resources/user-pic5.jpg" },
+                                    { id: "f6", name: "Maria Rossi", subtitle: "Sorbonne University, Paris", image: "/images/resources/user-pic6.jpg" },
+                                    { id: "f7", name: "James Wilson", subtitle: "Imperial College London", image: "/images/resources/user-pic7.jpg" },
+                                    { id: "f8", name: "Chloe Dupont", subtitle: "ETH Zurich", image: "/images/resources/user-pic8.jpg" },
+                                  ]).map((fr: any, idx: number) => (
+                                    <div className="col-lg-3 col-md-4 col-sm-6" key={fr.id || idx}>
+                                      <div className="friendz" style={{ marginBottom: "15px", borderRadius: "10px", padding: "16px", textAlign: "center", background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                                        <figure style={{ margin: "0 auto 10px", width: "70px", height: "70px" }}>
+                                          <img
+                                            src={fr.image || "/images/resources/user.jpg"}
+                                            alt=""
+                                            style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover" }}
+                                            onError={(e) => {
+                                              (e.currentTarget as HTMLImageElement).src = "/images/resources/user.jpg";
+                                            }}
+                                          />
+                                        </figure>
+                                        <span style={{ display: "block", fontWeight: "700", fontSize: "14px" }}>
+                                          <a href="#" title="" onClick={(e) => e.preventDefault()}>
+                                            {fr.name}
+                                          </a>
+                                        </span>
+                                        <ins style={{ display: "block", fontSize: "12px", color: "#64748b", textDecoration: "none", margin: "4px 0 10px" }}>
+                                          {fr.subtitle || "Researcher"}
+                                        </ins>
+                                        <a
+                                          href="#"
+                                          title=""
+                                          className="main-btn"
+                                          style={{
+                                            display: "inline-block",
+                                            padding: "4px 14px",
+                                            fontSize: "12px",
+                                            borderRadius: "15px",
+                                            background: followedPeople[fr.name] ? "#088dcd" : "#e2e8f0",
+                                            color: followedPeople[fr.name] ? "#fff" : "#334155",
+                                          }}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            handleToggleFollow(fr.id || String(idx), fr.name);
+                                          }}
+                                        >
+                                          <i className="icofont-star"></i> {followedPeople[fr.name] ? "Following" : "Follow"}
+                                        </a>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ================= ABOUT TAB ================= */}
+                            {activeTab === "about" && (
+                              <div className="tab-pane active fade show" id="about">
+                                <div className="row merged20">
+                                  <div className="col-lg-8">
+                                    <div className="main-wraper">
+                                      <h5 className="main-title">Personal Information</h5>
+                                      <form onSubmit={handleSaveProfileInfo} className="c-form" style={{ marginTop: "15px" }}>
+                                        <div className="row">
+                                          <div className="col-lg-6 mb-3">
+                                            <label style={{ fontSize: "12px", fontWeight: "600", color: "#334155" }}>First Name</label>
+                                            <input
+                                              type="text"
+                                              value={firstName}
+                                              onChange={(e) => setFirstName(e.target.value)}
+                                              style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}
+                                            />
+                                          </div>
+                                          <div className="col-lg-6 mb-3">
+                                            <label style={{ fontSize: "12px", fontWeight: "600", color: "#334155" }}>Last Name</label>
+                                            <input
+                                              type="text"
+                                              value={lastName}
+                                              onChange={(e) => setLastName(e.target.value)}
+                                              style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}
+                                            />
+                                          </div>
+                                          <div className="col-lg-12 mb-3">
+                                            <label style={{ fontSize: "12px", fontWeight: "600", color: "#334155" }}>Headline / Department</label>
+                                            <input
+                                              type="text"
+                                              value={headline}
+                                              onChange={(e) => setHeadline(e.target.value)}
+                                              style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}
+                                            />
+                                          </div>
+                                          <div className="col-lg-12 mb-3">
+                                            <label style={{ fontSize: "12px", fontWeight: "600", color: "#334155" }}>Bio</label>
+                                            <textarea
+                                              rows={3}
+                                              value={bio}
+                                              onChange={(e) => setBio(e.target.value)}
+                                              style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}
+                                            ></textarea>
+                                          </div>
+                                          <div className="col-lg-6 mb-3">
+                                            <label style={{ fontSize: "12px", fontWeight: "600", color: "#334155" }}>Location</label>
+                                            <input
+                                              type="text"
+                                              value={location}
+                                              onChange={(e) => setLocation(e.target.value)}
+                                              style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}
+                                            />
+                                          </div>
+                                          <div className="col-lg-6 mb-3">
+                                            <label style={{ fontSize: "12px", fontWeight: "600", color: "#334155" }}>Website</label>
+                                            <input
+                                              type="text"
+                                              value={website}
+                                              onChange={(e) => setWebsite(e.target.value)}
+                                              style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: "8px" }}
+                                            />
+                                          </div>
+                                          <div className="col-lg-12">
+                                            <button
+                                              type="submit"
+                                              className="main-btn"
+                                              disabled={isUpdating}
+                                              style={{
+                                                padding: "10px 24px",
+                                                borderRadius: "8px",
+                                                background: "#088dcd",
+                                                color: "#fff",
+                                                border: "none",
+                                                cursor: "pointer",
+                                                fontWeight: "600",
+                                              }}
+                                            >
+                                              {isUpdating ? "Saving changes..." : "Save Changes"}
+                                            </button>
+                                            {profileSaveStatus && (
+                                              <span style={{ marginLeft: "15px", fontWeight: "600", color: "#16a34a" }}>
+                                                {profileSaveStatus}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </form>
+                                    </div>
+                                  </div>
+
+                                  <div className="col-lg-4">
+                                    <aside className="sidebar">
+                                      <div className="widget">
+                                        <h4 className="widget-title">Complete Your Profile</h4>
+                                        <span>Fill out your details to connect with peers and boost research visibility.</span>
+                                        <div
+                                          style={{
+                                            margin: "15px 0",
+                                            padding: "12px",
+                                            background: "#f0fdf4",
+                                            border: "1px solid #bbf7d0",
+                                            borderRadius: "10px",
+                                            textAlign: "center",
+                                            color: "#16a34a",
+                                            fontWeight: "700",
+                                            fontSize: "20px",
+                                          }}
+                                        >
+                                          {profile?.completion || 85}% Completed
+                                        </div>
+                                        <ul className="prof-complete">
+                                          <li><i className="icofont-check-circled" style={{ color: "#16a34a" }}></i> Profile Picture Added</li>
+                                          <li><i className="icofont-check-circled" style={{ color: "#16a34a" }}></i> University Verified</li>
+                                          <li><i className="icofont-check-circled" style={{ color: "#16a34a" }}></i> Research Bio Published</li>
+                                        </ul>
+                                      </div>
+
+                                      <div className="widget">
+                                        <h4 className="widget-title">User stats</h4>
+                                        <ul className="user-stat">
+                                          <li><i className="icofont-paper"></i><span>Total Posts <em>{combinedPosts.length}</em></span></li>
+                                          <li><i className="icofont-users"></i><span>Followers <em>{stats.followers}</em></span></li>
+                                          <li><i className="icofont-star"></i><span>Following <em>{stats.following}</em></span></li>
+                                        </ul>
+                                      </div>
+                                    </aside>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2076,18 +1431,306 @@ export default function ProfilePageClient() {
         </div>
       </section>
 
-      <figure className="bottom-mockup">
-        <img src="/images/footer.png" alt="" />
-      </figure>
-      <div className="bottombar">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12">
-              <span>&copy; copyright All rights reserved by Extremis 2020</span>
+      {/* Floating Action Buttons */}
+      <div className="cart-product">
+        <Link href="/cart" title="View Cart">
+          <i className="icofont-cart-alt"></i>
+        </Link>
+        <span>03</span>
+      </div>
+
+      <div
+        className="chat-live"
+        style={{ cursor: "pointer" }}
+        onClick={() => setIsChatBoxOpen(!isChatBoxOpen)}
+      >
+        <a className="chat-btn" href="#" onClick={(e) => e.preventDefault()} title="Start Live Chat">
+          <i className="icofont-facebook-messenger"></i>
+        </a>
+        <span>07</span>
+      </div>
+
+      {/* Live Chat Box Widget */}
+      {isChatBoxOpen && (
+        <div
+          className="chat-box"
+          style={{
+            display: "block",
+            position: "fixed",
+            bottom: "80px",
+            right: "20px",
+            zIndex: 99990,
+            background: "#fff",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+            borderRadius: "10px",
+            width: "320px",
+            overflow: "hidden",
+          }}
+        >
+          <div className="chat-head" style={{ padding: "12px 15px", background: "#088dcd", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h4 style={{ margin: 0, fontSize: "15px", color: "#fff" }}>Live Messages</h4>
+            <span style={{ cursor: "pointer" }} onClick={() => setIsChatBoxOpen(false)}>
+              <i className="icofont-close-circled"></i>
+            </span>
+          </div>
+          <div className="user-tabs" style={{ padding: "10px 15px" }}>
+            <ul className="nav nav-tabs" style={{ display: "flex", gap: "8px", borderBottom: "1px solid #eee", paddingBottom: "8px" }}>
+              <li className="nav-item">
+                <a
+                  className={activeChatTab === "all" ? "active" : ""}
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); setActiveChatTab("all"); }}
+                  style={{ fontSize: "12px", fontWeight: "600", color: activeChatTab === "all" ? "#088dcd" : "#777" }}
+                >
+                  All Friends
+                </a>
+              </li>
+              <li className="nav-item">
+                <a
+                  className={activeChatTab === "active" ? "active" : ""}
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); setActiveChatTab("active"); }}
+                  style={{ fontSize: "12px", fontWeight: "600", color: activeChatTab === "active" ? "#088dcd" : "#777" }}
+                >
+                  Active (3)
+                </a>
+              </li>
+            </ul>
+            <div style={{ maxHeight: "200px", overflowY: "auto", marginTop: "10px" }}>
+              {[
+                { name: "Dr. Amy Watson", img: "/images/resources/user-pic1.jpg", status: "online" },
+                { name: "Prof. Marcus Vance", img: "/images/resources/user-pic2.jpg", status: "away" },
+                { name: "Elena Rostova", img: "/images/resources/user-pic3.jpg", status: "offline" },
+              ].map((f, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "6px 0", cursor: "pointer" }}>
+                  <img src={f.img} alt="" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
+                  <span style={{ fontSize: "13px", fontWeight: "500" }}>{f.name}</span>
+                  <span style={{ fontSize: "10px", color: f.status === "online" ? "green" : "#999", marginLeft: "auto" }}>
+                    ● {f.status}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Ask Question Modal */}
+      {isQuestionModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 99999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setIsQuestionModalOpen(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "10px",
+              maxWidth: "500px",
+              width: "100%",
+              padding: "25px",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span
+              style={{ position: "absolute", top: "15px", right: "20px", cursor: "pointer", fontSize: "20px" }}
+              onClick={() => setIsQuestionModalOpen(false)}
+            >
+              <i className="icofont-close"></i>
+            </span>
+            <h5>Ask Research Question</h5>
+            <form onSubmit={handleAskQuestion} style={{ marginTop: "15px" }}>
+              <input
+                type="text"
+                placeholder="Question Title"
+                value={questionTitle}
+                onChange={(e) => setQuestionTitle(e.target.value)}
+                style={{ width: "100%", padding: "10px", border: "1px solid #dfdfdf", borderRadius: "5px", marginBottom: "10px" }}
+                required
+              />
+              <textarea
+                placeholder="Write detailed question..."
+                rows={3}
+                value={questionContent}
+                onChange={(e) => setQuestionContent(e.target.value)}
+                style={{ width: "100%", padding: "10px", border: "1px solid #dfdfdf", borderRadius: "5px", marginBottom: "10px" }}
+                required
+              ></textarea>
+              <button type="submit" className="main-btn" style={{ width: "100%", padding: "10px", borderRadius: "5px" }}>
+                Post Question
+              </button>
+              {questionStatus && (
+                <p style={{ marginTop: "10px", color: "#38a169", fontWeight: "600", fontSize: "13px" }}>{questionStatus}</p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {isShareModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 99999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setIsShareModalOpen(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "10px",
+              maxWidth: "400px",
+              width: "100%",
+              padding: "25px",
+              textAlign: "center",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span
+              style={{ position: "absolute", top: "15px", right: "20px", cursor: "pointer", fontSize: "20px" }}
+              onClick={() => setIsShareModalOpen(false)}
+            >
+              <i className="icofont-close"></i>
+            </span>
+            <h5>Share To Social Media</h5>
+            <div style={{ display: "flex", justifyContent: "center", gap: "15px", marginTop: "20px" }}>
+              <button
+                className="main-btn"
+                style={{ background: "#3b5998", padding: "8px 16px" }}
+                onClick={() => { alert("Shared to Facebook!"); setIsShareModalOpen(false); }}
+              >
+                Facebook
+              </button>
+              <button
+                className="main-btn"
+                style={{ background: "#1da1f2", padding: "8px 16px" }}
+                onClick={() => { alert("Shared to Twitter!"); setIsShareModalOpen(false); }}
+              >
+                Twitter
+              </button>
+              <button
+                className="main-btn"
+                style={{ background: "#0077b5", padding: "8px 16px" }}
+                onClick={() => { alert("Shared to LinkedIn!"); setIsShareModalOpen(false); }}
+              >
+                LinkedIn
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Lightbox Modal */}
+      {previewImage && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setPreviewImage(null)}
+        >
+          <div style={{ position: "relative", maxWidth: "90%", maxHeight: "90%" }} onClick={(e) => e.stopPropagation()}>
+            <span
+              style={{
+                position: "absolute",
+                top: "-40px",
+                right: "0",
+                color: "#fff",
+                fontSize: "30px",
+                cursor: "pointer",
+              }}
+              onClick={() => setPreviewImage(null)}
+            >
+              &times;
+            </span>
+            <img src={previewImage} alt="Preview" style={{ maxWidth: "100%", maxHeight: "80vh", borderRadius: "8px" }} />
+          </div>
+        </div>
+      )}
+
+      {/* Create Room Modal */}
+      {isCreateRoomModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 99999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setIsCreateRoomModalOpen(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "10px",
+              maxWidth: "450px",
+              width: "100%",
+              padding: "25px",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span
+              style={{ position: "absolute", top: "15px", right: "20px", cursor: "pointer", fontSize: "20px" }}
+              onClick={() => setIsCreateRoomModalOpen(false)}
+            >
+              <i className="icofont-close"></i>
+            </span>
+            <div style={{ textAlign: "center", marginBottom: "15px" }}>
+              <i className="icofont-video-cam" style={{ fontSize: "36px", color: "#088dcd" }}></i>
+              <h4>Create Your Live Room</h4>
+            </div>
+            <ul style={{ listStyle: "none", padding: 0, margin: "20px 0" }}>
+              <li style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #eee" }}>
+                <span>Room Activity: <strong>{displayName}&apos;s Room</strong></span>
+                <input type="checkbox" defaultChecked />
+              </li>
+              <li style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #eee" }}>
+                <span>Start Time: <strong>Now</strong></span>
+                <input type="checkbox" defaultChecked />
+              </li>
+              <li style={{ display: "flex", justifyContent: "space-between", padding: "10px 0" }}>
+                <span>Invite All Friends</span>
+                <input type="checkbox" defaultChecked />
+              </li>
+            </ul>
+            <button
+              className="main-btn"
+              style={{ width: "100%", padding: "10px" }}
+              onClick={() => { alert("Live room created!"); setIsCreateRoomModalOpen(false); }}
+            >
+              Start Live Room
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

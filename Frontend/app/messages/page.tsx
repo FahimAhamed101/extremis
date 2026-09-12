@@ -207,7 +207,7 @@ export default function MessagesPage() {
             <div className="container">
               <div className="row">
                 <div className="col-lg-12">
-                  <span>&copy; copyright All rights reserved by Extremis 2020</span>
+                  <span>&copy; copyright All rights reserved by Updates 2020</span>
                 </div>
               </div>
             </div>

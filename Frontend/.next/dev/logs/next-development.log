@@ -1,2 +1,10 @@
-[00:00:06.399] Server  LOG     ✓ Ready in 5.6s
-[00:12:42.229] Browser ERROR   uncaughtError: Error: No URL provided.
+[00:00:09.082] Server  LOG     ✓ Ready in 8.4s
+[00:00:13.873] Server  LOG     ○ Compiling /checkout ...
+[00:00:50.179] Browser ERROR   uncaughtError: Error: failed to find stick parent
+[00:06:48.955] Server  LOG     ○ Compiling /courses ...
+[00:10:32.287] Server  WARN    ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:11:29.540] Browser ERROR   uncaughtError: NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+[00:11:43.553] Server  ERROR   RangeError: Failed to allocate memory
+[00:11:43.557] Server  ERROR   ⨯ "unhandledRejection:" RangeError: Failed to allocate memory
+[00:11:43.559] Server  ERROR   ⨯ "unhandledRejection: " RangeError: Failed to allocate memory
+[00:12:50.785] Browser ERROR   uncaughtError: NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.

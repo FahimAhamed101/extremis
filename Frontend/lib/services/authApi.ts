@@ -193,7 +193,8 @@ export type PostType =
   | "video"
   | "gif"
   | "audio"
-  | "sponsor";
+  | "sponsor"
+  | "bg";
 
 export type PostAudioSource = {
   url: string;
@@ -366,6 +367,7 @@ export type GetPostResponse = {
 
 export type CreatePostPayload = {
   type?: PostType;
+  postType?: PostType;
   title?: string;
   content?: string;
   description?: string;
@@ -375,6 +377,7 @@ export type CreatePostPayload = {
   image?: string | null;
   images?: string[];
   linkUrl?: string | null;
+  videoUrl?: string | null;
   href?: string | null;
   ctaLabel?: string | null;
   ctaHref?: string | null;
@@ -394,6 +397,7 @@ export type CreatePostPayload = {
   morePhotosCount?: number;
   commentsOpen?: boolean;
   activity?: string | null;
+  activityLabel?: string | null;
   audience?: PostAudience;
   activityFeed?: boolean;
   myStory?: boolean;
@@ -505,11 +509,11 @@ export type UpdateMyProfilePayload = {
 
 export type UploadProfileAssetPayload = {
   file: File;
-  kind: "avatar" | "cover" | "post";
+  kind: "avatar" | "cover" | "post" | "video";
 };
 
 export type UploadProfileAssetResponse = {
-  kind: "avatar" | "cover" | "upload";
+  kind: "avatar" | "cover" | "upload" | "video";
   publicId: string;
   resourceType: string;
   url: string;
@@ -538,13 +542,15 @@ function getCloudinaryFolder(kind: UploadProfileAssetPayload["kind"]): string {
       return "extremis/avatars";
     case "cover":
       return "extremis/covers";
+    case "video":
+      return "extremis/videos";
     default:
       return "extremis/uploads";
   }
 }
 
 function getUploadResponseKind(kind: UploadProfileAssetPayload["kind"]): UploadProfileAssetResponse["kind"] {
-  if (kind === "avatar" || kind === "cover") {
+  if (kind === "avatar" || kind === "cover" || kind === "video") {
     return kind;
   }
 
@@ -686,6 +692,14 @@ export const authApi = createApi({
       }),
       providesTags: ["Posts"],
     }),
+    createPost: builder.mutation<CreatePostResponse, CreatePostPayload>({
+      query: (body) => ({
+        url: "/posts",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Posts", "Profile"],
+    }),
     getPostById: builder.query<GetPostResponse, string>({
       query: (postId) => ({
         url: `/posts/${postId}`,
@@ -740,81 +754,124 @@ export const authApi = createApi({
     }),
     uploadProfileAsset: builder.mutation<UploadProfileAssetResponse, UploadProfileAssetPayload>({
       queryFn: async ({ file, kind }) => {
-        if (!cloudinaryCloudName || !cloudinaryUploadPreset) {
-          return {
-            error: {
-              status: 500,
-              data: {
-                message:
-                  "Cloudinary upload is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.",
-              },
-            },
-          };
+        let token: string | null = null;
+        if (typeof window !== "undefined") {
+          try {
+            token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+          } catch {
+            token = null;
+          }
+          if (!token) {
+            token = readCookie(AUTH_COOKIE_NAME);
+          }
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", cloudinaryUploadPreset);
-        formData.append("folder", getCloudinaryFolder(kind));
-        formData.append("public_id", `${kind}-${Date.now()}`);
-
+        // 1. Try uploading to backend /uploads endpoint
         try {
-          const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/auto/upload`,
-            {
-              method: "POST",
-              body: formData,
-              cache: "no-store",
-            }
-          );
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("kind", kind);
 
-          const payload = (await response
-            .json()
-            .catch(() => ({}))) as CloudinaryUploadResponse;
-
-          if (!response.ok || !payload.secure_url || !payload.public_id || !payload.resource_type) {
-            return {
-              error: {
-                status: response.status || 500,
-                data: {
-                  message: payload?.error?.message || "Cloudinary upload failed.",
-                },
-              },
-            };
+          const headers: Record<string, string> = {};
+          if (token) {
+            headers["authorization"] = `Bearer ${token}`;
           }
+
+          const backendRes = await fetch(`${resolvedApiRoot}/uploads`, {
+            method: "POST",
+            headers,
+            body: formData,
+          });
+
+          if (backendRes.ok) {
+            const data = await backendRes.json();
+            if (data?.url) {
+              return {
+                data: {
+                  kind: getUploadResponseKind(kind),
+                  publicId: data.publicId || `${kind}-${Date.now()}`,
+                  resourceType: data.resourceType || "image",
+                  url: data.url,
+                  bytes: Number(data.bytes || file.size),
+                  width: data.width ?? null,
+                  height: data.height ?? null,
+                  originalFilename: data.originalFilename || file.name,
+                },
+              };
+            }
+          }
+        } catch {
+          // Backend endpoint failed or unreachable, continue to fallbacks
+        }
+
+        // 2. Try direct Cloudinary client-side upload if keys are present
+        if (cloudinaryCloudName && cloudinaryUploadPreset) {
+          try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", cloudinaryUploadPreset);
+            formData.append("folder", getCloudinaryFolder(kind));
+            formData.append("public_id", `${kind}-${Date.now()}`);
+
+            const response = await fetch(
+              `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/auto/upload`,
+              {
+                method: "POST",
+                body: formData,
+                cache: "no-store",
+              }
+            );
+
+            const payload = (await response.json().catch(() => ({}))) as CloudinaryUploadResponse;
+            if (response.ok && payload.secure_url) {
+              return {
+                data: {
+                  kind: getUploadResponseKind(kind),
+                  publicId: payload.public_id || `${kind}-${Date.now()}`,
+                  resourceType: payload.resource_type || "image",
+                  url: payload.secure_url,
+                  bytes: Number(payload.bytes || file.size),
+                  width: payload.width ?? null,
+                  height: payload.height ?? null,
+                  originalFilename: payload.original_filename || file.name,
+                },
+              };
+            }
+          } catch {
+            // Client upload failed, continue to Data URL fallback
+          }
+        }
+
+        // 3. Fallback to Data URL so avatar/cover updates immediately and persists to MongoDB
+        try {
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
 
           return {
             data: {
               kind: getUploadResponseKind(kind),
-              publicId: payload.public_id,
-              resourceType: payload.resource_type,
-              url: payload.secure_url,
-              bytes: Number(payload.bytes || file.size),
-              width: payload.width ?? null,
-              height: payload.height ?? null,
-              originalFilename: payload.original_filename || file.name,
+              publicId: `${kind}-${Date.now()}`,
+              resourceType: "image",
+              url: dataUrl,
+              bytes: file.size,
+              width: null,
+              height: null,
+              originalFilename: file.name,
             },
           };
         } catch (error) {
           return {
             error: {
               status: "FETCH_ERROR",
-              error:
-                error instanceof Error && error.message
-                  ? error.message
-                  : "Upload request failed.",
+              error: error instanceof Error ? error.message : "Failed to process image.",
             },
           };
         }
       },
-    }),
-    createPost: builder.mutation<CreatePostResponse, CreatePostPayload>({
-      query: (body) => ({
-        url: "/posts",
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: ["Posts", "Profile"],
     }),
     reactToPost: builder.mutation<UpdatePostInteractionResponse, ReactToPostPayload>({
       query: ({ postId, reactionType }) => ({
@@ -846,8 +903,73 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Posts", "Profile"],
     }),
+    createOrder: builder.mutation<CreateOrderResponse, CreateOrderPayload>({
+      query: (body) => ({
+        url: "/orders",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
+
+export type CreateOrderPayload = {
+  items: {
+    itemId: string;
+    name: string;
+    price: number;
+    qty: number;
+    img?: string;
+    type?: string;
+  }[];
+  billingDetails: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    country?: string;
+    state?: string;
+    zipCode?: string;
+    specialNotes?: string;
+  };
+  courier?: {
+    name: string;
+    cost: number;
+    eta?: string;
+  };
+  payment?: {
+    method: string;
+    cardLast4?: string;
+    cardHolder?: string;
+    cryptoAddress?: string;
+  };
+  pricing: {
+    subtotal: number;
+    discount?: number;
+    shipping?: number;
+    tax?: number;
+    grandTotal: number;
+    couponCode?: string;
+  };
+};
+
+export type CreateOrderResponse = {
+  ok: boolean;
+  message: string;
+  order: {
+    _id: string;
+    orderNumber: string;
+    status: string;
+    pricing: {
+      subtotal: number;
+      discount: number;
+      shipping: number;
+      tax: number;
+      grandTotal: number;
+      couponCode: string;
+    };
+    createdAt: string;
+  };
+};
 
 export const {
   useSignupMutation,
@@ -873,4 +995,6 @@ export const {
   useTogglePostLikeMutation,
   useAddPostCommentMutation,
   useSharePostMutation,
+  useCreateOrderMutation,
 } = authApi;
+

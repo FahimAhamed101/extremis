@@ -45,6 +45,36 @@ async function protect(req, res, next) {
   }
 }
 
+async function optionalAuth(req, res, next) {
+  try {
+    const authorization = String(req.headers.authorization || "").trim();
+    if (!authorization.startsWith("Bearer ")) {
+      next();
+      return;
+    }
+
+    const token = authorization.slice(7).trim();
+    if (!token) {
+      next();
+      return;
+    }
+
+    const secret = generateToken.getJwtSecret();
+    const decoded = jwt.verify(token, secret);
+    const userId = decoded && typeof decoded === "object" ? decoded.sub : null;
+    if (userId) {
+      const user = await User.findById(userId);
+      if (user) {
+        req.user = user;
+      }
+    }
+    next();
+  } catch {
+    next();
+  }
+}
+
 module.exports = {
   protect,
+  optionalAuth,
 };

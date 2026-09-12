@@ -3,9 +3,10 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { type FeedPost, useGetFeedPostsQuery } from "@/lib/services/authApi";
 import PostInteractions from "@/components/posts/PostInteractions";
+import CreatePostCard from "@/components/posts/CreatePostCard";
 
 type SmartLinkProps = {
   href: string;
@@ -61,7 +62,13 @@ function renderAlbum(images: string[], title: string, morePhotosCount?: number) 
             {images.slice(0, 2).map((albumImage) => (
               <figure key={albumImage}>
                 <a data-toggle="modal" data-target="#img-comt" href={albumImage}>
-                  <img src={albumImage} alt={title} />
+                  <img
+                    src={albumImage}
+                    alt={title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                    }}
+                  />
                 </a>
               </figure>
             ))}
@@ -70,7 +77,13 @@ function renderAlbum(images: string[], title: string, morePhotosCount?: number) 
             {images.slice(2).map((albumImage, index, rest) => (
               <figure key={albumImage}>
                 <a data-toggle="modal" data-target="#img-comt" href={albumImage}>
-                  <img src={albumImage} alt={title} />
+                  <img
+                    src={albumImage}
+                    alt={title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                    }}
+                  />
                 </a>
                 {index === rest.length - 1 && morePhotosCount ? (
                   <div className="more-photos">
@@ -97,6 +110,40 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
   const sponsorItems = post.sponsorItems || [];
 
   switch (post.type) {
+    case "bg":
+      return (
+        <div
+          className="bg-post-card"
+          style={{
+            background: image
+              ? `linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.88) 100%), url(${image}) center/cover no-repeat`
+              : "linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #7c3aed 100%)",
+            borderRadius: "12px",
+            padding: "36px 24px",
+            color: "#ffffff",
+            textAlign: "center",
+            margin: "12px 0 16px",
+            minHeight: "170px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 8px 24px -4px rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          {title ? (
+            <h4 style={{ color: "#ffffff", fontSize: "20px", fontWeight: "700", marginBottom: "8px" }}>
+              {title}
+            </h4>
+          ) : null}
+          {description ? (
+            <p style={{ color: "#f8fafc", fontSize: "16px", fontWeight: "500", lineHeight: "1.6", maxWidth: "520px", margin: "0 auto" }}>
+              {description}
+            </p>
+          ) : null}
+        </div>
+      );
+
     case "article":
       return (
         <>
@@ -105,15 +152,34 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
               {title}
             </SmartLink>
           ) : null}
+          {image ? (
+            <figure style={{ marginTop: "10px", marginBottom: "12px" }}>
+              <img
+                src={image}
+                alt={title || "Article visual"}
+                style={{ width: "100%", borderRadius: "8px", maxHeight: "440px", objectFit: "cover" }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                }}
+              />
+            </figure>
+          ) : null}
           {description ? <p>{description}</p> : null}
         </>
       );
+
     case "premium":
       return (
         <>
           {image ? (
             <figure className="premium-post">
-              <img src={image} alt={title || "Premium post"} />
+              <img
+                src={image}
+                alt={title || "Premium post"}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/images/resources/book5.jpg";
+                }}
+              />
             </figure>
           ) : null}
           <div className="premium">
@@ -129,13 +195,21 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
           </div>
         </>
       );
+
     case "image":
       return (
         <>
           {image ? (
-            <figure>
+            <figure style={{ marginBottom: "12px" }}>
               <a data-toggle="modal" data-target="#img-comt" href={image}>
-                <img src={image} alt={title || "Shared image"} />
+                <img
+                  src={image}
+                  alt={title || "Shared image"}
+                  style={{ width: "100%", borderRadius: "8px", maxHeight: "480px", objectFit: "cover" }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                  }}
+                />
               </a>
             </figure>
           ) : null}
@@ -147,6 +221,7 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
           {description ? <p>{description}</p> : null}
         </>
       );
+
     case "album":
       return (
         <>
@@ -159,6 +234,7 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
           {description ? <p>{description}</p> : null}
         </>
       );
+
     case "link":
       return (
         <>
@@ -170,9 +246,16 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
             </em>
           ) : null}
           {image ? (
-            <figure>
+            <figure style={{ margin: "10px 0 12px" }}>
               <span>{post.fetchedImageLabel || "fetched-image"}</span>
-              <img src={image} alt={title || "Link preview"} />
+              <img
+                src={image}
+                alt={title || "Link preview"}
+                style={{ width: "100%", borderRadius: "8px", maxHeight: "380px", objectFit: "cover" }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                }}
+              />
             </figure>
           ) : null}
           {title ? (
@@ -183,10 +266,16 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
           {description ? <p>{description}</p> : null}
         </>
       );
+
     case "video":
       return (
         <>
-          {post.linkUrl ? (
+          {title ? (
+            <SmartLink href={href} className="post-title" title={title}>
+              {title}
+            </SmartLink>
+          ) : null}
+          {post.linkUrl && !post.embedUrl ? (
             <em>
               <a href={post.linkUrl} target="_blank" rel="noreferrer">
                 {post.linkUrl}
@@ -194,22 +283,25 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
             </em>
           ) : null}
           {post.embedUrl ? (
-            <iframe
-              title={`${post.authorName} shared video`}
-              height="285"
-              src={post.embedUrl}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", borderRadius: "10px", margin: "12px 0" }}>
+              <iframe
+                title={`${post.authorName} shared video`}
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0, borderRadius: "10px" }}
+                src={post.embedUrl}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
           ) : null}
           {!post.embedUrl && post.videoUrl ? (
-            <div className="custom-post-video">
-              <video controls preload="metadata" src={post.videoUrl}></video>
+            <div className="custom-post-video" style={{ margin: "12px 0" }}>
+              <video controls preload="metadata" src={post.videoUrl} style={{ width: "100%", borderRadius: "10px", maxHeight: "420px" }}></video>
             </div>
           ) : null}
           {description ? <p>{description}</p> : null}
         </>
       );
+
     case "audio":
       return (
         <>
@@ -220,8 +312,8 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
           ) : null}
           {description ? <p>{description}</p> : null}
           {audioSources.length > 0 ? (
-            <div className="aud-vid">
-              <audio className="audio-player" controls>
+            <div className="aud-vid" style={{ margin: "12px 0" }}>
+              <audio className="audio-player" controls style={{ width: "100%" }}>
                 {audioSources.map((source) => (
                   <source key={`${source.url}-${source.mimeType || "audio"}`} src={source.url} type={source.mimeType || undefined} />
                 ))}
@@ -230,8 +322,20 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
           ) : null}
         </>
       );
+
     case "gif":
-      return <img className="gif" src={post.gifPreview || post.gifDataUrl || ""} data-gif={post.gifDataUrl || undefined} alt={title || "Shared gif"} />;
+      return (
+        <figure style={{ margin: "12px 0" }}>
+          <img
+            className="gif"
+            src={post.gifPreview || post.gifDataUrl || ""}
+            data-gif={post.gifDataUrl || undefined}
+            alt={title || "Shared gif"}
+            style={{ borderRadius: "8px", maxWidth: "100%" }}
+          />
+        </figure>
+      );
+
     case "sponsor":
       return (
         <ul className="sponsored-caro">
@@ -239,7 +343,13 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
             <li key={item.id}>
               {item.image ? (
                 <figure>
-                  <img src={item.image} alt={item.title} />
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                    }}
+                  />
                 </figure>
               ) : null}
               <div className="sponsor-prod-name">
@@ -261,10 +371,16 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
           ))}
         </ul>
       );
+
     case "custom":
     default:
       return (
         <>
+          {title ? (
+            <SmartLink href={href} className="post-title" title={title}>
+              {title}
+            </SmartLink>
+          ) : null}
           {post.linkUrl ? (
             <em>
               <a href={post.linkUrl} target="_blank" rel="noreferrer">
@@ -273,33 +389,54 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
             </em>
           ) : null}
           {description ? <p>{description}</p> : null}
-          {post.embedUrl ? (
-            <iframe
-              title={`${post.authorName} shared video`}
-              height="285"
-              src={post.embedUrl}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-          ) : null}
-          {!post.embedUrl && post.videoUrl ? (
-            <div className="custom-post-video">
-              <video controls preload="metadata" src={post.videoUrl}></video>
-            </div>
-          ) : null}
-          {post.attachmentType === "image" && post.attachmentUrl ? (
-            <figure>
-              <img src={post.attachmentUrl} alt={post.attachmentName || "Post attachment"} />
+          {image ? (
+            <figure style={{ margin: "10px 0 12px" }}>
+              <img
+                src={image}
+                alt={title || "Post image"}
+                style={{ width: "100%", borderRadius: "8px", maxHeight: "480px", objectFit: "cover" }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                }}
+              />
             </figure>
           ) : null}
-          {post.attachmentType === "video" && post.attachmentUrl ? (
-            <div className="custom-post-video">
-              <video controls preload="metadata" src={post.attachmentUrl}></video>
+          {post.embedUrl ? (
+            <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", borderRadius: "10px", margin: "12px 0" }}>
+              <iframe
+                title={`${post.authorName} shared video`}
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0, borderRadius: "10px" }}
+                src={post.embedUrl}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          ) : null}
+          {!post.embedUrl && post.videoUrl ? (
+            <div className="custom-post-video" style={{ margin: "12px 0" }}>
+              <video controls preload="metadata" src={post.videoUrl} style={{ width: "100%", borderRadius: "10px" }}></video>
+            </div>
+          ) : null}
+          {post.attachmentType === "image" && post.attachmentUrl && post.attachmentUrl !== image ? (
+            <figure style={{ margin: "10px 0 12px" }}>
+              <img
+                src={post.attachmentUrl}
+                alt={post.attachmentName || "Post attachment"}
+                style={{ width: "100%", borderRadius: "8px", maxHeight: "480px", objectFit: "cover" }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/images/resources/study.jpg";
+                }}
+              />
+            </figure>
+          ) : null}
+          {post.attachmentType === "video" && post.attachmentUrl && post.attachmentUrl !== post.videoUrl ? (
+            <div className="custom-post-video" style={{ margin: "12px 0" }}>
+              <video controls preload="metadata" src={post.attachmentUrl} style={{ width: "100%", borderRadius: "10px" }}></video>
             </div>
           ) : null}
           {post.attachmentType === "file" && post.attachmentUrl ? (
             <a className="post-title custom-post-attachment" href={post.attachmentUrl} target="_blank" rel="noreferrer">
-              {post.attachmentName || "Open attachment"}
+              <i className="icofont-attachment"></i> {post.attachmentName || "Open attachment"}
             </a>
           ) : null}
           {post.status === "scheduled" ? (
@@ -321,15 +458,38 @@ export function FeedPostCard({
   forceCommentsOpen = false,
   showDetailLink = true,
 }: FeedPostCardProps) {
+  // Prevent empty ghost posts from rendering a blank box
+  const hasContent = Boolean(
+    post.title?.trim() ||
+    post.content?.trim() ||
+    post.description?.trim() ||
+    post.image ||
+    post.attachmentUrl ||
+    post.images?.length ||
+    post.videoUrl ||
+    post.embedUrl ||
+    post.audioSources?.length
+  );
+
+  if (!hasContent) {
+    return null;
+  }
+
   const authorHref = post.authorId ? `/profile/${post.authorId}` : "/profile";
   const postDetailHref = `/posts/${post.id}`;
 
   return (
-    <div className="main-wraper">
+    <div className="main-wraper" style={{ marginBottom: "20px" }}>
       <div className="user-post">
         <div className="friend-info">
           <figure>
-            <img alt={post.authorName} src={post.authorImage} />
+            <img
+              alt={post.authorName}
+              src={post.authorImage || "/images/resources/user.jpg"}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/images/resources/user.jpg";
+              }}
+            />
           </figure>
           <div className="friend-name">
             <PostMoreOptions postId={post.id} />
@@ -366,22 +526,92 @@ export function FeedPostCard({
 }
 
 export default function HomeFeedClient() {
-  const { data, isLoading, error } = useGetFeedPostsQuery();
-  const posts = data?.posts || [];
+  const { data, isLoading, error, refetch } = useGetFeedPostsQuery();
+  const [activeTab, setActiveTab] = useState<"home" | "recent" | "favourite">("home");
 
-  if (!isLoading && !posts.length) {
-    return null;
-  }
+  const rawPosts = data?.posts || [];
 
-  if (error && !posts.length) {
-    return null;
+  // Filter posts by active tab
+  let visiblePosts = rawPosts;
+  if (activeTab === "recent") {
+    visiblePosts = [...rawPosts].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  } else if (activeTab === "favourite") {
+    visiblePosts = rawPosts.filter((p) => p.stats?.likedByViewer || (p.stats?.likeCount || 0) > 0);
   }
 
   return (
     <>
-      {posts.map((post) => (
-        <FeedPostCard key={post.id} post={post} />
-      ))}
+      {/* Feed Navigation Tabs */}
+      <ul className="filtr-tabs">
+        <li>
+          <a
+            className={activeTab === "home" ? "active" : ""}
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab("home");
+            }}
+          >
+            Home
+          </a>
+        </li>
+        <li>
+          <a
+            className={activeTab === "recent" ? "active" : ""}
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab("recent");
+            }}
+          >
+            Recent
+          </a>
+        </li>
+        <li>
+          <a
+            className={activeTab === "favourite" ? "active" : ""}
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab("favourite");
+            }}
+          >
+            Favourite
+          </a>
+        </li>
+      </ul>
+
+      {/* Interactive Post Creator */}
+      <CreatePostCard onPostCreated={() => refetch()} />
+
+      {/* Feed Posts */}
+      {isLoading ? (
+        <div className="main-wraper" style={{ textAlign: "center", padding: "40px 20px" }}>
+          <div className="sp sp-bars" style={{ margin: "0 auto 16px" }}></div>
+          <p style={{ color: "#64748b", fontSize: "14px" }}>Loading your newsfeed updates...</p>
+        </div>
+      ) : error ? (
+        <div className="main-wraper" style={{ textAlign: "center", padding: "30px 20px" }}>
+          <i className="icofont-warning-alt" style={{ fontSize: "32px", color: "#f59e0b", marginBottom: "8px", display: "inline-block" }}></i>
+          <p style={{ color: "#64748b", fontSize: "14px" }}>Could not refresh live feed right now.</p>
+          <button
+            onClick={() => refetch()}
+            style={{ marginTop: "10px", background: "#088dcd", color: "#fff", border: "none", borderRadius: "8px", padding: "6px 16px", cursor: "pointer" }}
+          >
+            Try Again
+          </button>
+        </div>
+      ) : visiblePosts.length === 0 ? (
+        <div className="main-wraper" style={{ textAlign: "center", padding: "40px 20px" }}>
+          <i className="icofont-newspaper" style={{ fontSize: "36px", color: "#94a3b8", marginBottom: "10px", display: "inline-block" }}></i>
+          <h5 style={{ color: "#334155", fontWeight: "600" }}>No posts yet</h5>
+          <p style={{ color: "#64748b", fontSize: "14px" }}>Be the first to share an update with your research colleagues!</p>
+        </div>
+      ) : (
+        visiblePosts.map((post) => (
+          <FeedPostCard key={post.id} post={post} />
+        ))
+      )}
     </>
   );
 }

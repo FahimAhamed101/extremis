@@ -4,13 +4,13 @@ const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
       trim: true,
+      default: null,
     },
     lastName: {
       type: String,
-      required: true,
       trim: true,
+      default: null,
     },
     email: {
       type: String,
@@ -18,6 +18,14 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+    },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
+      default: null,
     },
     passwordHash: {
       type: String,

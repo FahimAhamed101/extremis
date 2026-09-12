@@ -10,13 +10,13 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Extremis | Social Media Network Template",
-    template: "%s | Extremis",
+    default: "Updates | Social Media Network Template",
+    template: "%s | Updates",
   },
-  description: "Extremis is a research-focused social network for students, educators, and professionals.",
-  applicationName: "Extremis",
+  description: "Updates is a research-focused social network for students, educators, and professionals.",
+  applicationName: "Updates",
   keywords: [
-    "Extremis",
+    "Updates",
     "research social network",
     "students network",
     "academic community",
@@ -29,24 +29,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Extremis",
-    title: "Extremis | Social Media Network Template",
+    siteName: "Updates",
+    title: "Updates | Social Media Network Template",
     description:
-      "Extremis is a research-focused social network for students, educators, and professionals.",
+      "Updates is a research-focused social network for students, educators, and professionals.",
     images: [
       {
         url: "/images/logo.png",
         width: 512,
         height: 512,
-        alt: "Extremis",
+        alt: "Updates",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Extremis | Social Media Network Template",
+    title: "Updates | Social Media Network Template",
     description:
-      "Extremis is a research-focused social network for students, educators, and professionals.",
+      "Updates is a research-focused social network for students, educators, and professionals.",
     images: ["/images/logo.png"],
   },
   robots: {

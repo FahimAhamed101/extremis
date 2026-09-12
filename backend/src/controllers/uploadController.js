@@ -7,7 +7,7 @@ const DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS = 15000;
 function getUploadKind(value) {
   const normalized = String(value || "").trim().toLowerCase();
 
-  if (normalized === "avatar" || normalized === "cover") {
+  if (normalized === "avatar" || normalized === "cover" || normalized === "video") {
     return normalized;
   }
 
@@ -34,6 +34,8 @@ function getFolder(kind) {
       return "extremis/avatars";
     case "cover":
       return "extremis/covers";
+    case "video":
+      return "extremis/videos";
     default:
       return "extremis/uploads";
   }

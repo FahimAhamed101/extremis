@@ -7,6 +7,15 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
+function normalizeUsername(username) {
+  const normalized = String(username || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+  return normalized || "";
+}
+
 function isEmailValid(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -60,19 +69,35 @@ function getRequestBody(req) {
 async function signup(req, res, next) {
   try {
     const body = getRequestBody(req);
-    const firstName = String(body.firstName || "").trim();
-    const lastName = String(body.lastName || "").trim();
+    const rawName = String(body.name || body.user || body.username || "").trim();
+    const firstName = String(body.firstName || rawName || "").trim();
+    const derivedLastName = rawName
+      ? rawName
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(1)
+          .join(" ")
+      : "";
+    const lastName = String(body.lastName || derivedLastName || "").trim();
     const email = normalizeEmail(body.email);
     const password = String(body.password || "");
+    const username = normalizeUsername(body.username || body.user || "");
     const researcherType = String(body.researcherType || "").trim();
     const institute = String(body.institute || "").trim();
     const department = String(body.department || "").trim();
     const position = String(body.position || "").trim();
     const gender = String(body.gender || "").trim();
-    const termsAccepted = Boolean(body.termsAccepted);
+    const termsAccepted = body.termsAccepted !== undefined ? Boolean(body.termsAccepted) : true;
 
-    if (!firstName || !lastName || !email || !password) {
-      res.status(400).json({ message: "First name, last name, email, and password are required." });
+    if (!email || !password) {
+      res.status(400).json({ message: "Email and password are required." });
+      return;
+    }
+
+    if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
+      res.status(400).json({
+        message: "Username must be 3-30 characters and use only letters, numbers, dot, underscore, or hyphen.",
+      });
       return;
     }
 
@@ -99,11 +124,20 @@ async function signup(req, res, next) {
       return;
     }
 
+    if (username) {
+      const existingUsername = await User.findOne({ username });
+      if (existingUsername) {
+        res.status(409).json({ message: "This username is already taken." });
+        return;
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({
-      firstName,
-      lastName,
+      firstName: firstName || null,
+      lastName: lastName || null,
       email,
+      username: username || null,
       passwordHash,
       researcherType: researcherType || null,
       institute: institute || null,
@@ -126,23 +160,36 @@ async function signup(req, res, next) {
 async function login(req, res, next) {
   try {
     const body = getRequestBody(req);
-    const email = normalizeEmail(body.email);
+    const identifier = String(body.email || body.user || body.username || "").trim();
+    const email = normalizeEmail(identifier);
+    const username = normalizeUsername(identifier);
     const password = String(body.password || "");
 
-    if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required." });
+    if (!identifier || !password) {
+      res.status(400).json({ message: "User/Email and password are required." });
       return;
     }
 
-    const user = await User.findOne({ email });
+    const searchCriteria = [];
+    if (email && isEmailValid(email)) {
+      searchCriteria.push({ email });
+    }
+    if (username) {
+      searchCriteria.push({ username });
+    }
+    if (searchCriteria.length === 0) {
+      searchCriteria.push({ email });
+    }
+
+    const user = await User.findOne({ $or: searchCriteria });
     if (!user) {
-      res.status(401).json({ message: "Invalid email or password." });
+      res.status(401).json({ message: "Invalid user/email or password." });
       return;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      res.status(401).json({ message: "Invalid email or password." });
+      res.status(401).json({ message: "Invalid user/email or password." });
       return;
     }
 
