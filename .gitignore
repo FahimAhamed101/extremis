@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output & cache
+.next/
+**/.next/
+out/
+build/
+dist/
+
+# Turbopack and SST cache
+*.sst
+.turbo/
+**/.turbo/
+
+# Testing
+coverage/
+**/coverage/
+
+# Environment variables
+.env
+.env*.local
+!.env.example
+!**/.env.example
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vercel
+.vercel/
+**/.vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# OS files
+.DS_Store
+Thumbs.db
