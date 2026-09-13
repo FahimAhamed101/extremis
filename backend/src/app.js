@@ -11,34 +11,25 @@ const tourismRoutes = require("./routes/tourismRoutes");
 const storyRoutes = require("./routes/storyRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
-function getAllowedOrigins() {
-  const configuredOrigins = String(process.env.CLIENT_ORIGIN || "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-
-  if (process.env.NODE_ENV === "production") {
-    return configuredOrigins;
-  }
-
-  return [...new Set([...configuredOrigins, "http://localhost:3000"])];
-}
-
-const allowedOrigins = getAllowedOrigins();
-
 const app = express();
 const apiRouter = express.Router();
+
+// Enable all origins with credentials & preflight support
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error("Origin is not allowed by CORS."));
-    },
+    origin: true,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "Range",
+    ],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    optionsSuccessStatus: 200,
   })
 );
 

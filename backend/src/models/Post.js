@@ -37,7 +37,7 @@ const postReactionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["like", "love", "haha", "wow", "sad", "angry"],
+      enum: ["like", "love", "haha", "wow", "sad", "angry", "dislike"],
       required: true,
       default: "like",
     },
@@ -246,6 +246,15 @@ const postSchema = new mongoose.Schema(
       default: null,
     },
     likes: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
+    },
+    dislikes: {
       type: [
         {
           type: mongoose.Schema.Types.ObjectId,

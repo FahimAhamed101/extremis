@@ -16,63 +16,74 @@ async function resolveViewerId(req) {
 
 const DEFAULT_FEED_SEED = [
   {
-    postType: "custom",
-    activityLabel: "is feeling happy",
-    feeling: "happy",
-    location: "New York, USA",
-    title: "Project Milestone Reached!",
-    content: "We just reached our first major milestone for the Myfriend project. Huge thanks to the team! #milestone #success",
-    commentsOpen: true,
-  },
-  {
-    postType: "image",
-    activityLabel: "is traveling",
-    feeling: "Traveling",
-    location: "Paris, France",
-    title: "Postcard from Paris",
-    content: "The Eiffel Tower looks stunning today. #travel #paris",
-    displayImageUrl: "/images/resources/study.jpg",
-    commentsOpen: true,
-  },
-  {
     postType: "video",
-    activityLabel: "is watching",
-    feeling: "Watching",
-    location: "Home Cinema",
-    title: "Nature's Beauty",
-    content: "Short clip of the forest nearby. So peaceful.",
+    activityLabel: "shared a video reel 🎥",
+    feeling: "excited",
+    location: "MIT Robotics Lab, Boston",
+    title: "Autonomous Quadruped Robot Field Testing 🤖⚡",
+    content: "Our team just completed the rugged terrain field test for the autonomous quadruped explorer. Overcoming obstacles at 4.2 m/s with real-time LIDAR mapping! Full paper coming to ICRA next month. Let us know your thoughts!",
     attachmentUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     attachmentType: "video",
     commentsOpen: true,
   },
   {
+    postType: "article",
+    activityLabel: "published a research paper 📄",
+    feeling: "proud",
+    location: "Oxford University, UK",
+    title: "Breakthrough in 128-Qubit Quantum Coherence",
+    content: "Thrilled to share our latest findings published in Nature Physics today. We demonstrated sustained coherence time of over 3.4 milliseconds under thermal ambient fluctuations. A monumental step towards fault-tolerant quantum computation.",
+    displayImageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1200&q=80",
+    commentsOpen: true,
+  },
+  {
+    postType: "image",
+    activityLabel: "is on an expedition 🌄",
+    feeling: "inspired",
+    location: "Mount Fuji, Japan",
+    title: "Sunrise above the clouds at 3,776m",
+    content: "Early morning telemetry collection station deployed on the sub-peak. Pristine air and breathtaking sunrise view over Lake Kawaguchiko. Never stop exploring! ☀️🏔️",
+    displayImageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
+    commentsOpen: true,
+  },
+  {
     postType: "bg",
-    activityLabel: "is thinking",
-    feeling: "Thinking",
-    title: "Daily Motivation",
-    content: "What inspires you the most in your daily work? #inspiration",
+    activityLabel: "asked a research question 💡",
+    feeling: "curious",
+    location: "Global Science Community",
+    title: "Research Roundtable: Generative AI in Drug Discovery",
+    content: "Which computational biology models do you believe show the greatest promise for de novo protein folding and kinase inhibitor design this year? Drop your favorite papers below! 🧬",
     displayImageUrl: "/images/resources/profile-banner.jpg",
     commentsOpen: true,
   },
   {
-    postType: "audio",
-    activityLabel: "is listening to music",
-    feeling: "Listening",
-    title: "Late night beats",
-    content: "Keeping the energy up for a coding marathon.",
-    attachmentUrl: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
-    attachmentType: "file",
+    postType: "video",
+    activityLabel: "posted a demo clip 🎬",
+    feeling: "amazed",
+    location: "CERN, Geneva",
+    title: "Large Hadron Collider High-Luminosity Run Footage",
+    content: "Exciting data collection run at CERN with the new high-luminosity beam detectors. Particle collision telemetry looking clean! 🔬⚛️",
+    attachmentUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    attachmentType: "video",
     commentsOpen: true,
-  }
+  },
+  {
+    postType: "custom",
+    activityLabel: "is celebrating a milestone 🚀",
+    feeling: "happy",
+    location: "Silicon Valley Innovation Center",
+    title: "Open Source AI Framework V2 Release",
+    content: "We just open-sourced our real-time spatial intelligence toolkit on GitHub. Over 10,000 stars in the first 48 hours! Thank you to all 120+ contributors who helped test and optimize the neural pipeline.",
+    commentsOpen: true,
+  },
 ];
 
 async function ensureSeedFeedPostsForUser(userId) {
   const existingCount = await Post.countDocuments({
-    author: userId,
     activityFeed: true,
   });
 
-  if (existingCount > 0) {
+  if (existingCount >= 4) {
     return;
   }
 
@@ -93,16 +104,24 @@ async function ensureSeedFeedPostsForUser(userId) {
       activityFeed: true,
       myStory: false,
       commentsOpen: seed.commentsOpen === true,
-      viewCount: Math.floor(Math.random() * 500) + 50,
-      createdAt: new Date(createdAtBase - index * 60 * 60 * 1000),
-      updatedAt: new Date(createdAtBase - index * 60 * 60 * 1000),
+      viewCount: Math.floor(Math.random() * 500) + 120,
+      shareCount: Math.floor(Math.random() * 8) + 1,
+      createdAt: new Date(createdAtBase - index * 2 * 60 * 60 * 1000),
+      updatedAt: new Date(createdAtBase - index * 2 * 60 * 60 * 1000),
+      comments: [
+        {
+          user: userId,
+          message: "Incredible work! Really excited to read the full paper.",
+          createdAt: new Date(createdAtBase - index * 2 * 60 * 60 * 1000 + 15 * 60 * 1000),
+        },
+      ],
     }))
   );
 }
 
 const ALLOWED_AUDIENCES = new Set(["public", "private", "specific-friend", "only-friends", "joined-groups"]);
 const ALLOWED_POST_TYPES = new Set(["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor", "party", "bg"]);
-const ALLOWED_REACTION_TYPES = new Set(["like", "love", "haha", "wow", "sad", "angry"]);
+const ALLOWED_REACTION_TYPES = new Set(["like", "love", "haha", "wow", "sad", "angry", "dislike"]);
 
 function normalizeOptionalText(value) {
   const normalized = String(value || "").trim();
@@ -275,8 +294,14 @@ async function reactToPost(req, res, next) {
     );
 
     if (existingReactionIndex >= 0) {
-      if (post.reactions[existingReactionIndex].type === reactionType) {
+      const currentType = post.reactions[existingReactionIndex].type;
+      if (currentType === reactionType) {
         post.reactions.splice(existingReactionIndex, 1);
+      } else if (currentType === "dislike" && reactionType !== "dislike") {
+        res.status(400).json({
+          message: "You have disliked this post. Please remove your dislike first before giving a like.",
+        });
+        return;
       } else {
         post.reactions[existingReactionIndex].type = reactionType;
       }

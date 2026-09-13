@@ -119,6 +119,8 @@ export default function HomeHeader() {
   const isBlogPage = pathname === "/blog";
   const isGroupsPage = pathname === "/groups";
   const isFriendsPage = pathname === "/friends";
+  const isEventsPage = pathname === "/events" || pathname.startsWith("/events");
+  const isPagesPage = pathname === "/pages" || pathname.startsWith("/pages");
   const isNearbyPage = pathname === "/nearby" || pathname.startsWith("/nearby");
   const isWorldTourPage = pathname === "/world-tour" || pathname.startsWith("/world-tour");
 
@@ -224,8 +226,14 @@ export default function HomeHeader() {
     <>
       <div className="responsive-header">
         <div className="logo res">
-          <img src="/images/logo.png" alt="" />
-          <span>Updates</span>
+          <Link href="/" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+            <img
+              src="/images/logo.png"
+              alt="Updates"
+              style={{ width: "34px", height: "34px", borderRadius: "8px", objectFit: "cover" }}
+            />
+            <span style={{ marginLeft: "8px" }}>Updates</span>
+          </Link>
         </div>
         <div className="user-avatar mobile">
           <Link href="/profile" title="View Profile">
@@ -291,8 +299,14 @@ export default function HomeHeader() {
       <header className="">
         <div className="topbar stick">
           <div className="logo">
-            <img src="/images/logo.png" alt="" />
-            <span>Updates</span>
+            <Link href="/" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+              <img
+                src="/images/logo.png"
+                alt="Updates"
+                style={{ width: "38px", height: "38px", borderRadius: "8px", objectFit: "cover" }}
+              />
+              <span style={{ marginLeft: "8px" }}>Updates</span>
+            </Link>
           </div>
           <div className="searches">
             <form method="post">
@@ -730,6 +744,52 @@ export default function HomeHeader() {
                             </svg>
                           </i>
                           <p>Friends</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isEventsPage ? "active" : ""} href="/events" title="Events">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-calendar"
+                            >
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                              <line x1="16" y1="2" x2="16" y2="6"></line>
+                              <line x1="8" y1="2" x2="8" y2="6"></line>
+                              <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                          </i>
+                          <p>Events</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isPagesPage ? "active" : ""} href="/pages" title="Pages">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-flag"
+                            >
+                              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                              <line x1="4" y1="22" x2="4" y2="15"></line>
+                            </svg>
+                          </i>
+                          <p>Pages</p>
                         </Link>
                       </div>
                       <div className="link-item link-item-highlight">

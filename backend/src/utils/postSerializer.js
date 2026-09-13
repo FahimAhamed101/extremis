@@ -4,7 +4,7 @@ const { getVideoPreview } = require("./videoPreview");
 const DEFAULT_AVATAR_URL = "/images/resources/user.jpg";
 const DEFAULT_POST_TYPE = "custom";
 const ALLOWED_POST_TYPES = new Set(["custom", "article", "premium", "image", "album", "link", "video", "gif", "audio", "sponsor", "party", "bg"]);
-const REACTION_TYPES = ["like", "love", "haha", "wow", "sad", "angry"];
+const REACTION_TYPES = ["like", "love", "haha", "wow", "sad", "angry", "dislike"];
 
 function getAuthorName(user) {
   if (!user) {
@@ -286,6 +286,7 @@ function serializePost(post, viewerId) {
       wow: 0,
       sad: 0,
       angry: 0,
+      dislike: 0,
     }
   );
   const topReactions = REACTION_TYPES
@@ -354,11 +355,13 @@ function serializePost(post, viewerId) {
     stats: {
       viewCount: Number(post?.viewCount || 0) || Math.max(1, likeCount + commentCount + shareCount + 1),
       likeCount,
+      dislikeCount: reactionCounts.dislike || 0,
       commentCount,
       shareCount,
       saveCount: savedBy.length,
       savedByViewer,
-      likedByViewer: Boolean(viewerReaction),
+      likedByViewer: Boolean(viewerReaction && viewerReaction !== "dislike"),
+      dislikedByViewer: viewerReaction === "dislike",
       viewerReaction,
       reactionCounts,
       topReactions,

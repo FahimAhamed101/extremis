@@ -228,14 +228,16 @@ export type PostCommentDto = {
   message: string;
 };
 
-export type PostReactionType = "like" | "love" | "haha" | "wow" | "sad";
+export type PostReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry" | "dislike";
 
 export type PostStats = {
   viewCount: number;
   likeCount: number;
+  dislikeCount?: number;
   commentCount: number;
   shareCount: number;
   likedByViewer: boolean;
+  dislikedByViewer?: boolean;
   viewerReaction?: PostReactionType | null;
   reactionCounts?: Record<PostReactionType, number>;
   topReactions?: PostReactionType[];

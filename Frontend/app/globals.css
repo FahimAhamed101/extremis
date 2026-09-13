@@ -1039,7 +1039,32 @@ body {
   font-family: inherit;
 }
 
-.box {
+/* Ensure Socimo post interaction boxes never inherit auth box styles */
+.stat-tools .box,
+.stat-tools-bar .box,
+.post-reaction-shell {
+  position: relative !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+.auth-container .box,
+.auth-box,
+.mock-login-page .box,
+.box:has(.form--login),
+.box:has(.form--register),
+.box:has(.box__image) {
   position: relative;
   display: flex !important;
   flex-direction: row !important;
@@ -1057,7 +1082,10 @@ body {
   box-sizing: border-box;
 }
 
-.box * {
+.auth-container .box *,
+.mock-login-page .box *,
+.box:has(.form--login) *,
+.box:has(.form--register) * {
   box-sizing: border-box;
 }
 
@@ -1137,7 +1165,12 @@ body {
 }
 
 @media (max-width: 767px) {
-  .box {
+  .auth-container .box,
+  .auth-box,
+  .mock-login-page .box,
+  .box:has(.form--login),
+  .box:has(.form--register),
+  .box:has(.box__image) {
     display: block !important;
     width: 100% !important;
     max-width: 95% !important;
