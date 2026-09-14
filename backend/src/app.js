@@ -33,8 +33,18 @@ app.use(
   })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const fs = require("fs");
+const path = require("path");
+
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use("/uploads", express.static(uploadsDir));
+
 app.use((req, res, next) => {
   if (req.body == null) {
     req.body = {};
@@ -71,13 +81,60 @@ app.use((req, res, next) => {
   next();
 });
 
-apiRouter.get("/health", (req, res) => {
+apiRouter.get("/health", async (req, res) => {
+  let dbStatus = "disconnected";
+  try {
+    const connectDB = require("./config/db");
+    const conn = await connectDB();
+    dbStatus = conn.readyState === 1 ? "connected" : "connecting";
+  } catch (err) {
+    dbStatus = "error";
+  }
+
   res.status(200).json({
     ok: true,
     service: "auth-api",
+    db: dbStatus,
     timestamp: new Date().toISOString(),
   });
 });
+
+apiRouter.use("/uploads", express.static(uploadsDir));
+
+apiRouter.post("/upload-image", (req, res) => {
+  try {
+    let { image, name } = req.body || {};
+    if (!image && typeof req.body === "string") {
+      try {
+        const parsed = JSON.parse(req.body);
+        image = parsed.image;
+        name = parsed.name;
+      } catch (e) {}
+    }
+
+    if (!image) {
+      return res.status(400).json({ success: false, message: "No image data provided" });
+    }
+
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    const filename = `post_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+    const filePath = path.join(uploadsDir, filename);
+
+    fs.writeFileSync(filePath, buffer);
+
+    const fileUrl = `http://10.0.2.2:4000/uploads/${filename}`;
+    return res.status(200).json({
+      success: true,
+      url: fileUrl,
+      filename: filename,
+    });
+  } catch (err) {
+    console.error("Image upload error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/chat", chatRoutes);
@@ -88,6 +145,8 @@ apiRouter.use("/groups", groupRoutes);
 apiRouter.use("/orders", orderRoutes);
 apiRouter.use("/tourism", tourismRoutes);
 apiRouter.use("/stories", storyRoutes);
+apiRouter.use("/notifications", require("./routes/notificationRoutes"));
+apiRouter.use("/reels", require("./routes/reelRoutes"));
 
 // The route modules above remain the source of truth for every backend endpoint.
 // Vercel forwards /api/* into this app through a single catch-all function, while

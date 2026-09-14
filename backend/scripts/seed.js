@@ -7,6 +7,8 @@ require(path.resolve(__dirname, "../src/config/loadEnv"))();
 const connectDB = require("../src/config/db");
 const User = require("../src/models/User");
 const Post = require("../src/models/Post");
+const Reel = require("../src/models/Reel");
+const Notification = require("../src/models/Notification");
 const ChatConversation = require("../src/models/ChatConversation");
 const ChatMessage = require("../src/models/ChatMessage");
 
@@ -138,6 +140,7 @@ function buildUsers(count) {
     users.push({
       firstName,
       lastName,
+      username: `${firstName.toLowerCase()}_${lastName.toLowerCase()}_${i}`,
       email,
       researcherType: RESEARCHER_TYPES[i % RESEARCHER_TYPES.length],
       institute: pick(INSTITUTES, i),
@@ -423,6 +426,8 @@ async function wipeCollections() {
   await Promise.all([
     User.deleteMany({}),
     Post.deleteMany({}),
+    Reel.deleteMany({}),
+    Notification.deleteMany({}),
     ChatConversation.deleteMany({}),
     ChatMessage.deleteMany({}),
   ]);
@@ -466,6 +471,165 @@ async function run() {
   const insertedMessages = await ChatMessage.insertMany(messages);
   console.log(`Seeded ${insertedConversations.length} conversations`);
   console.log(`Seeded ${insertedMessages.length} chat messages`);
+
+  // Seed primary sample users matching app screenshots
+  const primaryUsers = await User.insertMany([
+    {
+      firstName: "shivanshu",
+      lastName: "",
+      email: "shivanshu@app.test",
+      username: "shivanshu",
+      passwordHash,
+      location: "Mumbai",
+      avatarUrl: "https://picsum.photos/seed/shivanshu/200/200",
+      bio: "Feeling loved",
+    },
+    {
+      firstName: "Priyanka",
+      lastName: "Meena",
+      email: "priyanka@app.test",
+      username: "pinky",
+      passwordHash,
+      location: "Mumbai",
+      avatarUrl: "https://picsum.photos/seed/priyanka/200/200",
+      bio: "Living life to the fullest",
+    },
+    {
+      firstName: "spacester",
+      lastName: "",
+      email: "spacester@app.test",
+      username: "spacester",
+      passwordHash,
+      location: "Global",
+      avatarUrl: "https://picsum.photos/seed/spacester/200/200",
+      bio: "Space Explorer",
+    },
+  ]);
+
+  const [shivanshuUser, priyankaUser, spacesterUser] = primaryUsers;
+
+  // Primary posts matching screenshots
+  const samplePosts = await Post.insertMany([
+    {
+      author: shivanshuUser._id,
+      postType: "image",
+      activityLabel: "Feeling happy 😊",
+      feeling: "Feeling happy",
+      location: "Mumbai",
+      content: "It's #raining have a great day @shivanshu",
+      displayImageUrl: "https://picsum.photos/seed/raining-day/640/480",
+      attachmentUrl: "https://picsum.photos/seed/raining-day/640/480",
+      attachmentType: "image",
+      likes: [priyankaUser._id, spacesterUser._id],
+      reactions: [
+        { user: priyankaUser._id, type: "love" },
+        { user: spacesterUser._id, type: "like" },
+        { user: shivanshuUser._id, type: "haha" },
+      ],
+      comments: [
+        {
+          user: priyankaUser._id,
+          message: "Stay dry! Awesome day ahead.",
+        },
+      ],
+      viewCount: 3,
+      shareCount: 1,
+      audience: "public",
+      savedBy: [shivanshuUser._id],
+    },
+    {
+      author: priyankaUser._id,
+      postType: "image",
+      activityLabel: "shared a memory",
+      content: "Sweet summer vibes! 🍉🍦",
+      displayImageUrl: "https://picsum.photos/seed/watermelon-pattern/640/320",
+      attachmentUrl: "https://picsum.photos/seed/watermelon-pattern/640/320",
+      attachmentType: "image",
+      likes: [shivanshuUser._id],
+      reactions: [{ user: shivanshuUser._id, type: "love" }],
+      viewCount: 4,
+      shareCount: 0,
+      audience: "public",
+      savedBy: [shivanshuUser._id],
+    },
+  ]);
+
+  // Primary reels matching screenshots
+  const sampleReels = await Reel.insertMany([
+    {
+      author: shivanshuUser._id,
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      thumbnailUrl: "https://picsum.photos/seed/cats-mirror/400/600",
+      caption: "Describe you video @Mention #Hashtag",
+      views: 4,
+      allowComments: true,
+      privacy: "everyone",
+      savedBy: [shivanshuUser._id],
+    },
+    {
+      author: spacesterUser._id,
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+      thumbnailUrl: "https://picsum.photos/seed/laptop-screen/400/600",
+      caption: "Coding session late night 💻 #dev",
+      views: 2,
+      allowComments: true,
+      privacy: "everyone",
+      savedBy: [shivanshuUser._id],
+    },
+  ]);
+
+  // Primary notifications matching screenshot 3
+  await Notification.insertMany([
+    {
+      recipient: shivanshuUser._id,
+      sender: spacesterUser._id,
+      type: "follow",
+      message: "Started following you",
+    },
+    {
+      recipient: shivanshuUser._id,
+      sender: shivanshuUser._id,
+      type: "like",
+      message: "Liked on your post",
+      post: samplePosts[0]._id,
+    },
+    {
+      recipient: shivanshuUser._id,
+      sender: shivanshuUser._id,
+      type: "comment",
+      message: "Commented on your post",
+      post: samplePosts[0]._id,
+    },
+    {
+      recipient: shivanshuUser._id,
+      sender: spacesterUser._id,
+      type: "like",
+      message: "Liked on your post",
+      post: samplePosts[0]._id,
+    },
+    {
+      recipient: shivanshuUser._id,
+      sender: priyankaUser._id,
+      type: "like",
+      message: "Liked on your post",
+      post: samplePosts[0]._id,
+    },
+    {
+      recipient: shivanshuUser._id,
+      sender: priyankaUser._id,
+      type: "like",
+      message: "Liked on your post",
+      post: samplePosts[0]._id,
+    },
+    {
+      recipient: shivanshuUser._id,
+      sender: priyankaUser._id,
+      type: "like",
+      message: "Liked on your post",
+      post: samplePosts[0]._id,
+    },
+  ]);
+  console.log("Seeded primary screenshot sample data (users, posts, reels, notifications)");
 
   console.log("Seed complete.");
   process.exit(0);

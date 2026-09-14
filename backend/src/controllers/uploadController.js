@@ -1,8 +1,38 @@
 const { Readable } = require("node:stream");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_MULTIPART_BODY_BYTES = MAX_FILE_SIZE_BYTES + 1024 * 1024;
 const DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS = 15000;
+
+const uploadsDir = path.join(__dirname, "../../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+async function saveToDisk(file, kind, userId, req) {
+  const ext = path.extname(file.name) || (getResourceType(file) === "image" ? ".jpg" : ".bin");
+  const filename = `${kind}-${userId}-${Date.now()}${ext}`;
+  const filePath = path.join(uploadsDir, filename);
+  const arrayBuffer = await file.arrayBuffer();
+  fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
+
+  const host = req.get("host") || "localhost:4000";
+  const protocol = req.protocol || "http";
+  const fullUrl = `${protocol}://${host}/uploads/${filename}`;
+
+  return {
+    kind,
+    publicId: filename,
+    resourceType: getResourceType(file),
+    url: fullUrl,
+    bytes: file.size,
+    width: null,
+    height: null,
+    originalFilename: file.name,
+  };
+}
 
 function getUploadKind(value) {
   const normalized = String(value || "").trim().toLowerCase();
@@ -184,14 +214,11 @@ async function uploadFile(req, res, next) {
         }
       );
     } catch (error) {
-      if (error && typeof error === "object" && error.name === "AbortError") {
-        res.status(504).json({
-          message: "Upload timed out while contacting Cloudinary. Please try again.",
-        });
-        return;
-      }
-
-      throw error;
+      clearTimeout(timeoutHandle);
+      // If Cloudinary fails or times out, seamlessly fallback to local disk storage
+      const fallbackResult = await saveToDisk(file, kind, userId, req);
+      res.status(200).json(fallbackResult);
+      return;
     } finally {
       clearTimeout(timeoutHandle);
     }
@@ -201,9 +228,9 @@ async function uploadFile(req, res, next) {
       .catch(() => ({}));
 
     if (!response.ok || !payload.secure_url || !payload.public_id || !payload.resource_type) {
-      res.status(response.status || 500).json({
-        message: payload?.error?.message || "Cloudinary upload failed.",
-      });
+      // Cloudinary error fallback to disk
+      const fallbackResult = await saveToDisk(file, kind, userId, req);
+      res.status(200).json(fallbackResult);
       return;
     }
 

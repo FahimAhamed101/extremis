@@ -8,6 +8,11 @@ const groupSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
+    handle: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     description: {
       type: String,
       trim: true,
@@ -29,7 +34,7 @@ const groupSchema = new mongoose.Schema(
     creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
     members: [
       {
@@ -37,6 +42,10 @@ const groupSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    memberCountDisplay: {
+      type: String,
+      default: "",
+    },
     isPrivate: {
       type: Boolean,
       default: false,
@@ -48,3 +57,4 @@ const groupSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Group", groupSchema);
+

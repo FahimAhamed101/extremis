@@ -692,7 +692,7 @@ export type CreateStoryPayload = {
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories"],
+  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories", "Groups"],
   baseQuery: fetchBaseQuery({
     baseUrl: resolvedApiRoot,
     prepareHeaders: (headers) => {
@@ -1114,8 +1114,66 @@ export const authApi = createApi({
         body,
       }),
     }),
+    getMyGroups: builder.query<GroupsResponse, void>({
+      query: () => "/groups/me",
+      providesTags: ["Groups"],
+    }),
+    getSuggestedGroups: builder.query<GroupsResponse, void>({
+      query: () => "/groups/discover",
+      providesTags: ["Groups"],
+    }),
+    getGroupById: builder.query<{ message: string; group: GroupDto }, string>({
+      query: (groupId) => `/groups/${groupId}`,
+      providesTags: ["Groups"],
+    }),
+    joinGroup: builder.mutation<GroupActionResponse, string>({
+      query: (groupId) => ({
+        url: `/groups/${groupId}/join`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Groups"],
+    }),
+    leaveGroup: builder.mutation<GroupActionResponse, string>({
+      query: (groupId) => ({
+        url: `/groups/${groupId}/leave`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Groups"],
+    }),
+    pingHealth: builder.query<{ ok: boolean; service: string; db?: string; timestamp: string }, void>({
+      query: () => "/health",
+    }),
   }),
 });
+
+export type GroupDto = {
+  _id: string;
+  id: string;
+  name: string;
+  handle: string;
+  description?: string;
+  category?: string;
+  iconUrl?: string;
+  coverUrl?: string;
+  memberCountDisplay?: string;
+  membersCount: number;
+  isJoined: boolean;
+  isPrivate?: boolean;
+  notificationsCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type GroupsResponse = {
+  message: string;
+  groups: GroupDto[];
+};
+
+export type GroupActionResponse = {
+  message: string;
+  isJoined: boolean;
+  group: GroupDto;
+};
 
 export type CreateOrderPayload = {
   items: {
@@ -1209,5 +1267,11 @@ export const {
   useCreateStoryMutation,
   useViewStoryMutation,
   useDeleteStoryMutation,
+  useGetMyGroupsQuery,
+  useGetSuggestedGroupsQuery,
+  useGetGroupByIdQuery,
+  useJoinGroupMutation,
+  useLeaveGroupMutation,
+  usePingHealthQuery,
 } = authApi;
 

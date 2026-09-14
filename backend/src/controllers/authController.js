@@ -26,6 +26,10 @@ function normalizeOptionalUrl(value) {
     return null;
   }
 
+  if (normalized.startsWith("/") || normalized.startsWith("data:image/")) {
+    return normalized;
+  }
+
   try {
     return new URL(normalized).toString();
   } catch {

@@ -4,6 +4,8 @@ import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFeedClient from "@/components/posts/HomeFeedClient";
 import StoriesSection from "@/components/stories/StoriesSection";
 import LegacyPostInteractions from "@/components/posts/LegacyPostInteractions";
+import YourGroupsWidget from "@/components/groups/YourGroupsWidget";
+import SuggestedGroupWidget from "@/components/groups/SuggestedGroupWidget";
 
 export default function Home() {
   return (
@@ -259,62 +261,8 @@ export default function Home() {
 							</div>
 							<div className="col-lg-3">
 								<aside className="sidebar static right">
-									<div className="widget">
-										<h4 className="widget-title">Your Groups</h4>
-										<ul className="ak-groups">
-											<li>
-												<figure><img src="/images/resources/your-group1.jpg" alt="" /></figure>
-												<div className="your-grp">
-													<h5><a href="group-detail.html" title="">Good Group</a></h5>
-													<a href="#" title=""><i className="icofont-bell-alt"></i>Notifilactions <span>13</span></a>
-													<a href="group-feed.html" title="" className="promote">view feed</a>
-												</div>
-											</li>
-											<li>
-												<figure><img src="/images/resources/your-group2.jpg" alt="" /></figure>
-												<div className="your-grp">
-													<h5><a href="group-detail.html" title="">E-course Group</a></h5>
-													<a href="#" title=""><i className="icofont-bell-alt"></i>Notifilactions <span>13</span></a>
-													<a href="group-feed.html" title="" className="promote">view feed</a>
-												</div>
-											</li>
-										</ul>
-									</div>
-									<div className="widget">
-										<h4 className="widget-title">Suggested Group</h4>
-										<div className="sug-caro">
-											<div className="friend-box">
-												<figure>
-													<img alt="" src="/images/resources/sidebar-info.jpg" />
-													<span>Members: 505K</span>
-												</figure>
-												<div className="frnd-meta">
-													<img alt="" src="/images/resources/frnd-figure2.jpg" />
-													<div className="frnd-name">
-														<a title="" href="#">Social Research</a>
-														<span>@biolabest</span>
-
-													</div>
-													<a className="main-btn2" href="#" title="">Join Community</a>
-												</div>
-											</div>
-											<div className="friend-box">
-												<figure>
-													<img alt="" src="/images/resources/sidebar-info2.jpg" />
-													<span>Members: 505K</span>
-												</figure>
-												<div className="frnd-meta">
-													<img alt="" src="/images/resources/frnd-figure3.jpg" />
-													<div className="frnd-name">
-														<a title="" href="#">Bio Labest Group</a>
-														<span>@biolabest</span>
-
-													</div>
-													<a className="main-btn2" href="#" title="">Join Community</a>
-												</div>
-											</div>
-										</div>
-									</div>
+									<YourGroupsWidget />
+									<SuggestedGroupWidget />
 									<div className="widget">
 										<h4 className="widget-title">Ask Research Question?</h4>
 										<div className="ask-question">

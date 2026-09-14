@@ -16,6 +16,6 @@ router.patch("/me", protect, updateMyProfile);
 router.get("/discover/people", protect, getDiscoverPeople);
 router.get("/nearby", optionalAuth, getNearbyPeople);
 router.post("/:userId/follow", protect, toggleFollowUser);
-router.get("/:userId", protect, getProfileById);
+router.get("/:userId", optionalAuth, getProfileById);
 
 module.exports = router;

@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "./providers";
 import PageLoader from "@/components/layout/PageLoader";
 import GlobalShellScripts from "@/components/layout/GlobalShellScripts";
+import ApiHealthWarmup from "@/components/layout/ApiHealthWarmup";
 import { getSiteUrl } from "@/lib/utils/getSiteUrl";
 
 const siteUrl = getSiteUrl();
@@ -70,6 +71,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Instant API Health Ping: Wakes up server and DB connection immediately on initial page load */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var isLocal=location.hostname==='localhost'||location.hostname==='127.0.0.1';var u=isLocal?'http://localhost:4000/api/health':'/api/health';fetch(u,{method:'GET',keepalive:true}).catch(function(){});}catch(e){}})();`,
+          }}
+        />
         <meta
           name="google-site-verification"
           content="7D5GsLCJIj5u-4aD5whqMuZuQK5y5czs2M-JKQ6Qybk"
@@ -93,6 +100,7 @@ export default function RootLayout({
         <link rel="stylesheet" href="/css/responsive.css" />
       </head>
       <body suppressHydrationWarning>
+        <ApiHealthWarmup />
         <PageLoader />
         <Providers>{children}</Providers>
         <GlobalShellScripts />
@@ -100,3 +108,4 @@ export default function RootLayout({
     </html>
   );
 }
+

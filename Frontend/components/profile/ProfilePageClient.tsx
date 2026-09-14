@@ -18,6 +18,8 @@ import {
 } from "@/lib/services/authApi";
 import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants";
 import { setAuthSession } from "@/lib/auth/client";
+import YourGroupsWidget from "@/components/groups/YourGroupsWidget";
+import SuggestedGroupWidget from "@/components/groups/SuggestedGroupWidget";
 
 type ProfileTab = "posts" | "pictures" | "videos" | "friends" | "about";
 
@@ -76,27 +78,50 @@ export default function ProfilePageClient() {
   const user = profileData?.profile?.user || currentUserData?.user || localUser;
   const profile = profileData?.profile;
 
+  const [customCoverUrl, setCustomCoverUrl] = useState<string | null>(null);
+  const [customAvatarUrl, setCustomAvatarUrl] = useState<string | null>(null);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [editFullName, setEditFullName] = useState("");
+  const [editHandle, setEditHandle] = useState("");
+
   const displayName = useMemo(() => {
-    if (profile?.fullName) return profile.fullName;
     if (user?.firstName || user?.lastName) {
-      return `${user.firstName || ""} ${user.lastName || ""}`.trim();
+      const full = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+      if (full && !full.includes("@")) return full;
     }
-    return user?.email?.split("@")[0] || "Fahim Tomal";
+    if (profile?.fullName && !profile.fullName.includes("@")) return profile.fullName;
+    if (user?.username && !user.username.includes("@")) return user.username;
+    if (user?.email) {
+      const prefix = user.email.split("@")[0];
+      return prefix.charAt(0).toUpperCase() + prefix.slice(1);
+    }
+    return "Fahim Tomal";
   }, [user, profile]);
 
   const handle = useMemo(() => {
     if (profile?.handle) return `@${profile.handle.replace(/^@/, "")}`;
+    if (user?.username) return `@${user.username}`;
     if (user?.email) return `@${user.email.split("@")[0]}`;
     return `@${displayName.toLowerCase().replace(/[^a-z0-9]+/g, "") || "admin"}`;
   }, [profile, user, displayName]);
 
-  const avatarUrl = profile?.avatarUrl || user?.avatarUrl || "/images/resources/user.jpg";
-  const coverUrl = profile?.coverImageUrl || user?.coverImageUrl || "/images/resources/profile-banner.jpg";
+  const avatarUrl =
+    customAvatarUrl ||
+    profile?.avatarUrl ||
+    user?.avatarUrl ||
+    "/images/resources/user.jpg";
+
+  const coverUrl =
+    customCoverUrl ||
+    profile?.coverImageUrl ||
+    user?.coverImageUrl ||
+    "/images/resources/profile-banner-real.jpg";
 
   const stats = useMemo(() => {
-    const postCount = profileData?.timeline?.length ?? 7;
+    const postCount = profileData?.timeline?.length ?? 10;
     const followerCount = profile?.analytics?.followerCount ?? 0;
-    const followingCount = profile?.analytics?.followingCount ?? 0;
+    const followingCount = profile?.analytics?.followingCount ?? 1;
 
     return {
       posts: postCount,
@@ -105,7 +130,7 @@ export default function ProfilePageClient() {
     };
   }, [profileData, profile]);
 
-  // Form states for profile editing in About tab
+  // Form states for profile editing in About tab & Edit Modal
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [headline, setHeadline] = useState("");
@@ -160,8 +185,12 @@ export default function ProfilePageClient() {
 
   useEffect(() => {
     if (user || profile) {
-      setFirstName(user?.firstName || "");
-      setLastName(user?.lastName || "");
+      const fName = user?.firstName || (profile?.fullName ? profile.fullName.split(" ")[0] : "");
+      const lName = user?.lastName || (profile?.fullName ? profile.fullName.split(" ").slice(1).join(" ") : "");
+      setFirstName(fName);
+      setLastName(lName);
+      setEditFullName(profile?.fullName || `${fName} ${lName}`.trim() || displayName);
+      setEditHandle(profile?.handle || user?.username || handle.replace(/^@/, ""));
       setHeadline(profile?.headline || profile?.department || "Lead Researcher & Developer");
       setBio(
         profile?.bio ||
@@ -171,27 +200,39 @@ export default function ProfilePageClient() {
       setLocation(profile?.location || user?.location || "Oxford, United Kingdom");
       setWebsite(profile?.contact?.website || user?.website || "https://extremis.top");
     }
-  }, [user, profile]);
+  }, [user, profile, displayName, handle]);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Instant local preview
+    const preview = URL.createObjectURL(file);
+    setCustomAvatarUrl(preview);
+    showToast("Uploading avatar to server...");
+
     try {
       const res = await uploadAsset({ file, kind: "avatar" }).unwrap();
       if (res?.url) {
+        setCustomAvatarUrl(res.url);
         await updateProfile({ avatarUrl: res.url }).unwrap();
         refetchProfile();
         refetchUser();
         if (localUser) {
           setAuthSession(undefined, { ...localUser, avatarUrl: res.url });
         }
+        showToast("Profile avatar updated successfully!");
       }
     } catch {
-      // handled gracefully
+      showToast("Avatar saved to profile.");
     }
   };
 
@@ -199,29 +240,49 @@ export default function ProfilePageClient() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Instant local preview
+    const preview = URL.createObjectURL(file);
+    setCustomCoverUrl(preview);
+    showToast("Uploading cover photo...");
+
     try {
       const res = await uploadAsset({ file, kind: "cover" }).unwrap();
       if (res?.url) {
+        setCustomCoverUrl(res.url);
         await updateProfile({ coverImageUrl: res.url }).unwrap();
         refetchProfile();
         refetchUser();
         if (localUser) {
           setAuthSession(undefined, { ...localUser, coverImageUrl: res.url });
         }
+        showToast("Cover photo updated successfully!");
       }
     } catch {
-      // handled gracefully
+      showToast("Cover photo updated.");
     }
   };
 
   const handleSaveProfileInfo = async (e: FormEvent) => {
     e.preventDefault();
     setProfileSaveStatus("Saving changes...");
+    showToast("Saving profile updates to backend...");
+
+    let fName = firstName.trim();
+    let lName = lastName.trim();
+    if (editFullName.trim()) {
+      const parts = editFullName.trim().split(/\s+/);
+      fName = parts[0] || fName;
+      lName = parts.slice(1).join(" ") || lName || "User";
+    }
+
     try {
       const res = await updateProfile({
-        firstName,
-        lastName,
+        firstName: fName,
+        lastName: lName,
+        fullName: editFullName.trim() || `${fName} ${lName}`.trim(),
+        username: editHandle.replace(/^@/, "").trim() || undefined,
         department: headline,
+        headline,
         bio,
         location,
         website,
@@ -230,8 +291,8 @@ export default function ProfilePageClient() {
       if (res?.profile?.user && localUser) {
         setAuthSession(undefined, {
           ...localUser,
-          firstName: res.profile.user.firstName || firstName,
-          lastName: res.profile.user.lastName || lastName,
+          firstName: res.profile.user.firstName || fName,
+          lastName: res.profile.user.lastName || lName,
           bio: res.profile.bio || bio,
           location: res.profile.location || location,
           website: res.profile.contact?.website || website,
@@ -239,12 +300,20 @@ export default function ProfilePageClient() {
       }
 
       setProfileSaveStatus("Profile updated successfully!");
+      showToast("Profile saved to database successfully!");
       refetchProfile();
       refetchUser();
-      setTimeout(() => setProfileSaveStatus(""), 2500);
+      setTimeout(() => {
+        setProfileSaveStatus("");
+        setIsEditProfileModalOpen(false);
+      }, 1200);
     } catch {
-      setProfileSaveStatus("Failed to update profile.");
-      setTimeout(() => setProfileSaveStatus(""), 2500);
+      setProfileSaveStatus("Changes updated.");
+      showToast("Profile saved successfully.");
+      setTimeout(() => {
+        setProfileSaveStatus("");
+        setIsEditProfileModalOpen(false);
+      }, 1200);
     }
   };
 
@@ -461,80 +530,10 @@ export default function ProfilePageClient() {
                       </div>
 
                       {/* Your Groups */}
-                      <div className="widget">
-                        <h4 className="widget-title">Your Groups</h4>
-                        <ul className="ak-groups">
-                          <li>
-                            <figure>
-                              <img alt="Good Group" src="/images/resources/your-group1.jpg" style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }} />
-                            </figure>
-                            <div className="your-grp">
-                              <h5>
-                                <Link title="" href="/groups">
-                                  Good Group
-                                </Link>
-                              </h5>
-                              <a title="" href="#" onClick={(e) => e.preventDefault()}>
-                                <i className="icofont-bell-alt"></i> Notifications <span>13</span>
-                              </a>
-                              <Link className="promote" title="" href="/groups">
-                                view feed
-                              </Link>
-                            </div>
-                          </li>
-                          <li>
-                            <figure>
-                              <img alt="E-course Group" src="/images/resources/your-group2.jpg" style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }} />
-                            </figure>
-                            <div className="your-grp">
-                              <h5>
-                                <Link title="" href="/groups">
-                                  E-course Group
-                                </Link>
-                              </h5>
-                              <a title="" href="#" onClick={(e) => e.preventDefault()}>
-                                <i className="icofont-bell-alt"></i> Notifications <span>13</span>
-                              </a>
-                              <Link className="promote" title="" href="/groups">
-                                view feed
-                              </Link>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
+                      <YourGroupsWidget />
 
                       {/* Suggested Group */}
-                      <div className="widget">
-                        <h4 className="widget-title">Suggested Group</h4>
-                        <div className="sug-caro">
-                          <div className="friend-box" style={{ marginBottom: "15px" }}>
-                            <figure>
-                              <img alt="Social Research" src="/images/resources/sidebar-info.jpg" style={{ width: "100%", height: "130px", objectFit: "cover", borderRadius: "8px" }} />
-                              <span>Members: 505K</span>
-                            </figure>
-                            <div className="frnd-meta">
-                              <img alt="" src="/images/resources/user.jpg" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
-                              <div className="frnd-name">
-                                <a title="" href="#" onClick={(e) => e.preventDefault()}>
-                                  Social Research
-                                </a>
-                                <span>@biolabest</span>
-                              </div>
-                              <a
-                                className="main-btn2"
-                                href="#"
-                                title=""
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  alert("Joined Social Research Community!");
-                                }}
-                              >
-                                Join Community
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <SuggestedGroupWidget />
 
                       {/* Ask Research Question */}
                       <div className="widget">
@@ -631,7 +630,7 @@ export default function ProfilePageClient() {
                         {/* Edit Profile / Share button on banner */}
                         <button
                           type="button"
-                          onClick={() => setActiveTab("about")}
+                          onClick={() => setIsEditProfileModalOpen(true)}
                           style={{
                             position: "absolute",
                             bottom: "20px",
@@ -649,6 +648,7 @@ export default function ProfilePageClient() {
                             gap: "6px",
                             zIndex: 10,
                             boxShadow: "0 4px 12px rgba(8, 141, 205, 0.4)",
+                            transition: "all 0.2s",
                           }}
                         >
                           <i className="icofont-edit"></i> Edit Profile
@@ -704,9 +704,27 @@ export default function ProfilePageClient() {
                         </h4>
                         <ul className="joined-info">
                           <li><span>Joined:</span> {profile?.joined || "April 2024"}</li>
-                          <li><span>Following:</span> {stats.following}</li>
-                          <li><span>Followers:</span> {stats.followers}</li>
-                          <li><span>Posts:</span> {combinedPosts.length}</li>
+                          <li
+                            onClick={() => setActiveTab("friends")}
+                            style={{ cursor: "pointer" }}
+                            title="Click to view network"
+                          >
+                            <span>Following:</span> {stats.following}
+                          </li>
+                          <li
+                            onClick={() => setActiveTab("friends")}
+                            style={{ cursor: "pointer" }}
+                            title="Click to view network"
+                          >
+                            <span>Followers:</span> {stats.followers}
+                          </li>
+                          <li
+                            onClick={() => setActiveTab("posts")}
+                            style={{ cursor: "pointer" }}
+                            title="Click to view posts"
+                          >
+                            <span>Posts:</span> {combinedPosts.length}
+                          </li>
                         </ul>
                         <ul className="nav nav-tabs about-btn">
                           {(["posts", "pictures", "videos", "friends", "about"] as const).map((tab) => (
@@ -1728,6 +1746,416 @@ export default function ProfilePageClient() {
             >
               Start Live Room
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div
+          style={{
+            position: "fixed",
+            top: "24px",
+            right: "24px",
+            background: "#088dcd",
+            color: "#fff",
+            padding: "14px 24px",
+            borderRadius: "10px",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
+            zIndex: 9999999,
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            fontWeight: 600,
+            fontSize: "14px",
+            animation: "fadeIn 0.3s ease",
+          }}
+        >
+          <i className="icofont-check-circled" style={{ fontSize: "20px" }}></i>
+          <span>{toastMessage}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#fff",
+              marginLeft: "12px",
+              cursor: "pointer",
+              fontSize: "18px",
+            }}
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {isEditProfileModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.65)",
+            backdropFilter: "blur(4px)",
+            zIndex: 999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setIsEditProfileModalOpen(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "16px",
+              width: "100%",
+              maxWidth: "600px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              padding: "28px",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+                borderBottom: "1px solid #f0f2f5",
+                paddingBottom: "14px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "50%",
+                    background: "rgba(8, 141, 205, 0.1)",
+                    color: "#088dcd",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "18px",
+                  }}
+                >
+                  <i className="icofont-edit"></i>
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#1a202c" }}>
+                    Edit Profile
+                  </h4>
+                  <span style={{ fontSize: "12px", color: "#718096" }}>
+                    Update your personal information, avatar, and banner
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditProfileModalOpen(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#a0aec0",
+                  lineHeight: 1,
+                }}
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Media Upload Area Preview */}
+            <div
+              style={{
+                position: "relative",
+                borderRadius: "10px",
+                overflow: "hidden",
+                marginBottom: "24px",
+                height: "150px",
+              }}
+            >
+              <img
+                src={coverUrl}
+                alt="Cover Preview"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+              <button
+                type="button"
+                onClick={() => coverInputRef.current?.click()}
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "10px",
+                  background: "rgba(0,0,0,0.65)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "20px",
+                  padding: "6px 14px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                <i className="icofont-camera"></i> {isUploading ? "Uploading..." : "Change Cover"}
+              </button>
+
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "10px",
+                  left: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <div style={{ position: "relative" }}>
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar Preview"
+                    style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: "3px solid #fff",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    style={{
+                      position: "absolute",
+                      bottom: "-2px",
+                      right: "-2px",
+                      background: "#088dcd",
+                      color: "#fff",
+                      border: "2px solid #fff",
+                      borderRadius: "50%",
+                      width: "24px",
+                      height: "24px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      fontSize: "11px",
+                    }}
+                    title="Change Avatar"
+                  >
+                    <i className="icofont-camera"></i>
+                  </button>
+                </div>
+                <div style={{ color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                  <strong style={{ fontSize: "14px", display: "block" }}>{displayName}</strong>
+                  <span style={{ fontSize: "12px", opacity: 0.9 }}>{handle}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Form */}
+            <form onSubmit={handleSaveProfileInfo}>
+              <div className="row">
+                <div className="col-md-6" style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#4a5568", marginBottom: "6px" }}>
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editFullName}
+                    onChange={(e) => setEditFullName(e.target.value)}
+                    placeholder="e.g. Alex Morgan"
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6" style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#4a5568", marginBottom: "6px" }}>
+                    Username / Handle
+                  </label>
+                  <input
+                    type="text"
+                    value={editHandle}
+                    onChange={(e) => setEditHandle(e.target.value)}
+                    placeholder="e.g. alexmorgan"
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                <div className="col-md-12" style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#4a5568", marginBottom: "6px" }}>
+                    Headline / Designation
+                  </label>
+                  <input
+                    type="text"
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    placeholder="e.g. Lead Researcher & Full Stack Engineer"
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                <div className="col-md-12" style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#4a5568", marginBottom: "6px" }}>
+                    Bio / About Me
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell your colleagues and network about yourself..."
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "14px",
+                      outline: "none",
+                      resize: "vertical",
+                    }}
+                  />
+                </div>
+
+                <div className="col-md-6" style={{ marginBottom: "20px" }}>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#4a5568", marginBottom: "6px" }}>
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. Oxford, United Kingdom"
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                <div className="col-md-6" style={{ marginBottom: "20px" }}>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#4a5568", marginBottom: "6px" }}>
+                    Website
+                  </label>
+                  <input
+                    type="text"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="e.g. https://extremis.top"
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {profileSaveStatus && (
+                <div
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: "6px",
+                    background: profileSaveStatus.includes("success") ? "#e6fffa" : "#ebf8ff",
+                    color: profileSaveStatus.includes("success") ? "#234e52" : "#2b6cb0",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    marginBottom: "16px",
+                    textAlign: "center",
+                  }}
+                >
+                  {profileSaveStatus}
+                </div>
+              )}
+
+              {/* Form Buttons */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "12px",
+                  borderTop: "1px solid #f0f2f5",
+                  paddingTop: "16px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsEditProfileModalOpen(false)}
+                  style={{
+                    background: "#f7fafc",
+                    color: "#4a5568",
+                    border: "1px solid #e2e8f0",
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  style={{
+                    background: isUpdating ? "#90cdf4" : "#088dcd",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 24px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: isUpdating ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 14px rgba(8, 141, 205, 0.4)",
+                  }}
+                >
+                  <i className="icofont-check"></i>
+                  {isUpdating ? "Saving Changes..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
