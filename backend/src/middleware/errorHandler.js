@@ -4,9 +4,14 @@ function notFound(req, res) {
 
 function getDuplicateKeyMessage(err) {
   const duplicateField = Object.keys(err?.keyPattern || err?.keyValue || {})[0];
+  const msg = String(err?.message || "");
 
-  if (duplicateField === "email") {
+  if (duplicateField === "email" || msg.includes("email_1") || msg.includes("dup key: { email:")) {
     return "An account with this email already exists.";
+  }
+
+  if (duplicateField === "username" || msg.includes("username_1") || msg.includes("dup key: { username:")) {
+    return "This username is already taken. Please choose another username.";
   }
 
   return "A record with the same unique value already exists.";

@@ -332,7 +332,9 @@ export default function AuthBox({ initialMode = "login" }: AuthBoxProps) {
     try {
       const response = await signupMutation({
         firstName: user,
-        lastName: "",
+          lastName: "",
+          username: user,
+          name: user,
         email,
         password,
         phoneNumber: signupPhone.trim() || undefined,

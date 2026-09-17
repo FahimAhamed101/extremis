@@ -62,29 +62,47 @@ function dispatchAuthStorageEvent() {
   window.dispatchEvent(new Event(AUTH_STORAGE_EVENT));
 }
 
-export function setAuthSession(token: string | undefined, user: unknown) {
+export function setAuthSession(token: string | null | undefined, user: unknown) {
   if (!isBrowser()) {
     return;
   }
 
   try {
-    if (token) {
+    if (typeof token === "string" && token.length > 0) {
       window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
       writeCookie(AUTH_COOKIE_NAME, token, COOKIE_MAX_AGE_SECONDS);
-    } else {
+    } else if (token === null) {
       window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
       clearCookie(AUTH_COOKIE_NAME);
     }
+    // When token is undefined, preserve existing auth token & cookie
 
-    window.localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
+    if (user !== undefined) {
+      window.localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
+    }
     window.sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     window.sessionStorage.removeItem(AUTH_USER_STORAGE_KEY);
   } catch {
-    if (token) {
+    if (typeof token === "string" && token.length > 0) {
       writeCookie(AUTH_COOKIE_NAME, token, COOKIE_MAX_AGE_SECONDS);
-    } else {
+    } else if (token === null) {
       clearCookie(AUTH_COOKIE_NAME);
     }
+  }
+
+  dispatchAuthStorageEvent();
+}
+
+export function updateAuthUser(user: unknown) {
+  if (!isBrowser()) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
+    window.sessionStorage.removeItem(AUTH_USER_STORAGE_KEY);
+  } catch {
+    // Storage access can be blocked in some browser modes.
   }
 
   dispatchAuthStorageEvent();

@@ -17,7 +17,7 @@ import {
   useGetDiscoverPeopleQuery,
 } from "@/lib/services/authApi";
 import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants";
-import { setAuthSession } from "@/lib/auth/client";
+import { setAuthSession, updateAuthUser } from "@/lib/auth/client";
 import YourGroupsWidget from "@/components/groups/YourGroupsWidget";
 import SuggestedGroupWidget from "@/components/groups/SuggestedGroupWidget";
 
@@ -227,7 +227,7 @@ export default function ProfilePageClient() {
         refetchProfile();
         refetchUser();
         if (localUser) {
-          setAuthSession(undefined, { ...localUser, avatarUrl: res.url });
+          updateAuthUser({ ...localUser, avatarUrl: res.url });
         }
         showToast("Profile avatar updated successfully!");
       }
@@ -253,7 +253,7 @@ export default function ProfilePageClient() {
         refetchProfile();
         refetchUser();
         if (localUser) {
-          setAuthSession(undefined, { ...localUser, coverImageUrl: res.url });
+          updateAuthUser({ ...localUser, coverImageUrl: res.url });
         }
         showToast("Cover photo updated successfully!");
       }
@@ -289,7 +289,7 @@ export default function ProfilePageClient() {
       }).unwrap();
 
       if (res?.profile?.user && localUser) {
-        setAuthSession(undefined, {
+        updateAuthUser({
           ...localUser,
           firstName: res.profile.user.firstName || fName,
           lastName: res.profile.user.lastName || lName,

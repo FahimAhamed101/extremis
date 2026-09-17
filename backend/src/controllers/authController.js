@@ -73,7 +73,9 @@ function getRequestBody(req) {
 async function signup(req, res, next) {
   try {
     const body = getRequestBody(req);
-    const rawName = String(body.name || body.user || body.username || "").trim();
+    const rawName = String(
+      body.name || body.fullName || body.user || body.username || body.nameOrUsername || ""
+    ).trim();
     const firstName = String(body.firstName || rawName || "").trim();
     const derivedLastName = rawName
       ? rawName
@@ -85,20 +87,69 @@ async function signup(req, res, next) {
     const lastName = String(body.lastName || derivedLastName || "").trim();
     const email = normalizeEmail(body.email);
     const password = String(body.password || "");
-    const username = normalizeUsername(body.username || body.user || "");
+
+    // Extract or auto-derive username:
+    let username = normalizeUsername(
+      body.username || body.userName || body.user || ""
+    );
+
+    // If no explicit username, check if rawName looks like a single-word username
+    if (!username && rawName) {
+      const candidate = normalizeUsername(rawName);
+      if (/^[a-z0-9._-]{3,30}$/.test(candidate)) {
+        username = candidate;
+      }
+    }
+
+    // If still no valid username, auto-generate a clean, unique username from rawName or email
+    if (!username) {
+      const baseFromEmail = email ? email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+      const baseFromName = rawName ? rawName.toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+      const base = (baseFromName || baseFromEmail || "user").slice(0, 18) || "user";
+      let candidate = base.length >= 3 ? base : `${base}123`;
+      let attempt = 0;
+      while (await User.findOne({ username: candidate })) {
+        attempt++;
+        candidate = `${base.slice(0, 15)}${Math.floor(100 + Math.random() * 900)}`;
+        if (attempt > 10) {
+          candidate = `${base.slice(0, 12)}_${Date.now().toString().slice(-6)}`;
+          break;
+        }
+      }
+      username = candidate;
+    }
+
     const researcherType = String(body.researcherType || "").trim();
     const institute = String(body.institute || "").trim();
     const department = String(body.department || "").trim();
     const position = String(body.position || "").trim();
     const gender = String(body.gender || "").trim();
     const phoneNumber = String(body.phoneNumber || body.phone || "").trim();
-    const dateOfBirth = String(body.dateOfBirth || body.dob || "").trim();
+    
+    let dateOfBirth = String(body.dateOfBirth || body.dob || "").trim();
+    if (!dateOfBirth && body.year && body.month && body.day) {
+      const monthMap = {
+        jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+        jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
+      };
+      const m = String(body.month).toLowerCase().slice(0, 3);
+      const monthNum = monthMap[m] || String(body.month).padStart(2, "0");
+      const dayNum = String(body.day).padStart(2, "0");
+      dateOfBirth = `${body.year}-${monthNum}-${dayNum}`;
+    }
+
     const location = String(body.location || "").trim();
 
     let coordinates = null;
     if (body.coordinates && typeof body.coordinates === "object") {
       const lat = Number(body.coordinates.lat ?? body.coordinates.latitude);
       const lng = Number(body.coordinates.lng ?? body.coordinates.lon ?? body.coordinates.longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        coordinates = { lat, lng };
+      }
+    } else if (body.latitude !== undefined && body.longitude !== undefined) {
+      const lat = Number(body.latitude);
+      const lng = Number(body.longitude);
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
         coordinates = { lat, lng };
       }
@@ -144,8 +195,23 @@ async function signup(req, res, next) {
     if (username) {
       const existingUsername = await User.findOne({ username });
       if (existingUsername) {
-        res.status(409).json({ message: "This username is already taken." });
-        return;
+        // If username was explicitly provided by the client, inform them:
+        if (body.username || body.userName || body.user) {
+          res.status(409).json({ message: "This username is already taken. Please choose another username." });
+          return;
+        }
+        // If auto-derived from name, append random numbers to ensure unique registration succeeds:
+        let candidate = username;
+        let attempt = 0;
+        while (await User.findOne({ username: candidate })) {
+          attempt++;
+          candidate = `${username.slice(0, 15)}${Math.floor(100 + Math.random() * 900)}`;
+          if (attempt > 10) {
+            candidate = `${username.slice(0, 12)}_${Date.now().toString().slice(-6)}`;
+            break;
+          }
+        }
+        username = candidate;
       }
     }
 
@@ -154,7 +220,7 @@ async function signup(req, res, next) {
       firstName: firstName || null,
       lastName: lastName || null,
       email,
-      username: username || null,
+      username: username,
       passwordHash,
       researcherType: researcherType || null,
       institute: institute || null,

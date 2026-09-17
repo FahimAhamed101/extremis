@@ -58,6 +58,8 @@ function readCookie(name: string): string | null {
 }
 
 export type SignupPayload = {
+  username?: string;
+  name?: string;
   firstName: string;
   lastName: string;
   email: string;
