@@ -165,7 +165,6 @@ async function getFeedPosts(req, res, next) {
     let posts = await Post.find(query)
       .populate("author")
       .populate("comments.user")
-      .populate("reactions.user")
       .sort({ createdAt: -1 })
       .limit(50);
 
@@ -177,7 +176,6 @@ async function getFeedPosts(req, res, next) {
         posts = await Post.find(query)
           .populate("author")
           .populate("comments.user")
-          .populate("reactions.user")
           .sort({ createdAt: -1 })
           .limit(50);
       }
@@ -235,7 +233,7 @@ async function createPost(req, res, next) {
     };
 
     const createdPost = await Post.create(payload);
-    const post = await Post.findById(createdPost._id).populate("author").populate("reactions.user");
+    const post = await Post.findById(createdPost._id).populate("author");
 
     res.status(201).json({
       message: "Post published successfully.",
@@ -251,8 +249,7 @@ async function getPostById(req, res, next) {
   try {
     const post = await Post.findById(req.params.postId)
       .populate("author")
-      .populate("comments.user")
-      .populate("reactions.user");
+      .populate("comments.user");
 
     if (!post) {
       res.status(404).json({ message: "Post not found." });
@@ -316,10 +313,7 @@ async function reactToPost(req, res, next) {
     }
 
     await post.save();
-    const updatedPost = await Post.findById(post._id)
-      .populate("author")
-      .populate("comments.user")
-      .populate("reactions.user");
+    const updatedPost = await Post.findById(post._id).populate("author").populate("comments.user");
 
     res.status(200).json({
       message: "Reaction saved.",
@@ -356,10 +350,7 @@ async function addPostComment(req, res, next) {
     });
 
     await post.save();
-    const updatedPost = await Post.findById(post._id)
-      .populate("author")
-      .populate("comments.user")
-      .populate("reactions.user");
+    const updatedPost = await Post.findById(post._id).populate("author").populate("comments.user");
 
     res.status(201).json({
       message: "Comment added successfully.",
@@ -415,10 +406,7 @@ async function toggleSavedPost(req, res, next) {
     }
 
     await post.save();
-    const updatedPost = await Post.findById(post._id)
-      .populate("author")
-      .populate("comments.user")
-      .populate("reactions.user");
+    const updatedPost = await Post.findById(post._id).populate("author").populate("comments.user");
 
     res.status(200).json({
       message: isSaved ? "Post removed from saved items." : "Post saved successfully.",
@@ -440,7 +428,6 @@ async function getSavedPosts(req, res, next) {
     const posts = await Post.find({ savedBy: viewerId })
       .populate("author")
       .populate("comments.user")
-      .populate("reactions.user")
       .sort({ updatedAt: -1 })
       .limit(50);
 
@@ -453,36 +440,11 @@ async function getSavedPosts(req, res, next) {
   }
 }
 
-async function getPostReactions(req, res, next) {
-  try {
-    const post = await Post.findById(req.params.postId)
-      .populate("reactions.user")
-      .populate("likes");
-
-    if (!post) {
-      res.status(404).json({ message: "Post not found." });
-      return;
-    }
-
-    const serialized = toFeedPost(post, req.user?._id);
-    res.status(200).json({
-      message: "Post reactions loaded.",
-      reactions: serialized.reactions || [],
-      reactionCounts: serialized.stats.reactionCounts,
-      topReactions: serialized.stats.topReactions,
-      totalCount: serialized.stats.likeCount,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
 module.exports = {
   getFeedPosts,
   getPostById,
   createPost,
   reactToPost,
-  getPostReactions,
   addPostComment,
   sharePost,
   toggleSavedPost,

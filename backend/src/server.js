@@ -22,4 +22,12 @@ async function bootstrap() {
   }
 }
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err.message);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+});
+
 bootstrap();

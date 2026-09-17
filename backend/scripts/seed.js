@@ -441,7 +441,7 @@ async function run() {
   await connectDB();
   await wipeCollections();
 
-  const passwordHash = await bcrypt.hash("password123", 12);
+  const passwordHash = await bcrypt.hash("12345678", 12);
 
   const userDocs = buildUsers(USER_COUNT).map((user) => ({
     ...user,

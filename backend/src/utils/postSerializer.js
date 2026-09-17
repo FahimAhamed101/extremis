@@ -227,60 +227,33 @@ function serializeReactions(post) {
   const rawReactions = Array.isArray(post?.reactions) ? post.reactions : [];
   if (rawReactions.length > 0) {
     return rawReactions.reduce((entries, reaction) => {
-      const userSource = reaction?.user && typeof reaction.user === "object" ? reaction.user : null;
-      const userId = userSource?._id
-        ? String(userSource._id)
-        : String(reaction?.user || "").trim();
+      const userId =
+        reaction?.user && typeof reaction.user === "object" && reaction.user._id
+          ? String(reaction.user._id)
+          : String(reaction?.user || "").trim();
       const type = String(reaction?.type || "").trim().toLowerCase();
 
       if (!userId || !REACTION_TYPES.includes(type)) {
         return entries;
       }
 
-      const user =
-        userSource && typeof userSource === "object" && "firstName" in userSource
-          ? toPublicUser(userSource)
-          : null;
-
-      const name = user
-        ? `${String(user.firstName || "").trim()} ${String(user.lastName || "").trim()}`.trim() || user.username || "User"
-        : "User";
-
-      entries.push({
-        id: String(reaction?._id || `${userId}_${type}`),
-        userId,
-        type,
-        name,
-        handle: user?.username ? `@${user.username}` : "",
-        image: String(user?.avatarUrl || DEFAULT_AVATAR_URL).trim() || DEFAULT_AVATAR_URL,
-        createdAt: reaction?.createdAt ? new Date(reaction.createdAt).toISOString() : null,
-      });
+      entries.push({ userId, type });
       return entries;
     }, []);
   }
 
   return Array.isArray(post?.likes)
-    ? post.likes.reduce((entries, userSource) => {
-        const isObj = userSource && typeof userSource === "object";
-        const userId = isObj && userSource._id ? String(userSource._id) : String(userSource || "").trim();
+    ? post.likes.reduce((entries, user) => {
+        const userId =
+          user && typeof user === "object" && user._id
+            ? String(user._id)
+            : String(user || "").trim();
+
         if (!userId) {
           return entries;
         }
 
-        const user = isObj && "firstName" in userSource ? toPublicUser(userSource) : null;
-        const name = user
-          ? `${String(user.firstName || "").trim()} ${String(user.lastName || "").trim()}`.trim() || user.username || "User"
-          : "User";
-
-        entries.push({
-          id: `${userId}_like`,
-          userId,
-          type: "like",
-          name,
-          handle: user?.username ? `@${user.username}` : "",
-          image: String(user?.avatarUrl || DEFAULT_AVATAR_URL).trim() || DEFAULT_AVATAR_URL,
-          createdAt: null,
-        });
+        entries.push({ userId, type: "like" });
         return entries;
       }, [])
     : [];
@@ -379,7 +352,6 @@ function serializePost(post, viewerId) {
     embedUrl,
     videoUrl,
     comments: serializedComments,
-    reactions: serializedReactions,
     stats: {
       viewCount: Number(post?.viewCount || 0) || Math.max(1, likeCount + commentCount + shareCount + 1),
       likeCount,

@@ -181,9 +181,7 @@ async function signup(req, res, next) {
 async function login(req, res, next) {
   try {
     const body = getRequestBody(req);
-    const identifier = String(body.email || body.user || body.username || "").trim();
-    const email = normalizeEmail(identifier);
-    const username = normalizeUsername(identifier);
+    const identifier = String(body.email || body.user || body.username || "").trim().toLowerCase();
     const password = String(body.password || "");
 
     if (!identifier || !password) {
@@ -191,18 +189,17 @@ async function login(req, res, next) {
       return;
     }
 
-    const searchCriteria = [];
-    if (email && isEmailValid(email)) {
-      searchCriteria.push({ email });
-    }
-    if (username) {
-      searchCriteria.push({ username });
-    }
-    if (searchCriteria.length === 0) {
-      searchCriteria.push({ email });
-    }
+    const usernamePart = identifier.split("@")[0];
+    const escapedUsername = usernamePart.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { username: identifier },
+        { username: usernamePart },
+        { email: new RegExp("^" + escapedUsername + "@", "i") }
+      ]
+    });
 
-    const user = await User.findOne({ $or: searchCriteria });
     if (!user) {
       res.status(401).json({ message: "Invalid user/email or password." });
       return;
