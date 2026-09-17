@@ -5,6 +5,7 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
 import UsefulLinksWidget, { UsefulLinkTab } from "./UsefulLinksWidget";
 import Link from "next/link";
+import AppFooter from "@/components/layout/AppFooter";
 
 interface UsefulLinksPageClientProps {
   defaultTab: UsefulLinkTab;
@@ -297,6 +298,7 @@ export default function UsefulLinksPageClient({ defaultTab, pageTitle }: UsefulL
             </div>
           </div>
         </div>
+        <AppFooter />
       </div>
     </RequireAuth>
   );

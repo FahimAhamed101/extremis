@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Metadata } from "next";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
+import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
   title: "Courses",
@@ -34,6 +35,8 @@ function normalizeTemplateHtml(html: string): string {
     .replace(/<header\b[\s\S]*?<\/header>/gi, "")
     .replace(/<section[^>]*class=["'][^"']*\bheader-shortcuts\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, "")
     .replace(/<nav[^>]*class=["'][^"']*\bsidebar\b[^"']*["'][^>]*>[\s\S]*?<\/nav>/gi, "")
+    .replace(/<footer\b[\s\S]*?<!--\s*footer\s*-->/i, "")
+    .replace(/<div\s+class=["']bottombar["'][\s\S]*?<!--\s*bottombar\s*-->/i, "")
     .replace(
       /<div[^>]*id=["']page-loader["'][^>]*>[\s\S]*?<\/div>\s*<!--\s*page loader\s*-->/gi,
       ""
@@ -47,9 +50,12 @@ function normalizeTemplateHtml(html: string): string {
     .replace(/\bhref=(['"])index\.html\1/gi, 'href="/"')
     .replace(/\bhref=(['"])videos\.html\1/gi, 'href="/videos"')
     .replace(/\bhref=(['"])courses\.html\1/gi, 'href="/courses"')
+    .replace(/\bhref=(['"])add-new-course\.html\1/gi, 'href="/add-new-course"')
     .replace(/\bhref=(['"])blog\.html\1/gi, 'href="/blog"')
     .replace(/\bhref=(['"])messages\.html\1/gi, 'href="/messages"')
     .replace(/\bhref=(['"])profile(?:-page2)?\.html\1/gi, 'href="/profile"')
+    .replace(/\bhref=(['"])groups\.html\1/gi, 'href="/groups"')
+    .replace(/\bhref=(['"])search-result\.html\1/gi, 'href="/search-result"')
     .replace(/\bhref=(['"])sign-?in\.html\1/gi, 'href="/login"')
     .replace(/\bhref=(['"])signup\.html\1/gi, 'href="/signup"');
 }
@@ -63,6 +69,7 @@ export default function CoursesPage() {
       <div className="theme-layout">
         <HomeHeader />
         <div dangerouslySetInnerHTML={{ __html: coursesMarkup }} />
+        <AppFooter />
       </div>
     </RequireAuth>
   );

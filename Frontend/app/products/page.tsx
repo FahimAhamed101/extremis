@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useState, useMemo, useEffect, ChangeEvent, FormEvent } from "react";
 import HomeHeader from "@/components/layout/HomeHeader";
+import AppFooter from "@/components/layout/AppFooter";
 
 type Product = {
   id: string;
@@ -689,6 +690,8 @@ export default function ProductsPage() {
           )}
         </div>
       </section>
+
+      <AppFooter />
 
       {/* ================= ADD PRODUCT MODAL ================= */}
       {isAddModalOpen && (

@@ -227,33 +227,60 @@ function serializeReactions(post) {
   const rawReactions = Array.isArray(post?.reactions) ? post.reactions : [];
   if (rawReactions.length > 0) {
     return rawReactions.reduce((entries, reaction) => {
-      const userId =
+      const userSource =
         reaction?.user && typeof reaction.user === "object" && reaction.user._id
-          ? String(reaction.user._id)
-          : String(reaction?.user || "").trim();
+          ? reaction.user
+          : null;
+      const userId = userSource?._id ? String(userSource._id) : String(reaction?.user || "").trim();
       const type = String(reaction?.type || "").trim().toLowerCase();
 
       if (!userId || !REACTION_TYPES.includes(type)) {
         return entries;
       }
 
-      entries.push({ userId, type });
+      const name = userSource
+        ? [userSource.firstName, userSource.lastName].filter(Boolean).join(" ") || userSource.name || "Community Scholar"
+        : "Community Scholar";
+      const image = userSource?.avatarUrl || "/images/resources/user.jpg";
+      const handle = userSource?.handle || (userSource?.email ? `@${userSource.email.split("@")[0]}` : undefined);
+
+      entries.push({
+        id: String(reaction?._id || `${userId}-${type}`),
+        userId,
+        name,
+        handle,
+        image,
+        type,
+        createdAt: reaction?.createdAt ? new Date(reaction.createdAt).toISOString() : null,
+      });
       return entries;
     }, []);
   }
 
   return Array.isArray(post?.likes)
     ? post.likes.reduce((entries, user) => {
-        const userId =
-          user && typeof user === "object" && user._id
-            ? String(user._id)
-            : String(user || "").trim();
+        const userSource = user && typeof user === "object" && user._id ? user : null;
+        const userId = userSource?._id ? String(userSource._id) : String(user || "").trim();
 
         if (!userId) {
           return entries;
         }
 
-        entries.push({ userId, type: "like" });
+        const name = userSource
+          ? [userSource.firstName, userSource.lastName].filter(Boolean).join(" ") || userSource.name || "Community Scholar"
+          : "Community Scholar";
+        const image = userSource?.avatarUrl || "/images/resources/user.jpg";
+        const handle = userSource?.handle || (userSource?.email ? `@${userSource.email.split("@")[0]}` : undefined);
+
+        entries.push({
+          id: `like-${userId}`,
+          userId,
+          name,
+          handle,
+          image,
+          type: "like",
+          createdAt: null,
+        });
         return entries;
       }, [])
     : [];
@@ -272,7 +299,19 @@ function serializePost(post, viewerId) {
   const attachmentType = getAttachmentType(post);
   const postType = getPostType(post);
   const serializedComments = Array.isArray(post?.comments) ? post.comments.map((comment) => serializeComment(comment)) : [];
-  const { embedUrl, videoUrl } = getVideoPreview(post?.linkUrl);
+  
+  const isDirectVideoAttachment =
+    attachmentType === "video" ||
+    Boolean(post?.attachmentUrl && String(post.attachmentUrl).match(/\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i)) ||
+    Boolean(post?.attachmentUrl && String(post.attachmentUrl).includes("/video/upload/"));
+
+  const directVideoUrl =
+    (isDirectVideoAttachment && String(post?.attachmentUrl || "").trim()) ||
+    String(post?.videoUrl || "").trim() ||
+    null;
+
+  const { embedUrl, videoUrl: linkVideoUrl } = getVideoPreview(post?.linkUrl || directVideoUrl);
+  const resolvedVideoUrl = linkVideoUrl || directVideoUrl || null;
   const serializedReactions = serializeReactions(post);
   const reactionCounts = serializedReactions.reduce(
     (counts, reaction) => {
@@ -316,7 +355,7 @@ function serializePost(post, viewerId) {
   return {
     id: String(post?._id || post?.id || ""),
     type: postType,
-    authorId: author?.id || null,
+    authorId: author?.id || (authorSource?._id ? String(authorSource._id) : (post?.author ? String(post.author) : null)),
     authorName: getAuthorName(author),
     authorHandle: getAuthorHandle(author),
     authorImage: String(author?.avatarUrl || DEFAULT_AVATAR_URL).trim() || DEFAULT_AVATAR_URL,
@@ -350,8 +389,9 @@ function serializePost(post, viewerId) {
     createdAt: createdAt.toISOString(),
     status: isScheduled ? "scheduled" : "published",
     embedUrl,
-    videoUrl,
+    videoUrl: resolvedVideoUrl,
     comments: serializedComments,
+    reactions: serializeReactions(post),
     stats: {
       viewCount: Number(post?.viewCount || 0) || Math.max(1, likeCount + commentCount + shareCount + 1),
       likeCount,
@@ -380,4 +420,5 @@ function toTimelinePost(post, viewerId) {
 module.exports = {
   toFeedPost,
   toTimelinePost,
+  serializeReactions,
 };

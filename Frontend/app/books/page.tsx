@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import HomeHeader from "@/components/layout/HomeHeader";
+import AppFooter from "@/components/layout/AppFooter";
 import { CATALOG_BOOKS, POPULAR_SIDEBAR_BOOKS } from "@/data/marketplaceCatalog";
 import { addToCart } from "@/lib/cart/cartService";
 
@@ -335,6 +336,9 @@ export default function BooksDirectoryPage() {
           </Link>
         </div>
       )}
+
+      {/* Full Course Footer */}
+      <AppFooter />
     </div>
   );
 }

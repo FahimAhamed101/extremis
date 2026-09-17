@@ -20,6 +20,7 @@ import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants"
 import { setAuthSession, updateAuthUser } from "@/lib/auth/client";
 import YourGroupsWidget from "@/components/groups/YourGroupsWidget";
 import SuggestedGroupWidget from "@/components/groups/SuggestedGroupWidget";
+import PostMoreActions from "@/components/posts/PostMoreActions";
 
 type ProfileTab = "posts" | "pictures" | "videos" | "friends" | "about";
 
@@ -856,6 +857,7 @@ export default function ProfilePageClient() {
                                                 />
                                               </figure>
                                               <div className="friend-name">
+                                                <PostMoreActions post={post} iconType="svg" />
                                                 <ins>
                                                   <a title="" href="#" onClick={(e) => e.preventDefault()}>
                                                     {post.authorName}

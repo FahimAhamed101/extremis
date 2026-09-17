@@ -1,6 +1,7 @@
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
 import PostDetailPageClient from "@/components/posts/PostDetailPageClient";
+import AppFooter from "@/components/layout/AppFooter";
 
 type PostDetailPageProps = {
   params: Promise<{
@@ -16,6 +17,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       <div className="theme-layout">
         <HomeHeader />
         <PostDetailPageClient postId={postId} />
+        <AppFooter />
       </div>
     </RequireAuth>
   );

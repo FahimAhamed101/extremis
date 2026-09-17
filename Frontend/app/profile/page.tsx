@@ -2,6 +2,7 @@ import Script from "next/script";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
 import ProfilePageClient from "@/components/profile/ProfilePageClient";
+import AppFooter from "@/components/layout/AppFooter";
 
 export default function ProfilePage() {
   return (
@@ -10,6 +11,7 @@ export default function ProfilePage() {
         <div className="theme-layout">
           <HomeHeader />
           <ProfilePageClient />
+          <AppFooter />
         </div>
         <Script id="profile-carousel-fix" strategy="lazyOnload">
           {`

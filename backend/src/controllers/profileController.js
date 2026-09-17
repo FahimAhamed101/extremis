@@ -409,14 +409,16 @@ async function getProfileById(req, res, next) {
 
 async function getDiscoverPeople(req, res, next) {
   try {
-    const viewerUserId = String(req.user._id);
-    const viewerFollowingIds = getObjectIdStrings(req.user.following);
+    const viewerUserId = req.user?._id ? String(req.user._id) : null;
+    const viewerFollowingIds = req.user?.following ? getObjectIdStrings(req.user.following) : [];
     const viewerFollowingSet = new Set(viewerFollowingIds);
     const limit = parsePositiveInteger(req.query.limit, 24);
     const normalizedQuery = String(req.query.q || req.query.search || "").trim();
     const searchQuery = normalizedQuery ? buildUserSearchQuery(normalizedQuery) : {};
 
-    const users = await User.find({ _id: { $ne: req.user._id }, ...searchQuery })
+    const filter = viewerUserId ? { _id: { $ne: req.user._id }, ...searchQuery } : searchQuery;
+
+    const users = await User.find(filter)
       .sort({ createdAt: -1 })
       .limit(limit);
 

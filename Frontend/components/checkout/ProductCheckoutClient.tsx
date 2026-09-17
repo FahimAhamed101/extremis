@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useState, useMemo, FormEvent, useEffect } from "react";
 import HomeHeader from "@/components/layout/HomeHeader";
+import AppFooter from "@/components/layout/AppFooter";
 import { useCreateOrderMutation, useGetMyProfileQuery } from "@/lib/services/authApi";
 import {
   CartItem,
@@ -979,91 +980,8 @@ export default function ProductCheckoutClient() {
         </div>
       )}
 
-      {/* Footer */}
-      <footer>
-        <div className="gap">
-          <div className="bg-image" style={{ backgroundImage: "url(/images/resources/footer-bg.png)" }}></div>
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-3 col-md-6 col-sm-6">
-                <div className="web-info">
-                  <Link href="/" title="">
-                    <img src="/images/logo.png" alt="" />
-                  </Link>
-                  <p>Subscribe our newsletter for getting notifications and alerts</p>
-                  <div className="contact-little">
-                    <span><i className="icofont-phone-circle"></i> +1-235-099-34</span>
-                    <span><i className="icofont-email"></i> info@akedmic.com</span>
-                  </div>
-                </div>
-              </div>
-              <div className="col-lg-2 col-md-3 col-sm-6">
-                <div className="widget">
-                  <div className="widget-title">
-                    <h4>Company</h4>
-                  </div>
-                  <ul className="quick-links">
-                    <li><Link href="/" title="">About Us</Link></li>
-                    <li><Link href="/courses" title="">Courses</Link></li>
-                    <li><Link href="/products" title="">Products</Link></li>
-                    <li><Link href="/blog" title="">Blog</Link></li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-lg-2 col-md-3 col-sm-6">
-                <div className="widget">
-                  <div className="widget-title">
-                    <h4>Quick Links</h4>
-                  </div>
-                  <ul className="quick-links">
-                    <li><Link href="/products" title="">Products</Link></li>
-                    <li><Link href="/cart" title="">Cart</Link></li>
-                    <li><Link href="/courses" title="">Courses</Link></li>
-                    <li><Link href="/groups" title="">Groups</Link></li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-lg-2 col-md-4 col-sm-6">
-                <div className="widget">
-                  <div className="widget-title">
-                    <h4>Follow Us</h4>
-                  </div>
-                  <ul className="quick-links">
-                    <li><a href="#" title="" onClick={(e) => e.preventDefault()}><i className="icofont-facebook"></i>facebook</a></li>
-                    <li><a href="#" title="" onClick={(e) => e.preventDefault()}><i className="icofont-twitter"></i>twitter</a></li>
-                    <li><a href="#" title="" onClick={(e) => e.preventDefault()}><i className="icofont-instagram"></i>instagram</a></li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-lg-3 col-md-6 col-sm-6">
-                <div className="widget">
-                  <div className="widget-title">
-                    <h4>Newsletter</h4>
-                  </div>
-                  <div className="news-lettr">
-                    <form className="newsletter" onSubmit={(e) => { e.preventDefault(); alert("Subscribed!"); }}>
-                      <input type="text" placeholder="Email Address" />
-                      <button type="submit"><i className="icofont-paper-plane"></i></button>
-                    </form>
-                    <p>Subscribe our newsletter for exclusive marketplace releases.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Bottombar */}
-      <div className="bottombar">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12">
-              <span>&copy; copyright All rights reserved by Socimo 2026</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Full Course Footer */}
+      <AppFooter />
     </div>
   );
 }

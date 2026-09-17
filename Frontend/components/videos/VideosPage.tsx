@@ -8,7 +8,9 @@ import type { AnchorHTMLAttributes, ReactNode, FormEvent, ChangeEvent } from "re
 import { useState, useMemo, useRef } from "react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
+import AppFooter from "@/components/layout/AppFooter";
 import PostInteractions from "@/components/posts/PostInteractions";
+import PostMoreActions from "@/components/posts/PostMoreActions";
 import {
   type FeedPost,
   useGetFeedPostsQuery,
@@ -436,50 +438,7 @@ function VideoCard({ post }: { post: FeedPost }) {
             />
           </figure>
           <div className="friend-name">
-            <div className="more">
-              <div className="more-post-optns">
-                <i>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="feather feather-more-horizontal"
-                  >
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="19" cy="12" r="1"></circle>
-                    <circle cx="5" cy="12" r="1"></circle>
-                  </svg>
-                </i>
-                <ul>
-                  <li>
-                    <Link href={postHref}>
-                      <i className="icofont-info-circle"></i>View Post
-                      <span>Open the full post with comments and reactions</span>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href={authorHref}>
-                      <i className="icofont-user"></i>View Profile
-                      <span>Open {post.authorName}&apos;s profile</span>
-                    </Link>
-                  </li>
-                  {videoUrl ? (
-                    <li>
-                      <a href={videoUrl} target="_blank" rel="noreferrer">
-                        <i className="icofont-link"></i>Watch Source
-                        <span>Open original video player</span>
-                      </a>
-                    </li>
-                  ) : null}
-                </ul>
-              </div>
-            </div>
+            <PostMoreActions post={post} iconType="svg" />
             <ins>
               <Link title={post.authorName} href={authorHref}>
                 {post.authorName}
@@ -638,9 +597,16 @@ function CreateReelBox({
     setTitle("");
     setCaption("");
     setVideoFile(null);
-    if (videoPreviewUrl) {
-      URL.revokeObjectURL(videoPreviewUrl);
-      setVideoPreviewUrl(null);
+    const oldUrl = videoPreviewUrl;
+    setVideoPreviewUrl(null);
+    if (oldUrl && oldUrl.startsWith("blob:")) {
+      window.setTimeout(() => {
+        try {
+          URL.revokeObjectURL(oldUrl);
+        } catch {
+          // ignore
+        }
+      }, 500);
     }
     setVideoLinkUrl("");
     if (fileInputRef.current) {
@@ -675,15 +641,21 @@ function CreateReelBox({
       if (mode === "file" && videoFile) {
         try {
           const uploadRes = await uploadAsset({ file: videoFile, kind: "video" }).unwrap();
+          if (!uploadRes?.url) {
+            throw new Error("Missing upload result URL.");
+          }
           attachmentUrl = uploadRes.url;
           attachmentType = "video";
-        } catch {
-          const reader = new FileReader();
-          attachmentUrl = await new Promise<string>((res) => {
-            reader.onload = () => res(String(reader.result));
-            reader.readAsDataURL(videoFile);
+        } catch (uploadErr: unknown) {
+          const errMsg =
+            uploadErr && typeof uploadErr === "object" && "data" in uploadErr && (uploadErr as { data?: { message?: string } }).data?.message
+              ? (uploadErr as { data?: { message?: string } }).data?.message
+              : "Failed to upload video file. Please ensure it is an MP4 or WebM video up to 50MB and try again.";
+          setStatus({
+            type: "error",
+            message: String(errMsg),
           });
-          attachmentType = "video";
+          return;
         }
       } else if (mode === "link" && videoLinkUrl.trim()) {
         linkUrl = videoLinkUrl.trim();
@@ -929,14 +901,14 @@ function CreateReelBox({
                 </button>
               </div>
             ) : (
-              <div style={{ background: "#f8fafc", borderRadius: "10px", padding: "12px", border: "1px solid #e2e8f0" }}>
+              <div key="video-preview-panel" style={{ background: "#f8fafc", borderRadius: "10px", padding: "12px", border: "1px solid #e2e8f0" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <i className="icofont-film" style={{ fontSize: "20px", color: "#088dcd" }}></i>
                     <div>
                       <div style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{videoFile.name}</div>
                       <div style={{ fontSize: "11px", color: "#64748b" }}>
-                        {(videoFile.size / (1024 * 1024)).toFixed(2)} MB · Ready to publish
+                        <span>{(videoFile.size / (1024 * 1024)).toFixed(2)} MB · Ready to publish</span>
                       </div>
                     </div>
                   </div>
@@ -954,14 +926,14 @@ function CreateReelBox({
                       cursor: "pointer",
                     }}
                   >
-                    Remove
+                    <span>Remove</span>
                   </button>
                 </div>
-                {videoPreviewUrl && (
-                  <div style={{ borderRadius: "8px", overflow: "hidden", background: "#000", maxHeight: "280px" }}>
+                {videoPreviewUrl ? (
+                  <div key={videoPreviewUrl} style={{ borderRadius: "8px", overflow: "hidden", background: "#000", maxHeight: "280px" }}>
                     <video controls src={videoPreviewUrl} style={{ width: "100%", maxHeight: "280px", display: "block" }} />
                   </div>
-                )}
+                ) : null}
               </div>
             )}
             <input
@@ -1147,17 +1119,20 @@ function CreateReelBox({
               }}
             >
               {isUploading ? (
-                <>
-                  <i className="icofont-spinner icofont-spin"></i> Uploading Video...
-                </>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                  <i className="icofont-spinner icofont-spin"></i>
+                  <span>Uploading Video...</span>
+                </span>
               ) : isPublishing ? (
-                <>
-                  <i className="icofont-spinner icofont-spin"></i> Publishing...
-                </>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                  <i className="icofont-spinner icofont-spin"></i>
+                  <span>Publishing...</span>
+                </span>
               ) : (
-                <>
-                  <i className="icofont-paper-plane"></i> Publish Reel
-                </>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                  <i className="icofont-paper-plane"></i>
+                  <span>Publish Reel</span>
+                </span>
               )}
             </button>
           </div>
@@ -1831,18 +1806,7 @@ export default function VideosPage() {
             </div>
           )}
 
-          <figure className="bottom-mockup">
-            <img src="/images/footer.png" alt="" />
-          </figure>
-          <div className="bottombar">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-12">
-                  <span>&copy; Copyright All rights reserved by Socimo {new Date().getFullYear()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AppFooter />
         </div>
 
         <Script id="videos-carousel-fix" strategy="lazyOnload">

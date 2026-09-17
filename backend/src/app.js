@@ -158,6 +158,7 @@ apiRouter.use("/events", eventRoutes);
 apiRouter.use("/sidebar", sidebarRoutes);
 apiRouter.use("/notifications", require("./routes/notificationRoutes"));
 apiRouter.use("/reels", require("./routes/reelRoutes"));
+apiRouter.use("/search", require("./routes/searchRoutes"));
 
 // The route modules above remain the source of truth for every backend endpoint.
 // Vercel forwards /api/* into this app through a single catch-all function, while

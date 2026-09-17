@@ -1,7 +1,7 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
 const mongoose = require("mongoose");
-const { toFeedPost, toTimelinePost } = require("../utils/postSerializer");
+const { toFeedPost, toTimelinePost, serializeReactions } = require("../utils/postSerializer");
 
 async function resolveViewerId(req) {
   if (req.user?._id) return req.user._id;
@@ -165,6 +165,7 @@ async function getFeedPosts(req, res, next) {
     let posts = await Post.find(query)
       .populate("author")
       .populate("comments.user")
+      .populate("reactions.user", "firstName lastName avatarUrl handle email role headline")
       .sort({ createdAt: -1 })
       .limit(50);
 
@@ -176,6 +177,7 @@ async function getFeedPosts(req, res, next) {
         posts = await Post.find(query)
           .populate("author")
           .populate("comments.user")
+          .populate("reactions.user", "firstName lastName avatarUrl handle email role headline")
           .sort({ createdAt: -1 })
           .limit(50);
       }
@@ -224,6 +226,7 @@ async function createPost(req, res, next) {
       attachmentName: normalizeOptionalText(req.body.attachmentName),
       displayImageUrl: normalizeOptionalHref(req.body.displayImageUrl || req.body.image),
       linkUrl: normalizeOptionalHref(req.body.linkUrl || (inferredType === "video" && !req.body.attachmentUrl ? req.body.videoUrl : null)),
+      videoUrl: normalizeOptionalHref(req.body.videoUrl || (req.body.attachmentType === "video" ? req.body.attachmentUrl : null) || (inferredType === "video" ? req.body.attachmentUrl : null)),
       ctaLabel: normalizeOptionalText(req.body.ctaLabel),
       commentsOpen: normalizeBoolean(req.body.commentsOpen, true),
       activityFeed: normalizeBoolean(req.body.activityFeed, true),
@@ -249,7 +252,8 @@ async function getPostById(req, res, next) {
   try {
     const post = await Post.findById(req.params.postId)
       .populate("author")
-      .populate("comments.user");
+      .populate("comments.user")
+      .populate("reactions.user", "firstName lastName avatarUrl handle email role headline");
 
     if (!post) {
       res.status(404).json({ message: "Post not found." });
@@ -313,7 +317,10 @@ async function reactToPost(req, res, next) {
     }
 
     await post.save();
-    const updatedPost = await Post.findById(post._id).populate("author").populate("comments.user");
+    const updatedPost = await Post.findById(post._id)
+      .populate("author")
+      .populate("comments.user")
+      .populate("reactions.user", "firstName lastName avatarUrl handle email role headline");
 
     res.status(200).json({
       message: "Reaction saved.",
@@ -440,11 +447,143 @@ async function getSavedPosts(req, res, next) {
   }
 }
 
+async function getPostReactions(req, res, next) {
+  try {
+    const post = await Post.findById(req.params.postId)
+      .populate("reactions.user", "firstName lastName avatarUrl handle email role headline");
+
+    if (!post) {
+      res.status(404).json({ message: "Post not found." });
+      return;
+    }
+
+    const reactions = serializeReactions(post);
+    const reactionCounts = {
+      like: 0,
+      love: 0,
+      haha: 0,
+      wow: 0,
+      sad: 0,
+      angry: 0,
+      dislike: 0,
+    };
+
+    reactions.forEach((r) => {
+      if (reactionCounts[r.type] !== undefined) {
+        reactionCounts[r.type] += 1;
+      }
+    });
+
+    const topReactions = Object.entries(reactionCounts)
+      .filter(([type, count]) => count > 0 && type !== "dislike")
+      .sort((a, b) => b[1] - a[1])
+      .map(([type]) => type);
+
+    const totalCount = reactions.filter((r) => r.type !== "dislike").length;
+
+    res.status(200).json({
+      message: "Post reactions loaded successfully.",
+      reactions,
+      reactionCounts,
+      topReactions,
+      totalCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updatePost(req, res, next) {
+  try {
+    const viewerId = await resolveViewerId(req);
+    if (!viewerId) {
+      res.status(401).json({ message: "Authentication required to edit posts." });
+      return;
+    }
+
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      res.status(404).json({ message: "Post not found." });
+      return;
+    }
+
+    const isAuthor = String(post.author?._id || post.author) === String(viewerId);
+    const isAdmin = req.user?.role === "admin";
+    if (!isAuthor && !isAdmin) {
+      res.status(403).json({ message: "You are not authorized to edit this post." });
+      return;
+    }
+
+    if (req.body.title !== undefined) post.title = normalizeOptionalText(req.body.title);
+    if (req.body.content !== undefined) post.content = normalizeOptionalText(req.body.content) || "";
+    if (req.body.feeling !== undefined) post.feeling = normalizeOptionalText(req.body.feeling);
+    if (req.body.location !== undefined) post.location = normalizeOptionalText(req.body.location);
+    if (req.body.activityLabel !== undefined) post.activityLabel = normalizeOptionalText(req.body.activityLabel);
+    if (req.body.attachmentUrl !== undefined) post.attachmentUrl = normalizeOptionalHref(req.body.attachmentUrl);
+    if (req.body.attachmentType !== undefined) post.attachmentType = req.body.attachmentType;
+    if (req.body.attachmentName !== undefined) post.attachmentName = normalizeOptionalText(req.body.attachmentName);
+    if (req.body.displayImageUrl !== undefined) post.displayImageUrl = normalizeOptionalHref(req.body.displayImageUrl);
+    if (req.body.videoUrl !== undefined) post.videoUrl = normalizeOptionalHref(req.body.videoUrl);
+    if (req.body.linkUrl !== undefined) post.linkUrl = normalizeOptionalHref(req.body.linkUrl);
+    if (req.body.commentsOpen !== undefined) post.commentsOpen = normalizeBoolean(req.body.commentsOpen, true);
+    if (req.body.audience !== undefined) post.audience = normalizeAudience(req.body.audience);
+
+    await post.save();
+    const updated = await Post.findById(post._id)
+      .populate("author")
+      .populate("comments.user")
+      .populate("reactions.user", "firstName lastName avatarUrl handle email role headline");
+
+    res.status(200).json({
+      message: "Post updated successfully.",
+      post: toFeedPost(updated, viewerId),
+      timelinePost: toTimelinePost(updated, viewerId),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deletePost(req, res, next) {
+  try {
+    const viewerId = await resolveViewerId(req);
+    if (!viewerId) {
+      res.status(401).json({ message: "Authentication required to delete posts." });
+      return;
+    }
+
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      res.status(404).json({ message: "Post not found." });
+      return;
+    }
+
+    const isAuthor = String(post.author?._id || post.author) === String(viewerId);
+    const isAdmin = req.user?.role === "admin";
+    if (!isAuthor && !isAdmin) {
+      res.status(403).json({ message: "You are not authorized to delete this post." });
+      return;
+    }
+
+    await Post.findByIdAndDelete(req.params.postId);
+
+    res.status(200).json({
+      message: "Post deleted successfully.",
+      postId: req.params.postId,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getFeedPosts,
   getPostById,
   createPost,
+  updatePost,
+  deletePost,
   reactToPost,
+  getPostReactions,
   addPostComment,
   sharePost,
   toggleSavedPost,

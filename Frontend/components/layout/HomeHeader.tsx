@@ -52,6 +52,18 @@ export default function HomeHeader() {
   const pathname = usePathname();
   const [isSideSlideOpen, setIsSideSlideOpen] = useState(false);
   const [activeSideSlideTab, setActiveSideSlideTab] = useState<"messages" | "notifications">("messages");
+  const [headerSearchTerm, setHeaderSearchTerm] = useState("");
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = headerSearchTerm.trim();
+    if (query) {
+      router.push(`/search-result?q=${encodeURIComponent(query)}`);
+    } else {
+      router.push("/search-result");
+    }
+  };
+
   const userSnapshot = useSyncExternalStore(
     subscribeToAuthStorage,
     getStoredUserSnapshot,
@@ -290,8 +302,13 @@ export default function HomeHeader() {
           <span className="hide-search">
             <i className="icofont-close-circled"></i>
           </span>
-          <form method="post">
-            <input type="text" placeholder="Search..." />
+          <form onSubmit={handleSearchSubmit}>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={headerSearchTerm}
+              onChange={(e) => setHeaderSearchTerm(e.target.value)}
+            />
           </form>
         </div>
       </div>
@@ -309,12 +326,22 @@ export default function HomeHeader() {
             </Link>
           </div>
           <div className="searches">
-            <form method="post">
-              <input type="text" placeholder="Search..." />
-              <button type="submit">
+            <form onSubmit={handleSearchSubmit}>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={headerSearchTerm}
+                onChange={(e) => setHeaderSearchTerm(e.target.value)}
+              />
+              <button type="submit" title="Search">
                 <i className="icofont-search"></i>
               </button>
-              <span className="cancel-search">
+              <span
+                className="cancel-search"
+                style={{ cursor: "pointer" }}
+                onClick={() => setHeaderSearchTerm("")}
+                title="Clear search"
+              >
                 <i className="icofont-close"></i>
               </span>
             </form>
@@ -466,9 +493,9 @@ export default function HomeHeader() {
                   </Link>
                 </li>
                 <li>
-                  <a href="add-new-course.html" title="">
+                  <Link href="/add-new-course" title="">
                     <i className="icofont-plus"></i> New Course
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a className="invite-new" href="#" title="">

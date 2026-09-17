@@ -2,9 +2,9 @@ const { Readable } = require("node:stream");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const MAX_MULTIPART_BODY_BYTES = MAX_FILE_SIZE_BYTES + 1024 * 1024;
-const DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS = 15000;
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+const MAX_MULTIPART_BODY_BYTES = MAX_FILE_SIZE_BYTES + 2 * 1024 * 1024;
+const DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS = 25000;
 
 const uploadsDir = path.join(__dirname, "../../uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -37,7 +37,7 @@ async function saveToDisk(file, kind, userId, req) {
 function getUploadKind(value) {
   const normalized = String(value || "").trim().toLowerCase();
 
-  if (normalized === "avatar" || normalized === "cover" || normalized === "video") {
+  if (normalized === "avatar" || normalized === "cover" || normalized === "video" || normalized === "story") {
     return normalized;
   }
 
@@ -66,6 +66,8 @@ function getFolder(kind) {
       return "extremis/covers";
     case "video":
       return "extremis/videos";
+    case "story":
+      return "extremis/stories";
     default:
       return "extremis/uploads";
   }
@@ -145,24 +147,15 @@ async function readMultipartFormData(req) {
 
 async function uploadFile(req, res, next) {
   try {
-    const userId = req.user?._id ? String(req.user._id) : null;
-    if (!userId) {
-      res.status(401).json({ message: "Authentication required." });
-      return;
-    }
+    const userId = req.user?._id ? String(req.user._id) : (req.user?.id || "guest");
 
     const cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
     const apiKey = String(process.env.CLOUDINARY_API_KEY || "").trim();
     const apiSecret = String(process.env.CLOUDINARY_API_SECRET || "").trim();
 
-    if (!cloudName || !apiKey || !apiSecret) {
-      res.status(500).json({ message: "Cloudinary environment variables are missing." });
-      return;
-    }
-
     const contentLength = getContentLength(req);
     if (contentLength && contentLength > MAX_MULTIPART_BODY_BYTES) {
-      res.status(413).json({ message: "Files must be 10MB or smaller." });
+      res.status(413).json({ message: "Files must be 50MB or smaller." });
       return;
     }
 
@@ -181,7 +174,13 @@ async function uploadFile(req, res, next) {
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      res.status(413).json({ message: "Files must be 10MB or smaller." });
+      res.status(413).json({ message: "Files must be 50MB or smaller." });
+      return;
+    }
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      const fallbackResult = await saveToDisk(file, kind, userId, req);
+      res.status(200).json(fallbackResult);
       return;
     }
 

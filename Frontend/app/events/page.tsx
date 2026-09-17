@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
 import EventsPageClient from "@/components/events/EventsPageClient";
+import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
   title: "Events - Discover & Host Academic & Tech Meetups | Socimo",
@@ -14,6 +15,7 @@ export default function EventsPage() {
       <div className="theme-layout">
         <HomeHeader />
         <EventsPageClient />
+        <AppFooter />
       </div>
     </RequireAuth>
   );

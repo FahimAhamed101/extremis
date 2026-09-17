@@ -7,6 +7,8 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { useEffect, useMemo, useState, type AnchorHTMLAttributes, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import PostInteractions from "@/components/posts/PostInteractions";
+import PostMoreActions from "@/components/posts/PostMoreActions";
+import AppFooter from "@/components/layout/AppFooter";
 import { clearAuthSession } from "@/lib/auth/client";
 import type {
   ProfilePersonCard,
@@ -233,8 +235,18 @@ function renderTimelineMedia(post: ProfileTimelinePost) {
     );
   }
 
-  if (post.videoUrl) {
-    return <video controls preload="metadata" className="profile-page-two-video-player" src={post.videoUrl}></video>;
+  const profileVideoSrc =
+    post.videoUrl ||
+    (post.attachmentType === "video" ? post.attachmentUrl : null) ||
+    (post.attachmentUrl && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(post.attachmentUrl) ? post.attachmentUrl : null) ||
+    null;
+
+  if (profileVideoSrc) {
+    return (
+      <div style={{ borderRadius: "10px", overflow: "hidden", backgroundColor: "#000", marginBottom: "16px" }}>
+        <video controls playsInline preload="metadata" className="profile-page-two-video-player" src={profileVideoSrc} style={{ width: "100%", maxHeight: "460px", display: "block" }}></video>
+      </div>
+    );
   }
 
   if (post.gifDataUrl || post.gifPreview) {
@@ -278,6 +290,7 @@ function TimelinePostCard({ post }: { post: ProfileTimelinePost }) {
             <img alt={post.authorName} src={post.authorImage} />
           </figure>
           <div className="friend-name">
+            <PostMoreActions post={post} iconType="svg" />
             <ins>
               <SmartLink title={post.authorName} href={authorHref}>
                 {post.authorName}
@@ -847,19 +860,7 @@ export default function PublicProfilePageClient({ userId }: PublicProfilePageCli
         </div>
       </section>
 
-      <figure className="bottom-mockup">
-        <img alt="" src="/images/footer.png" />
-      </figure>
-
-      <div className="bottombar">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12">
-              <span>&copy; copyright All rights reserved by Updates 2020</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AppFooter />
     </>
   );
 }

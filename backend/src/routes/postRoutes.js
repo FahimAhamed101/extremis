@@ -2,9 +2,12 @@ const express = require("express");
 const Post = require("../models/Post");
 const {
   createPost,
+  updatePost,
+  deletePost,
   getFeedPosts,
   getPostById,
   reactToPost,
+  getPostReactions,
   addPostComment,
   sharePost,
   toggleSavedPost,
@@ -33,6 +36,10 @@ router.get("/feed", optionalAuth, getFeedPosts);
 router.get("/saved", optionalAuth, getSavedPosts);
 router.post("/", optionalAuth, createPost);
 router.get("/:postId", optionalAuth, getPostById);
+router.put("/:postId", optionalAuth, updatePost);
+router.patch("/:postId", optionalAuth, updatePost);
+router.delete("/:postId", optionalAuth, deletePost);
+router.get("/:postId/reactions", optionalAuth, getPostReactions);
 router.post("/:postId/reactions", optionalAuth, reactToPost);
 router.post("/:postId/comments", optionalAuth, addPostComment);
 router.post("/:postId/share", optionalAuth, sharePost);

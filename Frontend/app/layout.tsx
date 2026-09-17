@@ -77,6 +77,12 @@ export default function RootLayout({
             __html: `(function(){try{var isLocal=location.hostname==='localhost'||location.hostname==='127.0.0.1';var u=isLocal?'http://localhost:4000/api/health':'/api/health';fetch(u,{method:'GET',keepalive:true}).catch(function(){});}catch(e){}})();`,
           }}
         />
+        {/* DOM protection against browser extensions & media player node modifications */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){if(typeof window==='undefined'||typeof Node==='undefined'||!Node.prototype)return;var origRemove=Node.prototype.removeChild;Node.prototype.removeChild=function(child){if(child&&child.parentNode!==this){if(window.console&&console.warn){console.warn('Safely handled removeChild on detached node:',child);}return child;}return origRemove.apply(this,arguments);};var origInsert=Node.prototype.insertBefore;Node.prototype.insertBefore=function(newNode,refNode){if(refNode&&refNode.parentNode!==this){if(window.console&&console.warn){console.warn('Safely handled insertBefore on detached node:',refNode);}return newNode;}return origInsert.apply(this,arguments);};})();`,
+          }}
+        />
         <meta
           name="google-site-verification"
           content="7D5GsLCJIj5u-4aD5whqMuZuQK5y5czs2M-JKQ6Qybk"

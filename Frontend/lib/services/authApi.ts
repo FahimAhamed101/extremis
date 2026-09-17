@@ -442,6 +442,24 @@ export type CreatePostResponse = {
   timelinePost: ProfileTimelinePost;
 };
 
+export type UpdatePostPayload = {
+  postId: string;
+  title?: string;
+  content?: string;
+  description?: string;
+  feeling?: string | null;
+  location?: string | null;
+  attachmentUrl?: string | null;
+  attachmentType?: PostAttachmentType | null;
+  attachmentName?: string | null;
+  displayImageUrl?: string | null;
+  videoUrl?: string | null;
+  linkUrl?: string | null;
+  activityLabel?: string | null;
+  commentsOpen?: boolean;
+  audience?: PostAudience;
+};
+
 export type UpdatePostInteractionResponse = {
   message: string;
   post: FeedPost;
@@ -544,7 +562,7 @@ export type UpdateMyProfilePayload = {
 
 export type UploadProfileAssetPayload = {
   file: File;
-  kind: "avatar" | "cover" | "post" | "video";
+  kind: "avatar" | "cover" | "post" | "video" | "story";
 };
 
 export type UploadProfileAssetResponse = {
@@ -579,6 +597,8 @@ function getCloudinaryFolder(kind: UploadProfileAssetPayload["kind"]): string {
       return "extremis/covers";
     case "video":
       return "extremis/videos";
+    case "story":
+      return "extremis/stories";
     default:
       return "extremis/uploads";
   }
@@ -781,6 +801,75 @@ export type SetEventRsvpResponse = {
   event: EventDto;
 };
 
+export type SearchDepartmentDto = {
+  name: string;
+  shortName: string;
+  faculty: string;
+  membersCount: number;
+};
+
+export type SearchMemberDto = {
+  id: string;
+  name: string;
+  handle: string;
+  email: string;
+  department: string;
+  institute: string;
+  position: string;
+  avatarUrl: string;
+  isFollowing?: boolean;
+};
+
+export type SearchPhotoDto = {
+  id: string;
+  src: string;
+  title?: string | null;
+  author?: string;
+};
+
+export type SearchVideoDto = {
+  id: string;
+  title: string;
+  src: string;
+  poster?: string;
+  authorName: string;
+  published: string;
+  views: number;
+};
+
+export type SearchGroupDto = {
+  id: string;
+  name: string;
+  handle: string;
+  description: string;
+  category: string;
+  memberCount: number;
+  memberCountDisplay: string;
+  coverUrl: string;
+  iconUrl: string;
+  isMember?: boolean;
+};
+
+export type SearchResponse = {
+  query: string;
+  category: string;
+  counts: {
+    all: number;
+    posts: number;
+    departments: number;
+    members: number;
+    photos: number;
+    videos: number;
+    groups: number;
+  };
+  posts: FeedPost[];
+  members: SearchMemberDto[];
+  departments: SearchDepartmentDto[];
+  photos: SearchPhotoDto[];
+  videos: SearchVideoDto[];
+  groups: SearchGroupDto[];
+};
+
 export type SidebarSponsor = {
   id: string;
   title: string;
@@ -961,6 +1050,21 @@ export const authApi = createApi({
       // A group post also changes the group feed, so Groups is refreshed too.
       invalidatesTags: (_result, _error, arg) =>
         arg?.groupId ? ["Posts", "Profile", "Groups"] : ["Posts", "Profile"],
+    }),
+    updatePost: builder.mutation<CreatePostResponse, UpdatePostPayload>({
+      query: ({ postId, ...body }) => ({
+        url: `/posts/${postId}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Posts", "Profile", "Groups"],
+    }),
+    deletePost: builder.mutation<{ message: string; postId: string }, string>({
+      query: (postId) => ({
+        url: `/posts/${postId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Posts", "Profile", "Groups"],
     }),
     getPostById: builder.query<GetPostResponse, string>({
       query: (postId) => ({
@@ -1186,7 +1290,7 @@ export const authApi = createApi({
             data: {
               kind: getUploadResponseKind(kind),
               publicId: `${kind}-${Date.now()}`,
-              resourceType: "image",
+              resourceType: file.type.startsWith("video/") ? "video" : "image",
               url: dataUrl,
               bytes: file.size,
               width: null,
@@ -1370,6 +1474,14 @@ export const authApi = createApi({
     pingHealth: builder.query<{ ok: boolean; service: string; db?: string; timestamp: string }, void>({
       query: () => "/health",
     }),
+    searchEverything: builder.query<SearchResponse, { q?: string; category?: string; limit?: number } | void>({
+      query: (params) => ({
+        url: "/search",
+        method: "GET",
+        params: params || undefined,
+      }),
+      providesTags: ["Posts", "Profile", "Groups"],
+    }),
   }),
 });
 
@@ -1486,6 +1598,8 @@ export const {
   useUpdateMyProfileMutation,
   useUploadProfileAssetMutation,
   useCreatePostMutation,
+  useUpdatePostMutation,
+  useDeletePostMutation,
   useReactToPostMutation,
   useTogglePostLikeMutation,
   useAddPostCommentMutation,
@@ -1500,6 +1614,11 @@ export const {
   useGetGroupByIdQuery,
   useJoinGroupMutation,
   useLeaveGroupMutation,
+  useGetEventsQuery,
+  useGetEventQuery,
+  useCreateEventMutation,
+  useSetEventRsvpMutation,
   usePingHealthQuery,
+  useSearchEverythingQuery,
 } = authApi;
 

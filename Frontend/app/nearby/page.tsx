@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
 import NearbyPageClient from "@/components/nearby/NearbyPageClient";
+import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
   title: "Nearby People & Researchers | Socimo",
@@ -14,6 +15,7 @@ export default function NearbyPage() {
       <div className="theme-layout">
         <HomeHeader />
         <NearbyPageClient />
+        <AppFooter />
       </div>
     </RequireAuth>
   );

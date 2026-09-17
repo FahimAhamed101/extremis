@@ -1,9 +1,9 @@
 const express = require("express");
-const { uploadFile } = require("../controllers/uploadController");
+const { globalSearch } = require("../controllers/searchController");
 const { optionalAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/", optionalAuth, uploadFile);
+router.get("/", optionalAuth, globalSearch);
 
 module.exports = router;

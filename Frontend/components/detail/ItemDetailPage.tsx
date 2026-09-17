@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import HomeHeader from "@/components/layout/HomeHeader";
+import AppFooter from "@/components/layout/AppFooter";
 import { addToCart } from "@/lib/cart/cartService";
 import {
   CatalogItem,
@@ -1028,16 +1029,8 @@ export default function ItemDetailPage({ item, type }: ItemDetailPageProps) {
         <span>{isAddedToCart ? "04" : "03"}</span>
       </div>
 
-      {/* Bottombar */}
-      <div className="bottombar">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12">
-              <span>&copy; copyright All rights reserved by Socimo 2026</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Full Course Footer */}
+      <AppFooter />
     </div>
   );
 }

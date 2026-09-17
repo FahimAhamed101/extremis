@@ -7,6 +7,7 @@ import { useState, type ReactNode } from "react";
 import { type FeedPost, useGetFeedPostsQuery } from "@/lib/services/authApi";
 import PostInteractions from "@/components/posts/PostInteractions";
 import CreatePostCard from "@/components/posts/CreatePostCard";
+import PostMoreActions from "@/components/posts/PostMoreActions";
 
 type SmartLinkProps = {
   href: string;
@@ -28,24 +29,6 @@ function SmartLink({ href, className, title, children }: SmartLinkProps) {
     <a href={href} className={className} title={title} target="_blank" rel="noreferrer">
       {children}
     </a>
-  );
-}
-
-function PostMoreOptions({ postId }: { postId: string }) {
-  return (
-    <div className="more">
-      <div className="more-post-optns">
-        <i className="icofont-navigation-menu"></i>
-        <ul>
-          <li>
-            <Link href={`/posts/${postId}`}>
-              <i className="icofont-info-circle"></i>Post details
-              <span>Open the full post with all comments and reactions</span>
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </div>
   );
 }
 
@@ -268,6 +251,12 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
       );
 
     case "video":
+      const resolvedVideo =
+        post.videoUrl ||
+        (post.attachmentType === "video" ? post.attachmentUrl : null) ||
+        (post.attachmentUrl && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(post.attachmentUrl) ? post.attachmentUrl : null) ||
+        null;
+
       return (
         <>
           {title ? (
@@ -275,7 +264,7 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
               {title}
             </SmartLink>
           ) : null}
-          {post.linkUrl && !post.embedUrl ? (
+          {post.linkUrl && !post.embedUrl && post.linkUrl !== resolvedVideo ? (
             <em>
               <a href={post.linkUrl} target="_blank" rel="noreferrer">
                 {post.linkUrl}
@@ -293,9 +282,16 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
               ></iframe>
             </div>
           ) : null}
-          {!post.embedUrl && post.videoUrl ? (
-            <div className="custom-post-video" style={{ margin: "12px 0" }}>
-              <video controls preload="metadata" src={post.videoUrl} style={{ width: "100%", borderRadius: "10px", maxHeight: "420px" }}></video>
+          {!post.embedUrl && resolvedVideo ? (
+            <div className="custom-post-video" style={{ margin: "12px 0", borderRadius: "10px", overflow: "hidden", backgroundColor: "#000" }}>
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                src={resolvedVideo}
+                poster={post.image || undefined}
+                style={{ width: "100%", borderRadius: "10px", maxHeight: "460px", display: "block" }}
+              ></video>
             </div>
           ) : null}
           {description ? <p>{description}</p> : null}
@@ -412,9 +408,16 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
               ></iframe>
             </div>
           ) : null}
-          {!post.embedUrl && post.videoUrl ? (
-            <div className="custom-post-video" style={{ margin: "12px 0" }}>
-              <video controls preload="metadata" src={post.videoUrl} style={{ width: "100%", borderRadius: "10px" }}></video>
+          {!post.embedUrl && (post.videoUrl || (post.attachmentType === "video" && post.attachmentUrl)) ? (
+            <div className="custom-post-video" style={{ margin: "12px 0", borderRadius: "10px", overflow: "hidden", backgroundColor: "#000" }}>
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                src={post.videoUrl || post.attachmentUrl || undefined}
+                poster={post.image || undefined}
+                style={{ width: "100%", borderRadius: "10px", maxHeight: "460px", display: "block" }}
+              ></video>
             </div>
           ) : null}
           {post.attachmentType === "image" && post.attachmentUrl && post.attachmentUrl !== image ? (
@@ -428,11 +431,6 @@ export function FeedPostBody({ post }: { post: FeedPost }) {
                 }}
               />
             </figure>
-          ) : null}
-          {post.attachmentType === "video" && post.attachmentUrl && post.attachmentUrl !== post.videoUrl ? (
-            <div className="custom-post-video" style={{ margin: "12px 0" }}>
-              <video controls preload="metadata" src={post.attachmentUrl} style={{ width: "100%", borderRadius: "10px" }}></video>
-            </div>
           ) : null}
           {post.attachmentType === "file" && post.attachmentUrl ? (
             <a className="post-title custom-post-attachment" href={post.attachmentUrl} target="_blank" rel="noreferrer">
@@ -492,7 +490,7 @@ export function FeedPostCard({
             />
           </figure>
           <div className="friend-name">
-            <PostMoreOptions postId={post.id} />
+            <PostMoreActions post={post} iconType="icofont" />
             <ins>
               <Link href={authorHref}>{post.authorName}</Link> {post.activity}
             </ins>

@@ -7,6 +7,8 @@ import LegacyPostInteractions from "@/components/posts/LegacyPostInteractions";
 import YourGroupsWidget from "@/components/groups/YourGroupsWidget";
 import SuggestedGroupWidget from "@/components/groups/SuggestedGroupWidget";
 import UsefulLinksWidget from "@/components/widgets/UsefulLinksWidget";
+import WhoToFollowWidget from "@/components/widgets/WhoToFollowWidget";
+import AppFooter from "@/components/layout/AppFooter";
 
 export default function Home() {
   return (
@@ -62,7 +64,7 @@ export default function Home() {
 					<li><Link href="/book-detail" title="">Books Detail</Link></li>
 					<li><a href="courses.html" title="">Course</a></li>
 					<li><a href="course-detail.html" title="">course Detail</a></li>
-					<li><a href="add-new-course.html" title="">Add New Course</a></li>
+					<li><Link href="/add-new-course" title="">Add New Course</Link></li>
 					<li><a href="product-cart.html" title="">Cart Page</a></li>
 					<li><a href="product-checkout.html" title="">Checkout</a></li>
 					<li><a href="add-credits.html" title="">Add Credit</a></li>
@@ -290,61 +292,7 @@ export default function Home() {
 											</li>
 										</ul>
 									</div>
-									<div className="widget stick-widget">
-										<h4 className="widget-title">Who&apos;s follownig</h4>
-										<ul className="followers" >
-											<li>
-												<figure><img alt="" src="/images/resources/friend-avatar.jpg" /></figure>
-												<div className="friend-meta">
-													<h4>
-														<a title="" href="time-line.html">Kelly Bill</a>
-														<span>Dept colleague</span>
-													</h4>
-													<a className="underline" title="" href="#">Follow</a>
-												</div>
-											</li>
-											<li>
-												<figure><img alt="" src="/images/resources/friend-avatar2.jpg" /></figure>
-												<div className="friend-meta">
-													<h4>
-														<a title="" href="time-line.html">Issabel</a>
-														<span>Dept colleague</span>
-													</h4>
-													<a className="underline" title="" href="#">Follow</a>
-												</div>
-											</li>
-											<li>
-												<figure><img alt="" src="/images/resources/friend-avatar3.jpg" /></figure>
-												<div className="friend-meta">
-													<h4>
-														<a title="" href="time-line.html">Andrew</a>
-														<span>Dept colleague</span>
-													</h4>
-													<a className="underline" title="" href="#">Follow</a>
-												</div>
-											</li>
-											<li>
-												<figure><img alt="" src="/images/resources/friend-avatar4.jpg" /></figure>
-												<div className="friend-meta">
-													<h4>
-														<a title="" href="time-line.html">Sophia</a>
-														<span>Dept colleague</span>
-													</h4>
-													<a className="underline" title="" href="#">Follow</a>
-												</div>
-											</li>
-											<li>
-												<figure><img alt="" src="/images/resources/friend-avatar5.jpg" /></figure>
-												<div className="friend-meta">
-													<h4>
-														<a title="" href="time-line.html">Allen</a>
-														<span>Dept colleague</span>
-													</h4>
-													<a className="underline" title="" href="#">Follow</a>
-												</div>
-											</li>
-										</ul>
-									</div>
+									<WhoToFollowWidget />
 								</aside>
 							</div>
 						</div>
@@ -354,16 +302,7 @@ export default function Home() {
 		</div>
 	</section>
 
-	<figure className="bottom-mockup"><img src="/images/footer.png" alt="" /></figure>
-	<div className="bottombar">
-		<div className="container">
-			<div className="row">
-				<div className="col-lg-12">
-					<span className="">&copy; copyright All rights reserved by Updates 2020</span>
-				</div>
-			</div>
-		</div>
-	</div>
+	<AppFooter />
 
 	<div className="wraper-invite">
 		<div className="popup">

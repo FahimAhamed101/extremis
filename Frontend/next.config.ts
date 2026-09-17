@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
         destination: "/groups",
       },
       {
+        source: "/add-new-course.html",
+        destination: "/add-new-course",
+      },
+      {
         source: "/uploads/:path*",
         destination: "http://localhost:4000/uploads/:path*",
       },

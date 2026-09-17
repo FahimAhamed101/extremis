@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
+import AppFooter from "@/components/layout/AppFooter";
 import MessagesPageClient from "@/components/messages/MessagesPageClient";
 
 type SmartLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -35,7 +36,7 @@ const sidebarMenu: MenuItem[] = [
       { label: "Social Post Detail", href: "post-detail.html" },
       { label: "Chat/Messages", href: "/messages" },
       { label: "Notifications", href: "notifications.html" },
-      { label: "Search Result", href: "search-result.html" },
+      { label: "Search Result", href: "/search-result" },
     ],
   },
   {
@@ -62,7 +63,7 @@ const sidebarMenu: MenuItem[] = [
       { label: "Books Detail", href: "book-detail.html" },
       { label: "Course", href: "courses.html" },
       { label: "Course Detail", href: "course-detail.html" },
-      { label: "Add New Course", href: "add-new-course.html" },
+      { label: "Add New Course", href: "/add-new-course" },
       { label: "Cart Page", href: "product-cart.html" },
       { label: "Checkout", href: "product-checkout.html" },
       { label: "Add Credit", href: "add-credits.html" },
@@ -199,19 +200,7 @@ export default function MessagesPage() {
             </div>
           </section>
 
-          <figure className="bottom-mockup">
-            <img src="/images/footer.png" alt="" />
-          </figure>
-
-          <div className="bottombar">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-12">
-                  <span>&copy; copyright All rights reserved by Updates 2020</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AppFooter />
         </div>
       </>
     </RequireAuth>
