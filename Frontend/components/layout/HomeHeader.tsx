@@ -496,7 +496,7 @@ export default function HomeHeader() {
                   </a>
                 </li>
                 <li>
-                  <a href="help-faq.html" title="">
+                  <a href="/help" title="">
                     <i className="icofont-question-circle"></i> Help
                   </a>
                 </li>
@@ -506,7 +506,7 @@ export default function HomeHeader() {
                   </a>
                 </li>
                 <li>
-                  <a href="privacy-n-policy.html" title="">
+                  <a href="/policy" title="">
                     <i className="icofont-notepad"></i> Privacy
                   </a>
                 </li>

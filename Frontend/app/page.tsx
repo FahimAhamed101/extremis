@@ -6,6 +6,7 @@ import StoriesSection from "@/components/stories/StoriesSection";
 import LegacyPostInteractions from "@/components/posts/LegacyPostInteractions";
 import YourGroupsWidget from "@/components/groups/YourGroupsWidget";
 import SuggestedGroupWidget from "@/components/groups/SuggestedGroupWidget";
+import UsefulLinksWidget from "@/components/widgets/UsefulLinksWidget";
 
 export default function Home() {
   return (
@@ -238,21 +239,7 @@ export default function Home() {
 										</p>
 										<a className="main-btn" href="/profile" title="" data-ripple="">view profile</a>
 									</div>
-									<div className="widget web-links stick-widget">
-										<h4 className="widget-title">Useful Links <a title="" href="#" className="see-all">See All</a></h4>
-										<ul>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">about</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">career</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">advertise</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Updates Apps</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Updates Blog</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Help</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">Updates Gifts</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">content policy</a></li>
-											<li><i className="icofont-dotted-right"></i> <a title="" href="#">User Policy</a></li>
-										</ul>
-										<p>&copy; Updates 2020. All Rights Reserved.</p>
-									</div>
+									<UsefulLinksWidget />
 								</aside>
 							</div>
 							<div className="col-lg-6">
