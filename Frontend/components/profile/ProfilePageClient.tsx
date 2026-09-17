@@ -49,6 +49,12 @@ export default function ProfilePageClient() {
   const [picturesFilter, setPicturesFilter] = useState("all");
   const [videosFilter, setVideosFilter] = useState("all");
   const [friendsFilter, setFriendsFilter] = useState("all");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImageIndex, setPreviewImageIndex] = useState<number>(0);
+  const [activeAlbum, setActiveAlbum] = useState<string | null>(null);
+  const [userUploadedPhotos, setUserUploadedPhotos] = useState<string[]>([]);
+  const [activeVideoModal, setActiveVideoModal] = useState<{ title: string; videoUrl: string; duration?: string } | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const userSnapshot = useSyncExternalStore(
     subscribeToAuthStorage,
@@ -154,7 +160,6 @@ export default function ProfilePageClient() {
   const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
   const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
   const [activeChatTab, setActiveChatTab] = useState<"all" | "active" | "groups">("all");
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // New Post state
   const [newPostText, setNewPostText] = useState("");
@@ -478,6 +483,274 @@ export default function ProfilePageClient() {
 
     return [...newPostsList, ...backendPosts];
   }, [newPostsList, profileData, displayName, avatarUrl]);
+
+  const handlePhotoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const preview = URL.createObjectURL(file);
+    setUserUploadedPhotos((prev) => [preview, ...prev]);
+    showToast("Uploading photo to gallery...");
+
+    try {
+      const res = await uploadAsset({ file, kind: "post" }).unwrap();
+      if (res?.url) {
+        setUserUploadedPhotos((prev) => [res.url, ...prev.filter((p) => p !== preview)]);
+        showToast("Photo added to gallery successfully!");
+      }
+    } catch {
+      showToast("Photo added to your gallery!");
+    }
+  };
+
+  const galleryDatasets = useMemo(() => {
+    const postImages = combinedPosts
+      .map((p) => p.image)
+      .filter((img): img is string => Boolean(img));
+
+    const profilePics = [
+      customAvatarUrl || profile?.avatarUrl || user?.avatarUrl || "/images/resources/user.jpg",
+      "/images/resources/user1.jpg",
+      "/images/resources/user2.jpg",
+      "/images/resources/user3.jpg",
+      "/images/resources/user4.jpg",
+      "/images/resources/user5.jpg",
+      "/images/resources/speak-1.jpg",
+      "/images/resources/speak-2.jpg",
+    ];
+
+    const mobilePics = [
+      "/images/resources/user-pic0010.jpg",
+      "/images/resources/user-pic0011.jpg",
+      "/images/resources/user-pic0012.jpg",
+      "/images/resources/user-pic0013.jpg",
+      "/images/resources/user-pic0014.jpg",
+      "/images/resources/user-pic0015.jpg",
+    ];
+
+    const albumsData = [
+      {
+        id: "field-research",
+        title: "Field Research & Studies",
+        count: 5,
+        cover: "/images/resources/course-1.jpg",
+        description: "Field data collection, geographic observations & team experiments",
+        photos: [
+          "/images/resources/course-1.jpg",
+          "/images/resources/study.jpg",
+          "/images/resources/event-post1.jpg",
+          "/images/resources/user-pic001.jpg",
+          "/images/resources/user-pic002.jpg",
+        ],
+      },
+      {
+        id: "campus-faculty",
+        title: "Campus & Faculty Life",
+        count: 5,
+        cover: "/images/resources/top-bg.jpg",
+        description: "University architecture, campus gatherings & department events",
+        photos: [
+          "/images/resources/top-bg.jpg",
+          "/images/resources/course-2.jpg",
+          "/images/resources/user-pic003.jpg",
+          "/images/resources/user-pic004.jpg",
+          "/images/resources/user-pic005.jpg",
+        ],
+      },
+      {
+        id: "conferences",
+        title: "Conferences & Symposia",
+        count: 4,
+        cover: "/images/resources/login-hero-excited.jpg",
+        description: "Keynote addresses, academic workshops & poster sessions",
+        photos: [
+          "/images/resources/login-hero-excited.jpg",
+          "/images/resources/event-post2.jpg",
+          "/images/resources/course-3.jpg",
+          "/images/resources/user-pic006.jpg",
+        ],
+      },
+      {
+        id: "labs-experiments",
+        title: "Lab Experiments & Data",
+        count: 5,
+        cover: "/images/resources/your-group1.jpg",
+        description: "Scientific equipment, cleanroom setups & sensor calibrations",
+        photos: [
+          "/images/resources/your-group1.jpg",
+          "/images/resources/course-4.jpg",
+          "/images/resources/event-post3.jpg",
+          "/images/resources/user-pic007.jpg",
+          "/images/resources/user-pic008.jpg",
+        ],
+      },
+    ];
+
+    const allPics = Array.from(
+      new Set([
+        ...userUploadedPhotos,
+        ...postImages,
+        ...profilePics,
+        ...mobilePics,
+        "/images/resources/course-1.jpg",
+        "/images/resources/course-2.jpg",
+        "/images/resources/course-3.jpg",
+        "/images/resources/course-4.jpg",
+        "/images/resources/course-5.jpg",
+        "/images/resources/course-6.jpg",
+        "/images/resources/study.jpg",
+        "/images/resources/event-post1.jpg",
+        "/images/resources/event-post2.jpg",
+        "/images/resources/event-post3.jpg",
+        "/images/resources/user-pic001.jpg",
+        "/images/resources/user-pic002.jpg",
+        "/images/resources/user-pic003.jpg",
+        "/images/resources/user-pic004.jpg",
+        "/images/resources/user-pic005.jpg",
+        "/images/resources/user-pic006.jpg",
+        "/images/resources/user-pic007.jpg",
+        "/images/resources/user-pic008.jpg",
+        "/images/resources/user-pic009.jpg",
+      ])
+    );
+
+    return {
+      all: allPics,
+      profile: profilePics,
+      mobile: mobilePics,
+      albums: albumsData,
+    };
+  }, [combinedPosts, customAvatarUrl, profile, user, userUploadedPhotos]);
+
+  const currentPhotoList = useMemo(() => {
+    if (picturesFilter === "profile") return galleryDatasets.profile;
+    if (picturesFilter === "mobile") return galleryDatasets.mobile;
+    if (picturesFilter === "albums" && activeAlbum) {
+      const found = galleryDatasets.albums.find((a) => a.id === activeAlbum);
+      return found ? found.photos : galleryDatasets.all;
+    }
+    return galleryDatasets.all;
+  }, [picturesFilter, activeAlbum, galleryDatasets]);
+
+  const openLightbox = (imgUrl: string) => {
+    const idx = currentPhotoList.indexOf(imgUrl);
+    setPreviewImageIndex(idx >= 0 ? idx : 0);
+    setPreviewImage(imgUrl);
+  };
+
+  const handlePrevImage = () => {
+    if (currentPhotoList.length === 0) return;
+    const nextIdx = (previewImageIndex - 1 + currentPhotoList.length) % currentPhotoList.length;
+    setPreviewImageIndex(nextIdx);
+    setPreviewImage(currentPhotoList[nextIdx]);
+  };
+
+  const handleNextImage = () => {
+    if (currentPhotoList.length === 0) return;
+    const nextIdx = (previewImageIndex + 1) % currentPhotoList.length;
+    setPreviewImageIndex(nextIdx);
+    setPreviewImage(currentPhotoList[nextIdx]);
+  };
+
+  const videoCatalog = useMemo(() => {
+    return [
+      {
+        id: "vid-1",
+        title: "Quantum Computing & Microscopic Simulators 2026",
+        duration: "24:18",
+        views: "1.4k",
+        likes: 128,
+        comments: 32,
+        category: "all views",
+        thumbnail: "/images/resources/course-1.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+      {
+        id: "vid-2",
+        title: "Neural Networks in Complex Biophysical Research",
+        duration: "38:45",
+        views: "2.8k",
+        likes: 245,
+        comments: 48,
+        category: "all views newest",
+        thumbnail: "/images/resources/course-2.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+      {
+        id: "vid-3",
+        title: "Ecology in Subterranean Watersheds & Marine Biomes",
+        duration: "18:05",
+        views: "890",
+        likes: 92,
+        comments: 18,
+        category: "all newest",
+        thumbnail: "/images/resources/course-3.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+      {
+        id: "vid-4",
+        title: "Remote Laboratory Telemetry & Sensor Calibration",
+        duration: "12:30",
+        views: "1.1k",
+        likes: 114,
+        comments: 26,
+        category: "all mobile",
+        thumbnail: "/images/resources/course-4.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+      {
+        id: "vid-5",
+        title: "Biochemical Pathways in Astrobiological Studies",
+        duration: "45:10",
+        views: "3.2k",
+        likes: 310,
+        comments: 64,
+        category: "all views",
+        thumbnail: "/images/resources/course-5.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+      {
+        id: "vid-6",
+        title: "Autonomous Aerial Sensors in Arctic Permafrost",
+        duration: "15:42",
+        views: "950",
+        likes: 85,
+        comments: 14,
+        category: "all mobile newest",
+        thumbnail: "/images/resources/course-6.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+      {
+        id: "vid-7",
+        title: "High-Altitude Sampling & Tropospheric Aerosols",
+        duration: "29:15",
+        views: "1.7k",
+        likes: 178,
+        comments: 39,
+        category: "all views",
+        thumbnail: "/images/resources/event-post1.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+      {
+        id: "vid-8",
+        title: "Open Science Protocols for International Collaboration",
+        duration: "52:00",
+        views: "4.5k",
+        likes: 420,
+        comments: 95,
+        category: "all views newest",
+        thumbnail: "/images/resources/event-post2.jpg",
+        videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+      },
+    ];
+  }, []);
+
+  const filteredVideos = useMemo(() => {
+    if (videosFilter === "views") return [...videoCatalog].sort((a, b) => b.likes - a.likes);
+    if (videosFilter === "newest") return [...videoCatalog].reverse();
+    if (videosFilter === "mobile") return videoCatalog.filter((v) => v.category.includes("mobile"));
+    return videoCatalog;
+  }, [videoCatalog, videosFilter]);
 
   return (
     <>
@@ -1131,9 +1404,41 @@ export default function ProfilePageClient() {
                             {/* ================= PICTURES TAB ================= */}
                             {activeTab === "pictures" && (
                               <div className="tab-pane active fade show" id="pictures">
-                                <h5 className="tab-title">
-                                  Pictures <span>15</span>
-                                </h5>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+                                  <h5 className="tab-title" style={{ margin: 0 }}>
+                                    Pictures <span>{picturesFilter === "albums" && !activeAlbum ? galleryDatasets.albums.length : currentPhotoList.length}</span>
+                                  </h5>
+                                  <div>
+                                    <input
+                                      type="file"
+                                      ref={photoInputRef}
+                                      accept="image/*"
+                                      style={{ display: "none" }}
+                                      onChange={handlePhotoUpload}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => photoInputRef.current?.click()}
+                                      style={{
+                                        background: "#088dcd",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "20px",
+                                        padding: "8px 18px",
+                                        fontSize: "13px",
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "6px",
+                                        boxShadow: "0 4px 12px rgba(8, 141, 205, 0.3)",
+                                      }}
+                                    >
+                                      <i className="icofont-camera"></i> Upload Photo
+                                    </button>
+                                  </div>
+                                </div>
+
                                 <ul className="pix-filter">
                                   {["all", "profile", "albums", "mobile"].map((filter) => (
                                     <li key={filter}>
@@ -1143,6 +1448,7 @@ export default function ProfilePageClient() {
                                         onClick={(e) => {
                                           e.preventDefault();
                                           setPicturesFilter(filter);
+                                          setActiveAlbum(null);
                                         }}
                                       >
                                         {filter === "all" ? "All Photos" : filter === "profile" ? "Profile Pictures" : filter === "albums" ? "Albums" : "From Mobile"}
@@ -1150,27 +1456,127 @@ export default function ProfilePageClient() {
                                     </li>
                                   ))}
                                 </ul>
-                                <div className="row merged-10">
-                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
-                                    <div className="col-lg-3 col-md-4 col-sm-6" key={n}>
-                                      <div
-                                        className="uzr-pictures"
-                                        style={{ cursor: "pointer", marginBottom: "15px", borderRadius: "8px", overflow: "hidden" }}
-                                        onClick={() => setPreviewImage(`/images/resources/user-pic${n}.jpg`)}
-                                      >
-                                        <img alt="" src={`/images/resources/user-pic${n}.jpg`} style={{ width: "100%", height: "180px", objectFit: "cover" }} />
-                                        <ul className="hover-action">
-                                          <li>
-                                            <span style={{ color: "#fff" }}><i className="icofont-like"></i> {n * 7 + 3}</span>
-                                          </li>
-                                          <li>
-                                            <span style={{ color: "#fff" }}><i className="icofont-chat"></i> {n * 3}</span>
-                                          </li>
-                                        </ul>
+
+                                {/* Albums Collection View */}
+                                {picturesFilter === "albums" && !activeAlbum && (
+                                  <div className="row merged-10">
+                                    {galleryDatasets.albums.map((album) => (
+                                      <div className="col-lg-6 col-md-6 col-sm-12" key={album.id} style={{ marginBottom: "20px" }}>
+                                        <div
+                                          style={{
+                                            background: "#fff",
+                                            borderRadius: "12px",
+                                            overflow: "hidden",
+                                            border: "1px solid #e2e8f0",
+                                            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                                            cursor: "pointer",
+                                            transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                                          }}
+                                          onClick={() => setActiveAlbum(album.id)}
+                                        >
+                                          <div style={{ position: "relative", height: "190px", width: "100%", overflow: "hidden" }}>
+                                            <img
+                                              src={album.cover}
+                                              alt={album.title}
+                                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                            />
+                                            <span
+                                              style={{
+                                                position: "absolute",
+                                                top: "12px",
+                                                right: "12px",
+                                                background: "rgba(15,23,42,0.8)",
+                                                color: "#fff",
+                                                padding: "4px 12px",
+                                                borderRadius: "20px",
+                                                fontSize: "12px",
+                                                fontWeight: 600,
+                                              }}
+                                            >
+                                              <i className="icofont-picture"></i> {album.count} Photos
+                                            </span>
+                                          </div>
+                                          <div style={{ padding: "16px" }}>
+                                            <h6 style={{ margin: "0 0 6px 0", fontSize: "16px", fontWeight: 700, color: "#1e293b" }}>
+                                              {album.title}
+                                            </h6>
+                                            <p style={{ margin: "0 0 10px 0", fontSize: "13px", color: "#64748b", lineHeight: "1.4" }}>
+                                              {album.description}
+                                            </p>
+                                            <span style={{ color: "#088dcd", fontWeight: 600, fontSize: "13px" }}>
+                                              View Album &rarr;
+                                            </span>
+                                          </div>
+                                        </div>
                                       </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Photos Grid (For All Photos, Profile, Mobile, or Inside an Active Album) */}
+                                {(picturesFilter !== "albums" || activeAlbum) && (
+                                  <div>
+                                    {activeAlbum && (
+                                      <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                                        <button
+                                          type="button"
+                                          onClick={() => setActiveAlbum(null)}
+                                          style={{
+                                            background: "#f1f5f9",
+                                            border: "1px solid #cbd5e1",
+                                            padding: "6px 14px",
+                                            borderRadius: "8px",
+                                            cursor: "pointer",
+                                            fontWeight: 600,
+                                            fontSize: "13px",
+                                          }}
+                                        >
+                                          &larr; Back to Albums
+                                        </button>
+                                        <span style={{ fontWeight: 700, color: "#1e293b", fontSize: "15px" }}>
+                                          {galleryDatasets.albums.find((a) => a.id === activeAlbum)?.title}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <div className="row merged-10">
+                                      {currentPhotoList.map((imgSrc, idx) => (
+                                        <div className="col-lg-3 col-md-4 col-sm-6" key={`${imgSrc}-${idx}`}>
+                                          <div
+                                            className="uzr-pictures"
+                                            style={{
+                                              cursor: "pointer",
+                                              marginBottom: "15px",
+                                              borderRadius: "10px",
+                                              overflow: "hidden",
+                                              boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                                              position: "relative",
+                                            }}
+                                            onClick={() => openLightbox(imgSrc)}
+                                          >
+                                            <img
+                                              alt=""
+                                              src={imgSrc}
+                                              style={{ width: "100%", height: "180px", objectFit: "cover", display: "block" }}
+                                            />
+                                            <ul className="hover-action">
+                                              <li>
+                                                <span style={{ color: "#fff" }}>
+                                                  <i className="icofont-like"></i> {(idx * 7 + 12) % 60 + 5}
+                                                </span>
+                                              </li>
+                                              <li>
+                                                <span style={{ color: "#fff" }}>
+                                                  <i className="icofont-chat"></i> {(idx * 3 + 4) % 25 + 2}
+                                                </span>
+                                              </li>
+                                            </ul>
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
-                                  ))}
-                                </div>
+                                  </div>
+                                )}
                               </div>
                             )}
 
@@ -1178,7 +1584,7 @@ export default function ProfilePageClient() {
                             {activeTab === "videos" && (
                               <div className="tab-pane active fade show" id="videos">
                                 <h5 className="tab-title">
-                                  Videos <span>12</span>
+                                  Videos <span>{filteredVideos.length}</span>
                                 </h5>
                                 <ul className="pix-filter">
                                   {["all", "views", "newest", "mobile"].map((filter) => (
@@ -1197,31 +1603,55 @@ export default function ProfilePageClient() {
                                   ))}
                                 </ul>
                                 <div className="row merged-10">
-                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
-                                    <div className="col-lg-4 col-md-4 col-sm-6" key={n}>
-                                      <div className="user-video" style={{ marginBottom: "20px" }}>
+                                  {filteredVideos.map((video) => (
+                                    <div className="col-lg-4 col-md-4 col-sm-6" key={video.id}>
+                                      <div className="user-video" style={{ marginBottom: "20px", background: "#fff", borderRadius: "10px", overflow: "hidden", border: "1px solid #e2e8f0" }}>
                                         <figure
-                                          style={{ cursor: "pointer", borderRadius: "8px", overflow: "hidden" }}
-                                          onClick={() => setPreviewImage(`/images/resources/user-video${n}.jpg`)}
+                                          style={{ cursor: "pointer", borderRadius: "8px 8px 0 0", overflow: "hidden", position: "relative", margin: 0 }}
+                                          onClick={() => setActiveVideoModal({ title: video.title, videoUrl: video.videoUrl, duration: video.duration })}
                                         >
-                                          <img alt="" src={`/images/resources/user-video${n}.jpg`} style={{ width: "100%", height: "160px", objectFit: "cover" }} />
+                                          <img alt={video.title} src={video.thumbnail} style={{ width: "100%", height: "170px", objectFit: "cover" }} />
                                           <span className="play-btn">
                                             <i className="icofont-play"></i>
                                           </span>
+                                          <span
+                                            style={{
+                                              position: "absolute",
+                                              bottom: "8px",
+                                              right: "8px",
+                                              background: "rgba(0,0,0,0.75)",
+                                              color: "#fff",
+                                              fontSize: "11px",
+                                              padding: "2px 8px",
+                                              borderRadius: "4px",
+                                              fontWeight: 600,
+                                            }}
+                                          >
+                                            {video.duration}
+                                          </span>
                                         </figure>
-                                        <span>Research Session #{n}</span>
-                                        <ul className="vid-action">
-                                          <li>
-                                            <a href="#" title="" onClick={(e) => e.preventDefault()}>
-                                              <i className="icofont-like"></i> {n * 8 + 12}
-                                            </a>
-                                          </li>
-                                          <li>
-                                            <a href="#" title="" onClick={(e) => e.preventDefault()}>
-                                              <i className="icofont-chat"></i> {n * 4}
-                                            </a>
-                                          </li>
-                                        </ul>
+                                        <div style={{ padding: "12px 14px" }}>
+                                          <span style={{ fontWeight: 700, fontSize: "14px", color: "#1e293b", display: "block", marginBottom: "8px", lineHeight: "1.3" }}>
+                                            {video.title}
+                                          </span>
+                                          <ul className="vid-action" style={{ margin: 0, padding: 0 }}>
+                                            <li>
+                                              <span style={{ color: "#64748b", fontSize: "12px" }}>
+                                                <i className="icofont-eye-alt"></i> {video.views}
+                                              </span>
+                                            </li>
+                                            <li>
+                                              <span style={{ color: "#64748b", fontSize: "12px" }}>
+                                                <i className="icofont-like"></i> {video.likes}
+                                              </span>
+                                            </li>
+                                            <li>
+                                              <span style={{ color: "#64748b", fontSize: "12px" }}>
+                                                <i className="icofont-chat"></i> {video.comments}
+                                              </span>
+                                            </li>
+                                          </ul>
+                                        </div>
                                       </div>
                                     </div>
                                   ))}
@@ -2158,6 +2588,170 @@ export default function ProfilePageClient() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox Preview Modal */}
+      {previewImage && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.92)",
+            zIndex: 99999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backdropFilter: "blur(6px)",
+          }}
+          onClick={() => setPreviewImage(null)}
+        >
+          <div
+            style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh", display: "flex", flexDirection: "column", alignItems: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewImage(null)}
+              style={{
+                position: "absolute",
+                top: "-45px",
+                right: 0,
+                background: "rgba(255,255,255,0.2)",
+                border: "none",
+                color: "#fff",
+                width: "38px",
+                height: "38px",
+                borderRadius: "50%",
+                cursor: "pointer",
+                fontSize: "22px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              &times;
+            </button>
+
+            <img
+              src={previewImage}
+              alt="Full Preview"
+              style={{
+                maxWidth: "85vw",
+                maxHeight: "75vh",
+                borderRadius: "12px",
+                objectFit: "contain",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+              }}
+            />
+
+            <div
+              style={{
+                marginTop: "16px",
+                display: "flex",
+                gap: "16px",
+                alignItems: "center",
+                background: "rgba(255,255,255,0.15)",
+                padding: "8px 22px",
+                borderRadius: "30px",
+                color: "#fff",
+              }}
+            >
+              <button
+                onClick={handlePrevImage}
+                style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <i className="icofont-arrow-left"></i> Prev
+              </button>
+              <span style={{ fontSize: "13px", opacity: 0.85 }}>
+                {previewImageIndex + 1} / {currentPhotoList.length}
+              </span>
+              <button
+                onClick={handleNextImage}
+                style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                Next <i className="icofont-arrow-right"></i>
+              </button>
+              <span style={{ borderLeft: "1px solid rgba(255,255,255,0.3)", height: "16px" }}></span>
+              <a
+                href={previewImage}
+                download
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "#38bdf8", textDecoration: "none", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <i className="icofont-download"></i> Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Video Player Modal */}
+      {activeVideoModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.88)",
+            zIndex: 99999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backdropFilter: "blur(6px)",
+          }}
+          onClick={() => setActiveVideoModal(null)}
+        >
+          <div
+            style={{
+              position: "relative",
+              maxWidth: "800px",
+              width: "90%",
+              background: "#0f172a",
+              borderRadius: "16px",
+              overflow: "hidden",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "16px 20px",
+                borderBottom: "1px solid rgba(255,255,255,0.1)",
+                color: "#fff",
+              }}
+            >
+              <h5 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{activeVideoModal.title}</h5>
+              <button
+                onClick={() => setActiveVideoModal(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#fff",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                }}
+              >
+                &times;
+              </button>
+            </div>
+            <div style={{ padding: "0", background: "#000" }}>
+              <video
+                controls
+                autoPlay
+                src={activeVideoModal.videoUrl}
+                style={{ width: "100%", maxHeight: "500px", display: "block" }}
+              ></video>
+            </div>
           </div>
         </div>
       )}

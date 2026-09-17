@@ -498,9 +498,9 @@ export default function HomeHeader() {
                   </Link>
                 </li>
                 <li>
-                  <a className="invite-new" href="#" title="">
+                  <Link href="/about-university?action=invite" title="Invite Colleagues">
                     <i className="icofont-brand-slideshare"></i> Invite Collegue
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="pay-out.html" title="">
@@ -528,9 +528,9 @@ export default function HomeHeader() {
                   </a>
                 </li>
                 <li>
-                  <a href="settings.html" title="">
+                  <Link href="/settings" title="Account Settings">
                     <i className="icofont-gear"></i> Setting
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="/policy" title="">

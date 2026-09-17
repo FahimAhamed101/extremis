@@ -919,7 +919,7 @@ export type MarkGroupReadResponse = {
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories", "Groups", "Events", "Sidebar"],
+  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories", "Groups", "Events", "Sidebar", "Settings"],
   baseQuery: fetchBaseQuery({
     baseUrl: resolvedApiRoot,
     prepareHeaders: (headers) => {
@@ -1482,6 +1482,78 @@ export const authApi = createApi({
       }),
       providesTags: ["Posts", "Profile", "Groups"],
     }),
+    getSettings: builder.query<GetSettingsResponse, void>({
+      query: () => ({
+        url: "/settings",
+        method: "GET",
+      }),
+      providesTags: ["Settings"],
+    }),
+    updateAccountSettings: builder.mutation<{ success: boolean; message: string }, UpdateAccountSettingsPayload>({
+      query: (body) => ({
+        url: "/settings/account",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Settings", "Profile", "Auth"],
+    }),
+    updateNotificationSettings: builder.mutation<{ success: boolean; message: string }, UpdateNotificationSettingsPayload>({
+      query: (body) => ({
+        url: "/settings/notifications",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Settings"],
+    }),
+    updatePrivacySettings: builder.mutation<{ success: boolean; message: string }, UpdatePrivacySettingsPayload>({
+      query: (body) => ({
+        url: "/settings/privacy",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Settings"],
+    }),
+    updateBillingSettings: builder.mutation<{ success: boolean; message: string }, UpdateBillingSettingsPayload>({
+      query: (body) => ({
+        url: "/settings/billing",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Settings"],
+    }),
+    requestApiClient: builder.mutation<{ success: boolean; client: ApiClientDto; apiClients: ApiClientDto[] }, { name?: string } | void>({
+      query: (body) => ({
+        url: "/settings/api-clients",
+        method: "POST",
+        body: body || {},
+      }),
+      invalidatesTags: ["Settings"],
+    }),
+    revokeApiClient: builder.mutation<{ success: boolean; apiClients: ApiClientDto[] }, string>({
+      query: (clientId) => ({
+        url: `/settings/api-clients/${clientId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Settings"],
+    }),
+    closeAccount: builder.mutation<{ success: boolean; message: string }, { password: string }>({
+      query: (body) => ({
+        url: "/settings/close-account",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Auth", "Profile"],
+    }),
+    inviteColleague: builder.mutation<
+      { success: boolean; message: string; colleague?: { email: string; name: string; isRegistered?: boolean } },
+      { email: string; colleagueName?: string; note?: string }
+    >({
+      query: (body) => ({
+        url: "/profile/invite-colleague",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -1572,6 +1644,96 @@ export type CreateOrderResponse = {
   };
 };
 
+export type SocialLinksDto = {
+  facebook: string;
+  twitter: string;
+  instagram: string;
+  youtube: string;
+};
+
+export type NotificationSettingsDto = {
+  subscriptions: boolean;
+  recommendedResearches: boolean;
+  activeComments: boolean;
+  replyComments: boolean;
+  emailAcademicUpdates: boolean;
+  promotionalRecommendations: boolean;
+};
+
+export type PrivacySettingsDto = {
+  searchEngineVisible: boolean;
+  showFollowersOnTimeline: boolean;
+  showCoursesAndResearches: boolean;
+};
+
+export type BillingAddressDto = {
+  firstName: string;
+  lastName: string;
+  country: string;
+  addressLine1: string;
+  addressLine2: string;
+  state: string;
+  city: string;
+  notes: string;
+};
+
+export type PaymentMethodDto = {
+  methodType: string;
+  cardNumber: string;
+  cardMonth: string;
+  cardYear: string;
+  cardCvv: string;
+  paypalEmail: string;
+  bitcoinAddress: string;
+  bankFirstName: string;
+  bankLastName: string;
+  bankCountry: string;
+  bankName: string;
+  bankAddress: string;
+  swiftCode: string;
+  bankAccountNo: string;
+};
+
+export type ApiClientDto = {
+  clientId: string;
+  clientSecret: string;
+  name: string;
+  createdAt: string;
+};
+
+export type GetSettingsResponse = {
+  success: boolean;
+  basicProfile: {
+    firstName: string;
+    lastName: string;
+    designation: string;
+    bio: string;
+    email: string;
+    avatarUrl: string;
+  };
+  socialLinks: SocialLinksDto;
+  notificationSettings: NotificationSettingsDto;
+  privacySettings: PrivacySettingsDto;
+  billingAddress: BillingAddressDto;
+  paymentMethod: PaymentMethodDto;
+  apiClients: ApiClientDto[];
+};
+
+export type UpdateAccountSettingsPayload = {
+  firstName?: string;
+  lastName?: string;
+  designation?: string;
+  bio?: string;
+  socialLinks?: Partial<SocialLinksDto>;
+};
+
+export type UpdateNotificationSettingsPayload = Partial<NotificationSettingsDto>;
+export type UpdatePrivacySettingsPayload = Partial<PrivacySettingsDto>;
+export type UpdateBillingSettingsPayload = {
+  billingAddress?: Partial<BillingAddressDto>;
+  paymentMethod?: Partial<PaymentMethodDto>;
+};
+
 export const {
   useSignupMutation,
   useLoginMutation,
@@ -1620,5 +1782,14 @@ export const {
   useSetEventRsvpMutation,
   usePingHealthQuery,
   useSearchEverythingQuery,
+  useGetSettingsQuery,
+  useUpdateAccountSettingsMutation,
+  useUpdateNotificationSettingsMutation,
+  useUpdatePrivacySettingsMutation,
+  useUpdateBillingSettingsMutation,
+  useRequestApiClientMutation,
+  useRevokeApiClientMutation,
+  useCloseAccountMutation,
+  useInviteColleagueMutation,
 } = authApi;
 

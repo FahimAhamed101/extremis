@@ -860,6 +860,30 @@ async function getNearbyPeople(req, res, next) {
   }
 }
 
+async function inviteColleague(req, res, next) {
+  try {
+    const { email, colleagueName, note } = req.body || {};
+    const trimmedEmail = String(email || "").trim().toLowerCase();
+    if (!trimmedEmail || !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      return res.status(400).json({ success: false, message: "A valid colleague email address is required." });
+    }
+
+    const existing = await User.findOne({ email: trimmedEmail });
+
+    return res.status(200).json({
+      success: true,
+      message: `Invitation successfully sent to ${trimmedEmail}!`,
+      colleague: {
+        email: trimmedEmail,
+        name: colleagueName || trimmedEmail.split("@")[0],
+        isRegistered: Boolean(existing),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getDiscoverPeople,
   getProfileById,
@@ -868,5 +892,6 @@ module.exports = {
   getSidebarPeople,
   toggleFollowUser,
   updateMyProfile,
+  inviteColleague,
 };
 

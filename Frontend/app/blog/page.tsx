@@ -132,7 +132,7 @@ const sidebarMenu: MenuItem[] = [
   },
   {
     title: "University Profile",
-    href: "about-university.html",
+    href: "/about-university",
     iconClass: "icofont-users-social",
   },
   {
@@ -147,7 +147,7 @@ const sidebarMenu: MenuItem[] = [
   },
   {
     title: "Web Settings",
-    href: "settings.html",
+    href: "/settings",
     iconClass: "icofont-settings",
   },
   {

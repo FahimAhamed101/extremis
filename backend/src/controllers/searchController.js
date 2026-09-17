@@ -105,6 +105,78 @@ const DEFAULT_VIDEOS = [
     published: "1 week ago",
     views: 6100,
   },
+  {
+    id: "vid-5",
+    title: "Next-Gen Quantum Network Simulation & Benchmarks",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    poster: "/images/resources/post-video5.jpg",
+    authorName: "Dr. Amy Watson",
+    published: "2 weeks ago",
+    views: 8900,
+  },
+  {
+    id: "vid-6",
+    title: "Computer Vision & Autonomous Robotics Lecture",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    poster: "/images/resources/post-video6.jpg",
+    authorName: "Muhammad A.",
+    published: "3 weeks ago",
+    views: 11200,
+  },
+  {
+    id: "vid-7",
+    title: "Computer Graphics and Ray Tracing Innovations",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    poster: "/images/resources/post-video6.jpg",
+    authorName: "William Jhon",
+    published: "1 month ago",
+    views: 5400,
+  },
+  {
+    id: "vid-8",
+    title: "Modern Machine Learning Infrastructures & LLMs",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    poster: "/images/resources/post-video8.jpg",
+    authorName: "Prof. John Carter",
+    published: "1 month ago",
+    views: 9400,
+  },
+  {
+    id: "vid-9",
+    title: "Micro-Robotics & Molecular Computing Seminar",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    poster: "/images/resources/post-video9.jpg",
+    authorName: "Sara Jean",
+    published: "2 months ago",
+    views: 3900,
+  },
+  {
+    id: "vid-10",
+    title: "Advanced Data Structures & Algorithms Masterclass",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    poster: "/images/resources/post-video10.jpg",
+    authorName: "Danial Cardos",
+    published: "2 months ago",
+    views: 15400,
+  },
+  {
+    id: "vid-11",
+    title: "Cloud Native Software Architectures for 2026",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    poster: "/images/resources/post-video11.jpg",
+    authorName: "Muhammad A.",
+    published: "3 months ago",
+    views: 7800,
+  },
+  {
+    id: "vid-12",
+    title: "Computer Science Frontiers & Engineering Keynote",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    poster: "/images/resources/post-video6.jpg",
+    authorName: "Dr. Amy Watson",
+    published: "3 months ago",
+    views: 13500,
+  },
 ];
 
 async function globalSearch(req, res, next) {
@@ -207,21 +279,28 @@ async function globalSearch(req, res, next) {
       isMember: viewerId && Array.isArray(g.members) ? g.members.some((m) => String(m) === String(viewerId)) : false,
     }));
 
-    // If few or no groups found in DB, provide filtered defaults
+    // If few or no groups found in DB, provide filtered defaults or template defaults
+    const defaultGroupList = [
+      { id: "grp-1", name: "Sports Punch", category: "Sports", memberCountDisplay: "125M Members", coverUrl: "/images/resources/group1.jpg" },
+      { id: "grp-2", name: "Asian Girls", category: "Social", memberCountDisplay: "12k Members", coverUrl: "/images/resources/group2.jpg" },
+      { id: "grp-3", name: "Graphic Design", category: "Creative", memberCountDisplay: "125M Members", coverUrl: "/images/resources/group3.jpg" },
+      { id: "grp-4", name: "Family Lovers", category: "Community", memberCountDisplay: "1M Members", coverUrl: "/images/resources/group4.jpg" },
+      { id: "grp-5", name: "School Mates", category: "Education", memberCountDisplay: "22M Members", coverUrl: "/images/resources/group5.jpg" },
+      { id: "grp-6", name: "Panama Beach", category: "Travel", memberCountDisplay: "5M Members", coverUrl: "/images/resources/group6.jpg" },
+      { id: "grp-7", name: "Online Teching", category: "Technology", memberCountDisplay: "52k Members", coverUrl: "/images/resources/group7.jpg" },
+      { id: "grp-8", name: "Child Cares", category: "Family", memberCountDisplay: "1M Members", coverUrl: "/images/resources/group8.jpg" },
+      { id: "grp-9", name: "Fun Art", category: "Art", memberCountDisplay: "35k Members", coverUrl: "/images/resources/group9.jpg" },
+      { id: "grp-10", name: "Kids Players", category: "Gaming", memberCountDisplay: "10M Members", coverUrl: "/images/resources/group10.jpg" },
+      { id: "grp-11", name: "Goldi Friends", category: "Lifestyle", memberCountDisplay: "14M Members", coverUrl: "/images/resources/group11.jpg" },
+    ];
+
     let finalGroups = serializedGroups;
-    if (finalGroups.length === 0) {
-      const defaultGroupList = [
-        { id: "grp-1", name: "Computer Science & AI Society", category: "Technology", memberCountDisplay: "125M Members", coverUrl: "/images/resources/group1.jpg" },
-        { id: "grp-2", name: "Data Science & Python Developers", category: "Programming", memberCountDisplay: "52k Members", coverUrl: "/images/resources/group2.jpg" },
-        { id: "grp-3", name: "Robotics & Embedded Systems", category: "Engineering", memberCountDisplay: "125M Members", coverUrl: "/images/resources/group3.jpg" },
-        { id: "grp-4", name: "Quantum Physics & Computing Lab", category: "Physics", memberCountDisplay: "1M Members", coverUrl: "/images/resources/group4.jpg" },
-        { id: "grp-5", name: "Biomedical Engineering Network", category: "Medicine", memberCountDisplay: "22M Members", coverUrl: "/images/resources/group5.jpg" },
-        { id: "grp-6", name: "Cybersecurity & Cryptography", category: "Security", memberCountDisplay: "5M Members", coverUrl: "/images/resources/group6.jpg" },
-      ];
-      finalGroups = regex
-        ? defaultGroupList.filter((g) => regex.test(g.name) || regex.test(g.category))
-        : defaultGroupList;
+    if (regex) {
+      const matchedDefaults = defaultGroupList.filter((g) => regex.test(g.name) || regex.test(g.category));
+      finalGroups = [...finalGroups, ...matchedDefaults];
     }
+    const remainingGroups = defaultGroupList.filter((dg) => !finalGroups.some((fg) => fg.name === dg.name));
+    finalGroups = [...finalGroups, ...remainingGroups].slice(0, 24);
 
     // 4. Photos
     // Gather from matched posts with image attachment or displayImageUrl
@@ -243,11 +322,12 @@ async function globalSearch(req, res, next) {
         return imgs;
       });
 
-    // Merge with defaults
+    // Merge with defaults: matched first, then remaining defaults
     const filteredDefaultPhotos = regex
       ? DEFAULT_PHOTOS.filter((ph) => regex.test(ph.title) || regex.test(ph.author))
       : DEFAULT_PHOTOS;
-    const finalPhotos = [...postPhotos, ...filteredDefaultPhotos].slice(0, 24);
+    const remainingPhotos = DEFAULT_PHOTOS.filter((dp) => !filteredDefaultPhotos.some((fp) => fp.id === dp.id));
+    const finalPhotos = [...postPhotos, ...filteredDefaultPhotos, ...remainingPhotos].slice(0, 24);
 
     // 5. Videos
     const postVideos = serializedPosts
@@ -265,7 +345,8 @@ async function globalSearch(req, res, next) {
     const filteredDefaultVideos = regex
       ? DEFAULT_VIDEOS.filter((v) => regex.test(v.title) || regex.test(v.authorName))
       : DEFAULT_VIDEOS;
-    const finalVideos = [...postVideos, ...filteredDefaultVideos].slice(0, 18);
+    const remainingVideos = DEFAULT_VIDEOS.filter((dv) => !filteredDefaultVideos.some((fv) => fv.id === dv.id));
+    const finalVideos = [...postVideos, ...filteredDefaultVideos, ...remainingVideos].slice(0, 18);
 
     // 6. Departments
     // Collect departments from users
@@ -277,7 +358,7 @@ async function globalSearch(req, res, next) {
       ])
     );
 
-    const departmentsList = allDeptNames
+    let departmentsList = allDeptNames
       .map((name) => {
         const found = DEFAULT_DEPARTMENTS.find((d) => d.name === name);
         return {
@@ -288,6 +369,9 @@ async function globalSearch(req, res, next) {
         };
       })
       .filter((d) => (regex ? regex.test(d.name) || regex.test(d.faculty) || regex.test(d.shortName) : true));
+
+    const remainingDepts = DEFAULT_DEPARTMENTS.filter((dd) => !departmentsList.some((dl) => dl.name === dd.name));
+    departmentsList = [...departmentsList, ...remainingDepts].slice(0, 24);
 
     // Calculate total count
     const counts = {

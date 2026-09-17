@@ -85,7 +85,7 @@ const sidebarMenu: MenuItem[] = [
   },
   {
     title: "Web Settings",
-    href: "settings.html",
+    href: "/settings",
     iconClass: "icofont-settings",
   },
 ];

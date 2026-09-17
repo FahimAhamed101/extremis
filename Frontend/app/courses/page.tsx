@@ -56,6 +56,7 @@ function normalizeTemplateHtml(html: string): string {
     .replace(/\bhref=(['"])profile(?:-page2)?\.html\1/gi, 'href="/profile"')
     .replace(/\bhref=(['"])groups\.html\1/gi, 'href="/groups"')
     .replace(/\bhref=(['"])search-result\.html\1/gi, 'href="/search-result"')
+    .replace(/\bhref=(['"])settings\.html\1/gi, 'href="/settings"')
     .replace(/\bhref=(['"])sign-?in\.html\1/gi, 'href="/login"')
     .replace(/\bhref=(['"])signup\.html\1/gi, 'href="/signup"');
 }
