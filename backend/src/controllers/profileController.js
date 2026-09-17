@@ -305,6 +305,7 @@ async function loadProfileTimeline(profileUserId, viewerId = profileUserId) {
   const userPosts = await Post.find({ author: profileUserId })
     .populate("author")
     .populate("comments.user")
+    .populate("reactions.user")
     .sort({ createdAt: -1 })
     .limit(20);
 

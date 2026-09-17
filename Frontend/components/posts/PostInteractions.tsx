@@ -5,8 +5,10 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
+  type PostReactionItem,
   type PostReactionType,
   useAddPostCommentMutation,
+  useGetPostReactionsQuery,
   useReactToPostMutation,
   useSharePostMutation,
 } from "@/lib/services/authApi";
@@ -36,16 +38,20 @@ export type PostInteractionStats = {
 };
 
 type StoredUser = {
+  id?: string;
+  _id?: string;
   firstName?: string;
   lastName?: string;
   email?: string;
   avatarUrl?: string | null;
+  username?: string | null;
 };
 
 type PostInteractionsProps = {
   postId?: string;
   initialStats?: PostInteractionStats;
   initialComments?: PostInteractionComment[];
+  initialReactions?: PostReactionItem[];
   shareUrl?: string;
   defaultCommentsOpen?: boolean;
   postDetailHref?: string;
@@ -269,6 +275,7 @@ export default function PostInteractions({
   postId,
   initialStats,
   initialComments = [],
+  initialReactions = [],
   shareUrl,
   defaultCommentsOpen = false,
   postDetailHref,
@@ -276,6 +283,9 @@ export default function PostInteractions({
 }: PostInteractionsProps) {
   const [stats, setStats] = useState<ResolvedPostStats>(() => resolveStats(initialStats, initialComments));
   const [comments, setComments] = useState<PostInteractionComment[]>(initialComments);
+  const [reactions, setReactions] = useState<PostReactionItem[]>(initialReactions);
+  const [showReactionsModal, setShowReactionsModal] = useState(false);
+  const [selectedModalTab, setSelectedModalTab] = useState<PostReactionType | "all">("all");
   const [commentsOpen, setCommentsOpen] = useState(defaultCommentsOpen);
   const [commentMessage, setCommentMessage] = useState("");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -287,14 +297,50 @@ export default function PostInteractions({
   const [addPostComment] = useAddPostCommentMutation();
   const [sharePost] = useSharePostMutation();
 
+  const { data: reactionsData, isLoading: isLoadingReactions } = useGetPostReactionsQuery(
+    postId || "",
+    { skip: !showReactionsModal || !postId },
+  );
+
   useEffect(() => {
     setStats(resolveStats(initialStats, initialComments));
   }, [initialComments, initialStats]);
+
+  useEffect(() => {
+    if (initialReactions && initialReactions.length > 0) {
+      setReactions(initialReactions);
+    }
+  }, [initialReactions]);
+
+  useEffect(() => {
+    if (reactionsData?.reactions) {
+      setReactions(reactionsData.reactions);
+    }
+  }, [reactionsData]);
+
+  // Close reactions modal on Escape key
+  useEffect(() => {
+    if (!showReactionsModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowReactionsModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showReactionsModal]);
 
   const emojiCount = useMemo(() => formatCount(stats.likeCount), [stats.likeCount]);
   const activeReaction = getReactionMeta(stats.viewerReaction && stats.viewerReaction !== "dislike" ? stats.viewerReaction : "like");
   const visibleReactions = stats.topReactions.length > 0 ? stats.topReactions : (stats.likeCount > 0 ? ["like" as const] : []);
   const isCurrentlyDisliked = Boolean(stats.viewerReaction === "dislike" || stats.dislikedByViewer);
+
+  const filteredReactors = useMemo(() => {
+    if (selectedModalTab === "all") {
+      return reactions;
+    }
+    return reactions.filter((r) => r.type === selectedModalTab);
+  }, [reactions, selectedModalTab]);
 
   const setTimedMessage = (msg: string) => {
     setActionMessage(msg);
@@ -305,10 +351,14 @@ export default function PostInteractions({
 
   const applyServerPost = (post: {
     comments?: PostInteractionComment[];
+    reactions?: PostReactionItem[];
     stats?: PostInteractionStats;
   }) => {
     const nextComments = post.comments || [];
     setComments(nextComments);
+    if (post.reactions) {
+      setReactions(post.reactions);
+    }
     setStats(resolveStats(post.stats, nextComments));
   };
 
@@ -321,8 +371,45 @@ export default function PostInteractions({
       return;
     }
 
-    // Optimistic UI update
+    // Optimistic UI update for stats
     setStats((current) => applyReactionLocally(current, selectedReaction));
+
+    // Optimistic UI update for reactions list
+    const storedUser = readStoredUser();
+    const currentViewerId = storedUser?.id || storedUser?._id || storedUser?.email || "viewer";
+    const currentViewerName =
+      `${storedUser?.firstName || ""} ${storedUser?.lastName || ""}`.trim() ||
+      storedUser?.username ||
+      storedUser?.email ||
+      "You";
+
+    setReactions((prev) => {
+      const existingIdx = prev.findIndex(
+        (r) => r.userId === currentViewerId || r.name === currentViewerName
+      );
+      if (selectedReaction === "dislike") {
+        return prev.filter((r) => r.userId !== currentViewerId && r.name !== currentViewerName);
+      }
+      if (existingIdx >= 0) {
+        if (prev[existingIdx].type === selectedReaction) {
+          return prev.filter((_, idx) => idx !== existingIdx);
+        }
+        const updated = [...prev];
+        updated[existingIdx] = { ...updated[existingIdx], type: selectedReaction };
+        return updated;
+      }
+      return [
+        ...prev,
+        {
+          id: `local-${Date.now()}`,
+          userId: currentViewerId,
+          type: selectedReaction,
+          name: currentViewerName,
+          handle: storedUser?.username ? `@${storedUser.username}` : "",
+          image: storedUser?.avatarUrl || "/images/resources/user.jpg",
+        },
+      ];
+    });
 
     if (!postId) {
       return;
@@ -672,18 +759,34 @@ export default function PostInteractions({
               alignItems: "center",
               gap: "4px",
               flexShrink: 0,
+              cursor: "pointer",
             }}
+            onClick={() => {
+              setSelectedModalTab("all");
+              setShowReactionsModal(true);
+            }}
+            title="Click to see all people who reacted"
           >
             {visibleReactions.map((reactionType) => {
               const reaction = getReactionMeta(reactionType);
+              const reactorsForType = reactions.filter((r) => r.type === reactionType);
 
               return (
-                <div className="popover_wrapper" key={reaction.type} style={{ display: "inline-block" }}>
+                <div
+                  className="popover_wrapper"
+                  key={reaction.type}
+                  style={{ display: "inline-block", position: "relative" }}
+                >
                   <a
                     className="popover_title"
                     href="#"
                     title={reaction.label}
-                    onClick={(event) => event.preventDefault()}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      setSelectedModalTab(reaction.type);
+                      setShowReactionsModal(true);
+                    }}
                   >
                     <img
                       alt={reaction.label}
@@ -691,10 +794,102 @@ export default function PostInteractions({
                       style={{ maxWidth: "22px", borderRadius: "100%", border: "2px solid #fff" }}
                     />
                   </a>
+
+                  {/* Native Socimo .popover_content styled hover card */}
+                  <div
+                    className="popover_content"
+                    style={{
+                      minWidth: "150px",
+                      maxWidth: "240px",
+                      bottom: "28px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                      borderRadius: "10px",
+                      padding: "8px 12px",
+                      zIndex: 99999,
+                      pointerEvents: "auto",
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedModalTab(reaction.type);
+                      setShowReactionsModal(true);
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        color: "#1e293b",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <img
+                        alt={reaction.label}
+                        src={reaction.imageSrc}
+                        style={{ width: "16px", height: "16px" }}
+                      />
+                      {reaction.label}
+                      <span
+                        style={{
+                          marginLeft: "auto",
+                          color: "#64748b",
+                          fontWeight: 600,
+                          fontSize: "11px",
+                        }}
+                      >
+                        {stats.reactionCounts[reactionType] || reactorsForType.length}
+                      </span>
+                    </span>
+                    <ul className="namelist" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                      {reactorsForType.slice(0, 5).map((reactor) => (
+                        <li
+                          key={reactor.id || `${reactor.userId}-${reactor.type}`}
+                          style={{
+                            padding: "2px 0",
+                            fontSize: "11px",
+                            color: "#475569",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {reactor.name}
+                        </li>
+                      ))}
+                      {reactorsForType.length > 5 ? (
+                        <li style={{ padding: "2px 0" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 600, color: "#088dcd" }}>
+                            +{reactorsForType.length - 5} more...
+                          </span>
+                        </li>
+                      ) : null}
+                      {reactorsForType.length === 0 ? (
+                        <li style={{ padding: "2px 0", fontSize: "11px", color: "#64748b" }}>
+                          {stats.reactionCounts[reactionType]
+                            ? `${stats.reactionCounts[reactionType]} reacted`
+                            : "Click to see all"}
+                        </li>
+                      ) : null}
+                    </ul>
+                  </div>
                 </div>
               );
             })}
-            <p style={{ margin: 0, fontSize: "11px", color: "#3e3f5e", verticalAlign: "middle" }}>{emojiCount}</p>
+            <p
+              style={{
+                margin: 0,
+                fontSize: "11px",
+                color: "#3e3f5e",
+                verticalAlign: "middle",
+                fontWeight: 600,
+              }}
+            >
+              {emojiCount}
+            </p>
           </div>
         </div>
 
@@ -787,6 +982,294 @@ export default function PostInteractions({
           </div>
         </div>
       </div>
+
+      {/* Reactions Modal Dialog */}
+      {showReactionsModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="People who reacted"
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(4px)",
+            zIndex: 999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+          onClick={() => setShowReactionsModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "16px",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              width: "100%",
+              maxWidth: "460px",
+              maxHeight: "80vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              border: "1px solid #e2e8f0",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "16px 20px",
+                borderBottom: "1px solid #edf2f7",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <h5 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#1e293b" }}>
+                  People Who Reacted
+                </h5>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    padding: "2px 8px",
+                    borderRadius: "999px",
+                    backgroundColor: "#f1f5f9",
+                    color: "#475569",
+                  }}
+                >
+                  {stats.likeCount}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReactionsModal(false)}
+                style={{
+                  border: "none",
+                  background: "#f1f5f9",
+                  cursor: "pointer",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#64748b",
+                  fontSize: "16px",
+                  lineHeight: 1,
+                  fontWeight: "bold",
+                }}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Reaction Filter Tabs */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 16px",
+                borderBottom: "1px solid #edf2f7",
+                overflowX: "auto",
+                backgroundColor: "#f8fafc",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedModalTab("all")}
+                style={{
+                  border: "none",
+                  background: selectedModalTab === "all" ? "#088dcd" : "transparent",
+                  color: selectedModalTab === "all" ? "#ffffff" : "#475569",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  padding: "6px 14px",
+                  borderRadius: "20px",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                All <span>({stats.likeCount})</span>
+              </button>
+
+              {REACTION_OPTIONS.filter((opt) => (stats.reactionCounts[opt.type] || 0) > 0).map((opt) => {
+                const isSelected = selectedModalTab === opt.type;
+                const count = stats.reactionCounts[opt.type] || 0;
+                return (
+                  <button
+                    key={opt.type}
+                    type="button"
+                    onClick={() => setSelectedModalTab(opt.type)}
+                    style={{
+                      border: "none",
+                      background: isSelected ? "#088dcd" : "transparent",
+                      color: isSelected ? "#ffffff" : "#475569",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      padding: "6px 12px",
+                      borderRadius: "20px",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      whiteSpace: "nowrap",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <img
+                      src={opt.imageSrc}
+                      alt={opt.label}
+                      style={{ width: "16px", height: "16px", verticalAlign: "middle" }}
+                    />
+                    <span>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Reactors List Body */}
+            <div
+              style={{
+                padding: "12px 16px",
+                overflowY: "auto",
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              {isLoadingReactions && reactions.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "36px 16px", color: "#64748b" }}>
+                  <p style={{ margin: 0, fontSize: "14px" }}>Loading reactions...</p>
+                </div>
+              ) : filteredReactors.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "36px 16px", color: "#94a3b8" }}>
+                  <p style={{ margin: 0, fontSize: "14px" }}>No reactions found for this category.</p>
+                </div>
+              ) : (
+                filteredReactors.map((item) => {
+                  const reactionMeta = getReactionMeta(item.type);
+                  const profileLink = item.userId ? `/profile/${item.userId}` : "#";
+
+                  return (
+                    <div
+                      key={item.id || `${item.userId}-${item.type}`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "8px 10px",
+                        borderRadius: "10px",
+                        backgroundColor: "#ffffff",
+                        border: "1px solid #f1f5f9",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          <img
+                            src={item.image || "/images/resources/user.jpg"}
+                            alt={item.name}
+                            style={{
+                              width: "42px",
+                              height: "42px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              border: "1.5px solid #e2e8f0",
+                              display: "block",
+                            }}
+                          />
+                          <span
+                            style={{
+                              position: "absolute",
+                              bottom: "-2px",
+                              right: "-2px",
+                              width: "18px",
+                              height: "18px",
+                              borderRadius: "50%",
+                              backgroundColor: "#ffffff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                            }}
+                          >
+                            <img
+                              src={reactionMeta.imageSrc}
+                              alt={reactionMeta.label}
+                              style={{ width: "13px", height: "13px" }}
+                            />
+                          </span>
+                        </div>
+
+                        <div style={{ minWidth: 0 }}>
+                          <Link
+                            href={profileLink}
+                            onClick={() => setShowReactionsModal(false)}
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "14px",
+                              color: "#1e293b",
+                              textDecoration: "none",
+                              display: "block",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {item.name}
+                          </Link>
+                          {item.handle ? (
+                            <span
+                              style={{
+                                fontSize: "12px",
+                                color: "#64748b",
+                                display: "block",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {item.handle}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <Link
+                        href={profileLink}
+                        onClick={() => setShowReactionsModal(false)}
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          color: "#088dcd",
+                          textDecoration: "none",
+                          padding: "5px 12px",
+                          borderRadius: "6px",
+                          backgroundColor: "#f0f9ff",
+                          flexShrink: 0,
+                          marginLeft: "8px",
+                        }}
+                      >
+                        Profile
+                      </Link>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

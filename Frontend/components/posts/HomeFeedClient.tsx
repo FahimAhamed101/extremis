@@ -513,6 +513,7 @@ export function FeedPostCard({
               postId={post.id}
               initialStats={post.stats}
               initialComments={post.comments}
+              initialReactions={post.reactions}
               shareUrl={post.linkUrl || post.href || undefined}
               defaultCommentsOpen={forceCommentsOpen || Boolean(post.commentsOpen)}
               postDetailHref={postDetailHref}

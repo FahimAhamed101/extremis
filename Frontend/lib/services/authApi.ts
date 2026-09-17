@@ -230,6 +230,24 @@ export type PostCommentDto = {
 
 export type PostReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry" | "dislike";
 
+export type PostReactionItem = {
+  id: string;
+  userId: string;
+  name: string;
+  handle?: string;
+  image?: string;
+  type: PostReactionType;
+  createdAt?: string | null;
+};
+
+export type PostReactionsResponse = {
+  message?: string;
+  reactions: PostReactionItem[];
+  reactionCounts: Record<PostReactionType, number>;
+  topReactions: PostReactionType[];
+  totalCount: number;
+};
+
 export type PostStats = {
   viewCount: number;
   likeCount: number;
@@ -321,6 +339,7 @@ export type ProfileTimelinePost = {
   createdAt?: string;
   status?: "published" | "scheduled";
   comments?: PostCommentDto[];
+  reactions?: PostReactionItem[];
   stats?: PostStats;
 };
 
@@ -361,6 +380,7 @@ export type FeedPost = {
   createdAt: string;
   status: "published" | "scheduled";
   comments: PostCommentDto[];
+  reactions?: PostReactionItem[];
   stats: PostStats;
 };
 
@@ -499,6 +519,9 @@ export type ProfileDashboardResponse = {
 export type UpdateMyProfilePayload = {
   firstName?: string;
   lastName?: string;
+  fullName?: string;
+  username?: string;
+  headline?: string;
   researcherType?: string | null;
   institute?: string | null;
   department?: string | null;
@@ -825,6 +848,13 @@ export const authApi = createApi({
     getPostById: builder.query<GetPostResponse, string>({
       query: (postId) => ({
         url: `/posts/${postId}`,
+        method: "GET",
+      }),
+      providesTags: ["Posts"],
+    }),
+    getPostReactions: builder.query<PostReactionsResponse, string>({
+      query: (postId) => ({
+        url: `/posts/${postId}/reactions`,
         method: "GET",
       }),
       providesTags: ["Posts"],
@@ -1245,6 +1275,7 @@ export const {
   useMarkChatConversationReadMutation,
   useGetFeedPostsQuery,
   useGetPostByIdQuery,
+  useGetPostReactionsQuery,
   useUpdateProfileMediaMutation,
   useGetMyProfileQuery,
   useGetProfileByIdQuery,

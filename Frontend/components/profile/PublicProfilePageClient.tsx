@@ -322,6 +322,7 @@ function TimelinePostCard({ post }: { post: ProfileTimelinePost }) {
               postId={post.id}
               initialStats={post.stats}
               initialComments={post.comments || []}
+              initialReactions={post.reactions}
               shareUrl={shareUrl}
               defaultCommentsOpen={Boolean(post.commentsOpen)}
               postDetailHref={postDetailHref}

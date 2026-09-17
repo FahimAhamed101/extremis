@@ -217,6 +217,7 @@ async function getGroupPosts(req, res, next) {
     const posts = await Post.find({ group: { $in: groupIds } })
       .populate("author")
       .populate("group")
+      .populate("reactions.user")
       .sort({ createdAt: -1 })
       .limit(50);
 
