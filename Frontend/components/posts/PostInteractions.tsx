@@ -2,7 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   type PostReactionItem,
@@ -292,14 +293,23 @@ export default function PostInteractions({
   const [reactionsVisible, setReactionsVisible] = useState(false);
 
   const commentInputRef = useRef<HTMLInputElement | null>(null);
+  const reactionsDialogRef = useRef<HTMLDivElement | null>(null);
+  const reactionsTriggerRef = useRef<HTMLDivElement | null>(null);
+  const reactionsTitleId = useId();
+  const reactionsDialogId = useId();
 
   const [reactToPost] = useReactToPostMutation();
   const [addPostComment] = useAddPostCommentMutation();
   const [sharePost] = useSharePostMutation();
 
-  const { data: reactionsData, isLoading: isLoadingReactions } = useGetPostReactionsQuery(
+  const {
+    currentData: reactionsData,
+    isFetching: isLoadingReactions,
+    isError: reactionsError,
+    refetch: refetchReactions,
+  } = useGetPostReactionsQuery(
     postId || "",
-    { skip: !showReactionsModal || !postId },
+    { skip: !showReactionsModal || !postId, refetchOnMountOrArgChange: true },
   );
 
   useEffect(() => {

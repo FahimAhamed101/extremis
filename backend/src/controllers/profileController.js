@@ -140,6 +140,28 @@ function getObjectIdStrings(value) {
   );
 }
 
+function buildUserSearchQuery(search) {
+  const normalized = String(search || "").trim();
+  if (!normalized) {
+    return {};
+  }
+
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const searchRegex = new RegExp(escaped, "i");
+
+  return {
+    $or: [
+      { firstName: searchRegex },
+      { lastName: searchRegex },
+      { username: searchRegex },
+      { email: searchRegex },
+      { institute: searchRegex },
+      { department: searchRegex },
+      { position: searchRegex },
+    ],
+  };
+}
+
 function parsePositiveInteger(value, fallback, max = 60) {
   const parsed = Number.parseInt(String(value || ""), 10);
 
@@ -562,12 +584,30 @@ async function updateMyProfile(req, res, next) {
   }
 }
 
+function parseDesiredFollowing(body) {
+  if (!body || typeof body !== "object") {
+    return null;
+  }
+
+  if (typeof body.following === "boolean") {
+    return body.following;
+  }
+
+  if (typeof body.following === "string") {
+    const normalized = body.following.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+
+  return null;
+}
+
 async function toggleFollowUser(req, res, next) {
   try {
     const { userId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      res.status(404).json({ message: "User not found." });
+      res.status(400).json({ message: "Invalid user id." });
       return;
     }
 
@@ -583,21 +623,42 @@ async function toggleFollowUser(req, res, next) {
       return;
     }
 
+    // Optional `{ following: boolean }` makes the endpoint idempotent for
+    // desired-state clients; omitting it keeps the original toggle behaviour.
+    const desiredFollowing = parseDesiredFollowing(req.body);
     const currentFollowingIds = getObjectIdStrings(req.user.following);
-    const isFollowing = currentFollowingIds.includes(userId);
+    const currentlyFollowing = currentFollowingIds.includes(userId);
+    const shouldFollow = desiredFollowing === null ? !currentlyFollowing : desiredFollowing;
 
-    if (isFollowing) {
-      req.user.following = currentFollowingIds.filter((followedUserId) => followedUserId !== userId);
-    } else {
-      req.user.following = [...currentFollowingIds, userId];
-    }
+    const update = shouldFollow
+      ? { $addToSet: { following: targetUser._id } }
+      : { $pull: { following: targetUser._id } };
 
-    await req.user.save();
+    await User.findByIdAndUpdate(req.user._id, update, { new: true });
 
     res.status(200).json({
-      message: isFollowing ? "User unfollowed successfully." : "User followed successfully.",
+      message: shouldFollow ? "User followed successfully." : "User unfollowed successfully.",
       targetUserId: userId,
-      isFollowing: !isFollowing,
+      isFollowing: shouldFollow,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getSidebarPeople(req, res, next) {
+  try {
+    const viewerUserId = String(req.user._id);
+    const viewerFollowingIds = getObjectIdStrings(req.user.following);
+    const viewerFollowingSet = new Set(viewerFollowingIds);
+    const excludedIds = Array.from(new Set([viewerUserId, ...viewerFollowingIds]));
+
+    const users = await User.find({ _id: { $nin: excludedIds } })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.status(200).json({
+      people: users.map((user) => buildPersonCard(user, viewerFollowingSet, viewerUserId)),
     });
   } catch (error) {
     next(error);
@@ -802,6 +863,7 @@ module.exports = {
   getProfileById,
   getMyProfile,
   getNearbyPeople,
+  getSidebarPeople,
   toggleFollowUser,
   updateMyProfile,
 };

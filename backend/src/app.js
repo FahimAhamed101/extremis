@@ -9,6 +9,8 @@ const groupRoutes = require("./routes/groupRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const tourismRoutes = require("./routes/tourismRoutes");
 const storyRoutes = require("./routes/storyRoutes");
+const eventRoutes = require("./routes/eventRoutes");
+const sidebarRoutes = require("./routes/sidebarRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -152,6 +154,8 @@ apiRouter.use("/groups", groupRoutes);
 apiRouter.use("/orders", orderRoutes);
 apiRouter.use("/tourism", tourismRoutes);
 apiRouter.use("/stories", storyRoutes);
+apiRouter.use("/events", eventRoutes);
+apiRouter.use("/sidebar", sidebarRoutes);
 apiRouter.use("/notifications", require("./routes/notificationRoutes"));
 apiRouter.use("/reels", require("./routes/reelRoutes"));
 

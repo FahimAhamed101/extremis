@@ -433,6 +433,7 @@ export type CreatePostPayload = {
   activityFeed?: boolean;
   myStory?: boolean;
   scheduledFor?: string | null;
+  groupId?: string | null;
 };
 
 export type CreatePostResponse = {
@@ -715,9 +716,121 @@ export type CreateStoryPayload = {
   caption?: string;
 };
 
+export type EventCategory =
+  | "Conferences"
+  | "Workshops"
+  | "Tech & AI"
+  | "Social & Campus"
+  | "Webinars";
+
+export type EventRsvpStatus = "going" | "interested" | "none";
+
+export type EventDto = {
+  id: string;
+  title: string;
+  organizer: string;
+  organizerAvatar: string;
+  category: EventCategory | string;
+  month: string;
+  day: string;
+  fullDate: string;
+  time: string;
+  location: string;
+  isOnline: boolean;
+  coverImage: string;
+  description: string;
+  interestedCount: number;
+  goingCount: number;
+  isInterested: boolean;
+  isGoing: boolean;
+  attendees: string[];
+  date: string;
+};
+
+export type EventsResponse = {
+  events: EventDto[];
+};
+
+export type GetEventResponse = {
+  event: EventDto;
+};
+
+export type CreateEventPayload = {
+  title: string;
+  category: EventCategory | string;
+  date: string;
+  time: string;
+  location: string;
+  isOnline: boolean;
+  description: string;
+  coverImage?: string | null;
+};
+
+export type CreateEventResponse = {
+  message: string;
+  event: EventDto;
+};
+
+export type SetEventRsvpPayload = {
+  eventId: string;
+  status: EventRsvpStatus;
+};
+
+export type SetEventRsvpResponse = {
+  message: string;
+  event: EventDto;
+};
+
+export type SidebarSponsor = {
+  id: string;
+  title: string;
+  imageUrl: string | null;
+  href: string;
+  domain: string;
+};
+
+export type SidebarSponsorsResponse = {
+  sponsors: SidebarSponsor[];
+};
+
+export type SidebarPeopleResponse = {
+  people: ProfilePersonCard[];
+};
+
+export type SetFollowPayload = {
+  userId: string;
+  following: boolean;
+};
+
+export type GroupPostsResponse = {
+  message?: string;
+  posts: FeedPost[];
+};
+
+export type CreateGroupPayload = {
+  name: string;
+  description?: string;
+  category?: string;
+  isPrivate?: boolean;
+};
+
+export type CreateGroupResponse = {
+  message: string;
+  group: GroupDto;
+};
+
+export type MarkGroupReadPayload = {
+  groupId: string;
+  readThrough: string;
+};
+
+export type MarkGroupReadResponse = {
+  message: string;
+};
+
 export const authApi = createApi({
   reducerPath: "authApi",
-  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories", "Groups"],
+  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories", "Groups", "Events", "Sidebar"],
   baseQuery: fetchBaseQuery({
     baseUrl: resolvedApiRoot,
     prepareHeaders: (headers) => {
@@ -845,7 +958,9 @@ export const authApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Posts", "Profile"],
+      // A group post also changes the group feed, so Groups is refreshed too.
+      invalidatesTags: (_result, _error, arg) =>
+        arg?.groupId ? ["Posts", "Profile", "Groups"] : ["Posts", "Profile"],
     }),
     getPostById: builder.query<GetPostResponse, string>({
       query: (postId) => ({
@@ -945,12 +1060,20 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Posts"],
     }),
-    toggleFollowUser: builder.mutation<ToggleFollowUserResponse, string>({
-      query: (userId) => ({
-        url: `/profile/${userId}/follow`,
-        method: "POST",
-      }),
-      invalidatesTags: ["Profile", "Auth"],
+    // Accepts either a plain userId (legacy toggle callers) or a desired-state
+    // payload so follow buttons cannot drift out of sync with the server.
+    toggleFollowUser: builder.mutation<ToggleFollowUserResponse, string | SetFollowPayload>({
+      query: (arg) => {
+        const userId = typeof arg === "string" ? arg : arg.userId;
+        const following = typeof arg === "string" ? undefined : arg.following;
+
+        return {
+          url: `/profile/${userId}/follow`,
+          method: "POST",
+          ...(following === undefined ? {} : { body: { following } }),
+        };
+      },
+      invalidatesTags: ["Profile", "Auth", "Sidebar"],
     }),
     updateMyProfile: builder.mutation<ProfileDashboardResponse, UpdateMyProfilePayload>({
       query: (body) => ({
@@ -1171,6 +1294,78 @@ export const authApi = createApi({
         method: "POST",
       }),
       invalidatesTags: ["Groups"],
+    }),
+    createGroup: builder.mutation<CreateGroupResponse, CreateGroupPayload>({
+      query: (body) => ({
+        url: "/groups",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Groups"],
+    }),
+    getGroupPosts: builder.query<GroupPostsResponse, string | void>({
+      query: (groupId) => ({
+        url: "/groups/posts",
+        method: "GET",
+        params: groupId ? { groupId } : undefined,
+      }),
+      providesTags: ["Groups"],
+    }),
+    markGroupRead: builder.mutation<MarkGroupReadResponse, MarkGroupReadPayload>({
+      query: ({ groupId, readThrough }) => ({
+        url: `/groups/${groupId}/read`,
+        method: "POST",
+        body: { readThrough },
+      }),
+      invalidatesTags: ["Groups"],
+    }),
+    getEvents: builder.query<EventsResponse, { limit?: number; upcoming?: boolean } | void>({
+      query: (params) => ({
+        url: "/events",
+        method: "GET",
+        params: {
+          ...(params?.limit != null ? { limit: params.limit } : {}),
+          ...(params?.upcoming ? { upcoming: "true" } : {}),
+        },
+      }),
+      providesTags: ["Events"],
+    }),
+    getEvent: builder.query<GetEventResponse, string>({
+      query: (eventId) => ({
+        url: `/events/${eventId}`,
+        method: "GET",
+      }),
+      providesTags: ["Events"],
+    }),
+    createEvent: builder.mutation<CreateEventResponse, CreateEventPayload>({
+      query: (body) => ({
+        url: "/events",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Events"],
+    }),
+    setEventRsvp: builder.mutation<SetEventRsvpResponse, SetEventRsvpPayload>({
+      query: ({ eventId, status }) => ({
+        url: `/events/${eventId}/rsvp`,
+        method: "PUT",
+        body: { status },
+      }),
+      invalidatesTags: ["Events"],
+    }),
+    getSidebarSponsors: builder.query<SidebarSponsorsResponse, void>({
+      query: () => ({
+        url: "/sidebar/sponsors",
+        method: "GET",
+      }),
+      providesTags: ["Sidebar"],
+    }),
+    getSidebarPeople: builder.query<SidebarPeopleResponse, void>({
+      query: () => ({
+        url: "/sidebar/people",
+        method: "GET",
+      }),
+      providesTags: ["Sidebar"],
     }),
     pingHealth: builder.query<{ ok: boolean; service: string; db?: string; timestamp: string }, void>({
       query: () => "/health",
