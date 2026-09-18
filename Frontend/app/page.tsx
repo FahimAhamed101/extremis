@@ -44,7 +44,7 @@ export default function Home() {
 				</a>
 				<ul className="submenu">
 					<li><Link href="/videos" title="">Videos</Link></li>
-					<li><a href="live-stream.html" title="">Live Stream</a></li>
+					<li><Link href="/live-stream" title="">Live Stream</Link></li>
 					<li><a href="event-page.html" title="">Events Page</a></li>
 					<li><a href="event-detail.html" title="">Event Detail</a></li>
 					<li><a href="Q-A.html" title="">QA</a></li>
@@ -472,11 +472,6 @@ export default function Home() {
 			</div>
 			<button type="submit" className="main-btn">Publish</button>
 		</div>
-	</div>
-
-	<div className="cart-product">
-		<Link href="/cart" title="View Cart" data-toggle="tooltip"><i className="icofont-cart-alt"></i></Link>
-		<span>03</span>
 	</div>
 
 	<div className="chat-live">

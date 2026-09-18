@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import FloatingCartButton from "@/components/cart/FloatingCartButton";
 import Providers from "./providers";
 import PageLoader from "@/components/layout/PageLoader";
 import GlobalShellScripts from "@/components/layout/GlobalShellScripts";
@@ -108,7 +109,10 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ApiHealthWarmup />
         <PageLoader />
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <FloatingCartButton />
+        </Providers>
         <GlobalShellScripts />
       </body>
     </html>

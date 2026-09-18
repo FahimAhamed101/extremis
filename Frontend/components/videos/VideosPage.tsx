@@ -1268,32 +1268,6 @@ export default function VideosPage() {
         <div className="theme-layout">
           <HomeHeader />
 
-          <nav className="sidebar">
-            <ul className="menu-slide">
-              {sidebarMenu.map((item) => (
-                <li
-                  key={item.title}
-                  className={`${item.children ? "menu-item-has-children" : ""} ${item.active ? "active" : ""}`.trim()}
-                >
-                  <SmartLink href={item.href} title={item.title}>
-                    <i className={item.iconClass}></i> {item.title}
-                  </SmartLink>
-                  {item.children ? (
-                    <ul className="submenu">
-                      {item.children.map((child) => (
-                        <li key={`${item.title}-${child.label}`}>
-                          <SmartLink href={child.href} title={child.label}>
-                            {child.label}
-                          </SmartLink>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </nav>
-
           <section>
             <div className="gap">
               <div className="container">

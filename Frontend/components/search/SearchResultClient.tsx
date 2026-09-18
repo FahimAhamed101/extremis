@@ -61,7 +61,7 @@ export default function SearchResultClient() {
   const handleFollow = async (memberId: string) => {
     setFollowingMap((prev) => ({ ...prev, [memberId]: !prev[memberId] }));
     try {
-      await toggleFollow({ targetUserId: memberId }).unwrap();
+      await toggleFollow(memberId).unwrap();
     } catch {
       // Revert if API fails
       setFollowingMap((prev) => ({ ...prev, [memberId]: !prev[memberId] }));

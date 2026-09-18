@@ -50,6 +50,7 @@ function normalizeTemplateHtml(html: string): string {
     .replace(/\bhref=(['"])index\.html\1/gi, 'href="/"')
     .replace(/\bhref=(['"])videos\.html\1/gi, 'href="/videos"')
     .replace(/\bhref=(['"])courses\.html\1/gi, 'href="/courses"')
+    .replace(/\bhref=(['"])course-detail\.html\1/gi, 'href="/course-detail"')
     .replace(/\bhref=(['"])add-new-course\.html\1/gi, 'href="/add-new-course"')
     .replace(/\bhref=(['"])blog\.html\1/gi, 'href="/blog"')
     .replace(/\bhref=(['"])messages\.html\1/gi, 'href="/messages"')

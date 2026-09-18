@@ -974,14 +974,6 @@ export default function ProductCartPage() {
       {/* Full Course Footer */}
       <AppFooter />
 
-      {/* Floating Action Cart Badge */}
-      <div className="cart-product">
-        <Link href="/cart" title="View Cart">
-          <i className="icofont-cart-alt"></i>
-        </Link>
-        <span>{cartItems.length.toString().padStart(2, "0")}</span>
-      </div>
-
       {/* Floating Live Chat Trigger */}
       <div
         className="chat-live"

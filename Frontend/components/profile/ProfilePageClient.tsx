@@ -204,7 +204,7 @@ export default function ProfilePageClient() {
           "Building research collaborations, sharing field notes, and contributing to academic conversations across the Extremis network."
       );
       setLocation(profile?.location || user?.location || "Oxford, United Kingdom");
-      setWebsite(profile?.contact?.website || user?.website || "https://extremis.top");
+      setWebsite(profile?.contact?.website || user?.website || "https://www.updates.today");
     }
   }, [user, profile, displayName, handle]);
 
@@ -1098,10 +1098,10 @@ export default function ProfilePageClient() {
                                             </a>
                                           </li>
                                           <li>
-                                            <a href="#" title="" onClick={(e) => { e.preventDefault(); setIsCreateRoomModalOpen(true); }}>
+                                            <Link href="/live-stream" title="Live Stream">
                                               <i><img src="/images/live-stream.png" alt="" /></i>
                                               <span>Live Stream</span>
-                                            </a>
+                                            </Link>
                                           </li>
                                         </ul>
                                       </div>
@@ -1882,13 +1882,6 @@ export default function ProfilePageClient() {
       </section>
 
       {/* Floating Action Buttons */}
-      <div className="cart-product">
-        <Link href="/cart" title="View Cart">
-          <i className="icofont-cart-alt"></i>
-        </Link>
-        <span>03</span>
-      </div>
-
       <div
         className="chat-live"
         style={{ cursor: "pointer" }}
@@ -2509,7 +2502,7 @@ export default function ProfilePageClient() {
                     type="text"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    placeholder="e.g. https://extremis.top"
+                    placeholder="e.g. https://www.updates.today"
                     style={{
                       width: "100%",
                       padding: "10px 14px",

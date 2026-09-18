@@ -119,12 +119,12 @@ export default function UniversityProfileClient() {
   // Merge real discover users into members if available
   useEffect(() => {
     if (discoverData && Array.isArray(discoverData.users) && discoverData.users.length > 0) {
-      const realMembers: FacultyMember[] = discoverData.users.slice(0, 8).map((u, index) => ({
-        id: `real-${u._id || index}`,
-        userId: u._id,
-        name: `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.username || "Academic Researcher",
+      const realMembers: FacultyMember[] = (discoverData.users as any[]).slice(0, 8).map((u: any, index: number) => ({
+        id: `real-${u.id || u._id || index}`,
+        userId: u.id || u._id,
+        name: `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.name || u.username || "Academic Researcher",
         department: (u as { headline?: string }).headline || "Department of Research & Science",
-        avatar: u.avatarUrl || `/images/resources/speak-${(index % 12) + 1}.jpg`,
+        avatar: u.avatar || u.avatarUrl || `/images/resources/speak-${(index % 12) + 1}.jpg`,
         isFollowing: Boolean(u.isFollowing),
         isRealUser: true,
       }));

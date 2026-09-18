@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://www.extremis.top";
+const DEFAULT_SITE_URL = "https://www.updates.today";
 
 export function getSiteUrl(): string {
   const rawValue = String(process.env.NEXT_PUBLIC_SITE_URL || "")

@@ -9,6 +9,8 @@ import { AUTH_STORAGE_EVENT, AUTH_USER_STORAGE_KEY } from "@/lib/auth/constants"
 import CreatePostModal from "@/components/posts/CreatePostModal";
 import { useGetChatConversationsQuery } from "@/lib/services/authApi";
 import HeaderSideSlide from "@/components/layout/HeaderSideSlide";
+import HeaderSidebar from "@/components/layout/HeaderSidebar";
+import { getCartTotalCount, onCartChange } from "@/lib/cart/cartService";
 
 type StoredUser = {
   firstName?: string;
@@ -50,9 +52,35 @@ function subscribeToAuthStorage(callback: () => void): () => void {
 export default function HomeHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSideSlideOpen, setIsSideSlideOpen] = useState(false);
   const [activeSideSlideTab, setActiveSideSlideTab] = useState<"messages" | "notifications">("messages");
   const [headerSearchTerm, setHeaderSearchTerm] = useState("");
+  const [cartCount, setCartCount] = useState<number>(3);
+
+  useEffect(() => {
+    const handleToggle = () => setIsSidebarOpen((prev) => !prev);
+    const handleOpen = () => setIsSidebarOpen(true);
+    const handleClose = () => setIsSidebarOpen(false);
+
+    window.addEventListener("toggle-socimo-sidebar", handleToggle);
+    window.addEventListener("open-socimo-sidebar", handleOpen);
+    window.addEventListener("close-socimo-sidebar", handleClose);
+
+    return () => {
+      window.removeEventListener("toggle-socimo-sidebar", handleToggle);
+      window.removeEventListener("open-socimo-sidebar", handleOpen);
+      window.removeEventListener("close-socimo-sidebar", handleClose);
+    };
+  }, []);
+
+  useEffect(() => {
+    setCartCount(getCartTotalCount());
+    const unsubscribe = onCartChange(() => {
+      setCartCount(getCartTotalCount());
+    });
+    return unsubscribe;
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,8 +163,12 @@ export default function HomeHeader() {
   const isPagesPage = pathname === "/pages" || pathname.startsWith("/pages");
   const isNearbyPage = pathname === "/nearby" || pathname.startsWith("/nearby");
   const isWorldTourPage = pathname === "/world-tour" || pathname.startsWith("/world-tour");
+  const isLiveStreamPage = pathname === "/live-stream" || pathname === "/live-stream.html";
 
   const navScrollRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftStartRef = useRef(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
@@ -191,6 +223,28 @@ export default function HomeHeader() {
         el.scrollBy({ left: scrollAmount, behavior: "smooth" });
       }
     }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = navScrollRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftStartRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    e.preventDefault();
+    const el = navScrollRef.current;
+    if (!el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.4;
+    el.scrollLeft = scrollLeftStartRef.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
   };
 
   const handleLogout = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -257,7 +311,70 @@ export default function HomeHeader() {
           </div>
         </div>
         <div className="right-compact">
-          <div className="sidemenu">
+          <div className="res-cart">
+            <Link
+              href="/cart"
+              title="Cart"
+              style={{
+                position: "relative",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "36px",
+                height: "36px",
+                color: "#1e293b",
+                borderRadius: "8px",
+                transition: "background 0.2s ease",
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              {cartCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-2px",
+                    right: "-4px",
+                    background: "#ef4444",
+                    color: "#ffffff",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    lineHeight: "15px",
+                    minWidth: "17px",
+                    height: "17px",
+                    borderRadius: "10px",
+                    textAlign: "center",
+                    padding: "0 3px",
+                    border: "1.5px solid #ffffff",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  {cartCount > 99 ? "99+" : cartCount.toString().padStart(2, "0")}
+                </span>
+              )}
+            </Link>
+          </div>
+          <div
+            className="sidemenu"
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            role="button"
+            tabIndex={0}
+            aria-label="Toggle navigation menu"
+            style={{ cursor: "pointer" }}
+          >
             <i>
               <svg
                 id="side-menu2"
@@ -359,13 +476,13 @@ export default function HomeHeader() {
               </div>
             </li>
             <li className="go-live">
-              <a href="live-stream.html" title="Go Live" data-toggle="tooltip">
+              <Link href="/live-stream" title="Go Live" data-toggle="tooltip">
                 <i>
                   <svg fill="#f00" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18px" height="18px">
                     <path d="M 6.1015625 6.1015625 C 3.5675625 8.6345625 2 12.134 2 16 C 2 19.866 3.5675625 23.365437 6.1015625 25.898438 L 7.5195312 24.480469 C 5.3465312 22.307469 4 19.308 4 16 C 4 12.692 5.3465312 9.6925313 7.5195312 7.5195312 L 6.1015625 6.1015625 z M 25.898438 6.1015625 L 24.480469 7.5195312 C 26.653469 9.6925312 28 12.692 28 16 C 28 19.308 26.653469 22.307469 24.480469 24.480469 L 25.898438 25.898438 C 28.432437 23.365437 30 19.866 30 16 C 30 12.134 28.432437 8.6345625 25.898438 6.1015625 z M 9.6367188 9.6367188 C 8.0077188 11.265719 7 13.515 7 16 C 7 18.485 8.0077187 20.734281 9.6367188 22.363281 L 11.052734 20.947266 C 9.7847344 19.680266 9 17.93 9 16 C 9 14.07 9.7847344 12.319734 11.052734 11.052734 L 9.6367188 9.6367188 z M 22.363281 9.6367188 L 20.947266 11.052734 C 22.215266 12.319734 23 14.07 23 16 C 23 17.93 22.215266 19.680266 20.947266 20.947266 L 22.363281 22.363281 C 23.992281 20.734281 25 18.485 25 16 C 25 13.515 23.992281 11.265719 22.363281 9.6367188 z M 16 12 A 4 4 0 0 0 16 20 A 4 4 0 0 0 16 12 z" />
                   </svg>
                 </i>
-              </a>
+              </Link>
             </li>
             <li>
               <Link href="/" title="Home" data-toggle="tooltip">
@@ -442,6 +559,36 @@ export default function HomeHeader() {
                 </i>
               </a>
               <span></span>
+            </li>
+            <li>
+              <Link
+                href="/cart"
+                className="cart-nav-link"
+                title="Shopping Cart"
+                data-toggle="tooltip"
+              >
+                <i>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="feather feather-shopping-cart"
+                  >
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                  </svg>
+                </i>
+              </Link>
+              <span aria-hidden="true">
+                {cartCount > 0 ? (cartCount > 99 ? "99+" : cartCount.toString().padStart(2, "0")) : ""}
+              </span>
             </li>
             <li>
               <a className="create" href="#" title="Add New" data-toggle="tooltip">
@@ -565,9 +712,16 @@ export default function HomeHeader() {
         <div className="white-bg">
           <div className="container-fluid">
             <div className="menu-caro">
-              <div className="row align-items-center">
-                <div className="col-lg-1 col-md-1 col-2">
-                  <div className="sidemenu">
+              <div className="header-shortcuts-wrapper">
+                <div className="header-sidemenu-box">
+                  <div
+                    className="sidemenu"
+                    onClick={() => setIsSidebarOpen((prev) => !prev)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Toggle navigation menu"
+                    style={{ cursor: "pointer" }}
+                  >
                     <i>
                       <svg
                         id="side-menu"
@@ -589,31 +743,37 @@ export default function HomeHeader() {
                     </i>
                   </div>
                 </div>
-                <div className="col-lg-9 col-md-9 col-8">
-                  <div className="header-nav-scroll-container">
-                    <button
-                      type="button"
-                      className="header-nav-scroll-btn btn-prev"
-                      onClick={() => handleNavScroll("left")}
-                      aria-label="Scroll left"
-                      title="Scroll left"
+                <div className="header-nav-scroll-container">
+                  <button
+                    type="button"
+                    className="header-nav-scroll-btn btn-prev"
+                    onClick={() => handleNavScroll("left")}
+                    aria-label="Previous menu items"
+                    title="Previous"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0284c7"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#0284c7"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                      </svg>
-                    </button>
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
 
-                    <div ref={navScrollRef} className="header-nav-shortcuts header-nav-scroll-track">
+                  <div
+                    ref={navScrollRef}
+                    className="header-nav-shortcuts header-nav-scroll-track"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUpOrLeave}
+                    onMouseLeave={handleMouseUpOrLeave}
+                  >
                       <div className="link-item">
                         <Link className={isHomePage ? "active" : ""} href="/" title="Newsfeed">
                           <i>
@@ -655,6 +815,28 @@ export default function HomeHeader() {
                             </svg>
                           </i>
                           <p>Videos</p>
+                        </Link>
+                      </div>
+                      <div className="link-item">
+                        <Link className={isLiveStreamPage ? "active" : ""} href="/live-stream" title="Live Stream">
+                          <i>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="feather feather-video"
+                            >
+                              <polygon points="23 7 16 12 23 17 23 7" />
+                              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                            </svg>
+                          </i>
+                          <p>Live</p>
                         </Link>
                       </div>
                       <div className="link-item">
@@ -866,30 +1048,29 @@ export default function HomeHeader() {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      className="header-nav-scroll-btn btn-next"
-                      onClick={() => handleNavScroll("right")}
-                      aria-label="Scroll right"
-                      title="Scroll right"
+                  <button
+                    type="button"
+                    className="header-nav-scroll-btn btn-next"
+                    onClick={() => handleNavScroll("right")}
+                    aria-label="Next menu items"
+                    title="Next"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0284c7"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#0284c7"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
-                    </button>
-                  </div>
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
                 </div>
-                <div className="col-lg-2">
+                  <div className="header-user-inf-box">
                   <div className="user-inf">
                     <div className="folowerz">Followers: 204</div>
                     <ul className="stars">
@@ -913,6 +1094,12 @@ export default function HomeHeader() {
         isOpen={isSideSlideOpen}
         onClose={() => setIsSideSlideOpen(false)}
         onTabChange={setActiveSideSlideTab}
+      />
+
+      <HeaderSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        user={user}
       />
 
       {isAuthenticated ? <CreatePostModal /> : null}

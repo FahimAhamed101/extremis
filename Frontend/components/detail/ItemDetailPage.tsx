@@ -1021,14 +1021,6 @@ export default function ItemDetailPage({ item, type }: ItemDetailPageProps) {
         </div>
       )}
 
-      {/* Floating Action Cart Badge */}
-      <div className="cart-product">
-        <Link href="/cart" title="View Cart">
-          <i className="icofont-cart-alt"></i>
-        </Link>
-        <span>{isAddedToCart ? "04" : "03"}</span>
-      </div>
-
       {/* Full Course Footer */}
       <AppFooter />
     </div>

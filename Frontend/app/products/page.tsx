@@ -1318,14 +1318,6 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
-
-      {/* Floating Cart Button */}
-      <div className="cart-product">
-        <Link href="/cart" title="View Cart">
-          <i className="icofont-cart-alt"></i>
-        </Link>
-        <span>{totalCartCount > 0 ? totalCartCount.toString().padStart(2, "0") : "03"}</span>
-      </div>
     </div>
   );
 }

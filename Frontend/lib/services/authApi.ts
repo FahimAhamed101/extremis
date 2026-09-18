@@ -919,7 +919,7 @@ export type MarkGroupReadResponse = {
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories", "Groups", "Events", "Sidebar", "Settings"],
+  tagTypes: ["Auth", "Profile", "Posts", "Chat", "Stories", "Groups", "Events", "Sidebar", "Settings", "LiveStream"],
   baseQuery: fetchBaseQuery({
     baseUrl: resolvedApiRoot,
     prepareHeaders: (headers) => {
@@ -1554,6 +1554,39 @@ export const authApi = createApi({
         body,
       }),
     }),
+    getActiveLiveStream: builder.query<{ success: boolean; stream: LiveStreamDto }, void>({
+      query: () => "/live-stream/active",
+      providesTags: ["LiveStream"],
+    }),
+    startLiveStream: builder.mutation<
+      { success: boolean; message: string; stream: LiveStreamDto },
+      StartLiveStreamPayload
+    >({
+      query: (body) => ({
+        url: "/live-stream/start",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["LiveStream"],
+    }),
+    sendLiveChatMessage: builder.mutation<
+      { success: boolean; message: string; chatMessage: LiveChatMessageDto; chatMessages: LiveChatMessageDto[] },
+      SendLiveChatMessagePayload
+    >({
+      query: ({ streamId, ...body }) => ({
+        url: `/live-stream/${streamId}/chat`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["LiveStream"],
+    }),
+    endLiveStream: builder.mutation<{ success: boolean; message: string; stream: LiveStreamDto }, string>({
+      query: (streamId) => ({
+        url: `/live-stream/${streamId}/end`,
+        method: "POST",
+      }),
+      invalidatesTags: ["LiveStream"],
+    }),
   }),
 });
 
@@ -1734,6 +1767,48 @@ export type UpdateBillingSettingsPayload = {
   paymentMethod?: Partial<PaymentMethodDto>;
 };
 
+export type LiveChatMessageDto = {
+  _id?: string;
+  sender?: string | null;
+  senderName: string;
+  senderAvatar: string;
+  message: string;
+  createdAt: string;
+};
+
+export type LiveStreamDto = {
+  _id: string;
+  title: string;
+  streamer?: string | null;
+  streamerName: string;
+  streamerAvatar: string;
+  privacy: string;
+  status: "scheduled" | "live" | "ended";
+  viewerCount: number;
+  allowChat: boolean;
+  allowComments: boolean;
+  scheduledFor?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  chatMessages: LiveChatMessageDto[];
+  createdAt: string;
+};
+
+export type StartLiveStreamPayload = {
+  title?: string;
+  privacy?: string;
+  allowChat?: boolean;
+  allowComments?: boolean;
+  scheduleForLater?: boolean;
+  scheduledDate?: string;
+};
+
+export type SendLiveChatMessagePayload = {
+  streamId: string;
+  message: string;
+  senderName?: string;
+};
+
 export const {
   useSignupMutation,
   useLoginMutation,
@@ -1791,5 +1866,10 @@ export const {
   useRevokeApiClientMutation,
   useCloseAccountMutation,
   useInviteColleagueMutation,
+  useGetActiveLiveStreamQuery,
+  useStartLiveStreamMutation,
+  useSendLiveChatMessageMutation,
+  useEndLiveStreamMutation,
 } = authApi;
+
 

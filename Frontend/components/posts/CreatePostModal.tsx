@@ -12,13 +12,14 @@ import {
   type FormEvent,
   type MouseEvent,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   type PostAudience,
   useCreatePostMutation,
   useUploadProfileAssetMutation,
 } from "@/lib/services/authApi";
 
-type CategoryAction = "file" | "link" | "content";
+type CategoryAction = "file" | "link" | "content" | "live";
 
 type CategoryItem = {
   iconClass: string;
@@ -33,7 +34,7 @@ const categoryItems: CategoryItem[] = [
   { iconClass: "icofont-ui-tag", label: "Tag to Friend", action: "content" },
   { iconClass: "icofont-users", label: "Share in Group", action: "content" },
   { iconClass: "icofont-link", label: "Share Link", action: "link" },
-  { iconClass: "icofont-video-cam", label: "Go Live", action: "content" },
+  { iconClass: "icofont-video-cam", label: "Go Live", action: "live" },
   { iconClass: "icofont-sale-discount", label: "Post Online Course", action: "content" },
   { iconClass: "icofont-read-book", label: "Post A Book", action: "file" },
   { iconClass: "icofont-globe", label: "Post an Ad", action: "content" },
@@ -121,6 +122,7 @@ function getEmojiAreaInstance() {
 }
 
 export default function CreatePostModal() {
+  const router = useRouter();
   const activityCheckboxId = useId();
   const storyCheckboxId = useId();
   const closeTimerRef = useRef<number | null>(null);
@@ -218,6 +220,12 @@ export default function CreatePostModal() {
   const handleCategoryAction = (action: CategoryAction) => {
     setStatusType(null);
     setStatusMessage(null);
+
+    if (action === "live") {
+      closeCreatePostPopup();
+      router.push("/live-stream");
+      return;
+    }
 
     if (action === "file") {
       fileInputRef.current?.click();

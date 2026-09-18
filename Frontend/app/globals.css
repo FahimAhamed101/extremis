@@ -39,9 +39,29 @@ body {
   padding: 0 !important;
 }
 
-.header-shortcuts .menu-caro .row {
+.header-shortcuts .header-shortcuts-wrapper {
+  display: flex !important;
+  flex-direction: row !important;
   align-items: center !important;
-  margin: 0 !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  gap: 12px !important;
+  padding: 0 8px !important;
+  position: relative !important;
+}
+
+.header-shortcuts .header-sidemenu-box {
+  flex: 0 0 120px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.header-shortcuts .header-user-inf-box {
+  flex: 0 0 120px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
 }
 
 .header-shortcuts .sidemenu {
@@ -97,19 +117,24 @@ body {
   font-size: 11px !important;
 }
 
-/* Scroll wrapper layout: buttons flanking the track */
+/* Center Carousel Container flanking the menu with arrows */
 .header-shortcuts .header-nav-scroll-container {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
+  justify-content: center !important;
   position: relative !important;
-  width: 100% !important;
-  gap: 8px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  gap: 10px !important;
   padding: 0 !important;
   overflow: visible !important;
 }
 
-/* Scroll buttons (Arrows) - High Contrast & Always Visible */
+/* Carousel Navigation Arrows - Always visible & active */
 .header-shortcuts .header-nav-scroll-btn {
   display: inline-flex !important;
   align-items: center !important;
@@ -123,19 +148,20 @@ body {
   border: 2px solid #38bdf8 !important;
   color: #0284c7 !important;
   cursor: pointer !important;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   padding: 0 !important;
   z-index: 20 !important;
   flex-shrink: 0 !important;
   opacity: 1 !important;
+  visibility: visible !important;
   pointer-events: auto !important;
 }
 
 .header-shortcuts .header-nav-scroll-btn svg {
   display: block !important;
-  width: 20px !important;
-  height: 20px !important;
+  width: 18px !important;
+  height: 18px !important;
   stroke: #0284c7 !important;
   transition: stroke 0.2s ease, transform 0.2s ease !important;
 }
@@ -143,7 +169,7 @@ body {
 .header-shortcuts .header-nav-scroll-btn:hover {
   background: #38bdf8 !important;
   border-color: #ffffff !important;
-  transform: scale(1.12) !important;
+  transform: scale(1.15) !important;
   box-shadow: 0 4px 16px rgba(56, 189, 248, 0.6) !important;
 }
 
@@ -155,26 +181,55 @@ body {
   transform: scale(0.92) !important;
 }
 
-/* Scrollable items track */
+@media (max-width: 991px) {
+  .header-shortcuts .header-sidemenu-box {
+    flex: 0 0 auto !important;
+  }
+  .header-shortcuts .header-user-inf-box {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .header-shortcuts .header-nav-scroll-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+  }
+  .header-shortcuts .header-nav-scroll-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .header-shortcuts .header-shortcuts-wrapper {
+    gap: 6px !important;
+    padding: 0 2px !important;
+  }
+}
+
+/* Scrollable items track - centered */
 .header-shortcuts .header-nav-scroll-track {
-  flex: 1 1 0% !important;
-  min-width: 0 !important;
-  width: auto !important;
-  max-width: 100% !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: safe center !important;
   flex-wrap: nowrap !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   scroll-behavior: smooth !important;
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
-  gap: 6px !important;
-  margin: 0 !important;
-  padding: 2px 2px !important;
+  gap: 8px !important;
+  margin: 0 auto !important;
+  padding: 4px 6px !important;
+  max-width: 100% !important;
+  cursor: grab !important;
+  user-select: none !important;
   -webkit-overflow-scrolling: touch !important;
+}
+
+.header-shortcuts .header-nav-scroll-track:active {
+  cursor: grabbing !important;
 }
 
 .header-shortcuts .header-nav-scroll-track::-webkit-scrollbar {
@@ -2867,11 +2922,135 @@ body {
   background-color: #fffafb;
 }
 
+/* ==========================================================================
+   UNIVERSAL FLOATING CART BUTTON (CLEAN & NON-OVERLAPPING)
+   ========================================================================== */
 
+.cart-product {
+  position: fixed !important;
+  bottom: 90px !important;
+  right: 25px !important;
+  left: auto !important;
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+  cursor: pointer !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  text-decoration: none !important;
+  line-height: normal !important;
+}
 
+.cart-product:hover {
+  transform: translateY(-4px) scale(1.08) !important;
+  box-shadow: 0 10px 28px rgba(2, 132, 199, 0.65) !important;
+}
 
+.cart-product a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  line-height: normal !important;
+}
 
+.cart-product a i,
+.cart-product i {
+  font-size: 24px !important;
+  color: #ffffff !important;
+  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
 
+.cart-product > span {
+  position: absolute !important;
+  top: -4px !important;
+  right: -4px !important;
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 12px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  line-height: 18px !important;
+  text-align: center !important;
+  padding: 0 4px !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
 
+@media (max-width: 768px) {
+  .cart-product {
+    bottom: 80px !important;
+    right: 18px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
 
+/* ==========================================================================
+   RESPONSIVE HEADER MODERNIZATION & CART ALIGNMENT
+   ========================================================================== */
 
+@media screen and (max-width: 990px) {
+  .responsive-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+    padding: 8px 14px !important;
+    line-height: normal !important;
+    z-index: 9999999 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .responsive-header .logo.res {
+    width: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    float: none !important;
+  }
+
+  .responsive-header .user-avatar.mobile {
+    display: none !important;
+  }
+
+  .responsive-header .right-compact {
+    width: auto !important;
+    float: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  .responsive-header .res-cart,
+  .responsive-header .res-search,
+  .responsive-header .sidemenu {
+    float: none !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+  }
+}
