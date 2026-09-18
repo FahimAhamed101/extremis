@@ -3,8 +3,12 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import AddNewCourseClient from "@/components/courses/AddNewCourseClient";
 
 export const metadata: Metadata = {
-  title: "Add New Course or Book | Socimo",
-  description: "Publish your interactive course or academic textbook to the Socimo marketplace.",
+  title: "Publish Course or Book – Updates Creator Studio",
+  description:
+    "Publish your educational course or publication to the Updates community marketplace and reach thousands of learners.",
+  alternates: {
+    canonical: "/add-new-course",
+  },
 };
 
 export default function AddNewCoursePage() {

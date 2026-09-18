@@ -160,6 +160,7 @@ export default function HeaderSidebar({ isOpen, onClose, user }: HeaderSidebarPr
         { label: "Market Products", href: "/products" },
         { label: "Cart Page", href: "/cart" },
         { label: "Checkout", href: "/checkout" },
+        { label: "Payouts", href: "/payout" },
       ],
     },
     {

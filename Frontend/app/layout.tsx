@@ -12,17 +12,26 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Updates | Social Media Network Template",
-    template: "%s | Updates",
+    default: "Updates – Social Platform to Connect with Friends & Family | Facebook Alternative",
+    template: "%s | Updates Social Network",
   },
-  description: "Updates is a research-focused social network for students, educators, and professionals.",
+  description:
+    "Updates is the modern social platform to connect and meet your friends and family. Share posts, photos, videos, and stories, join groups, chat in real-time, and discover communities — the open, privacy-friendly Facebook alternative.",
   applicationName: "Updates",
   keywords: [
     "Updates",
-    "research social network",
-    "students network",
-    "academic community",
-    "research collaboration",
+    "social platform like facebook",
+    "facebook alternative",
+    "social platform to meet friends and family",
+    "connect with friends and family",
+    "social network",
+    "meet friends online",
+    "social media without tracking",
+    "share photos and videos",
+    "community groups",
+    "social feed",
+    "live streaming social platform",
+    "friends and family social app",
   ],
   alternates: {
     canonical: "/",
@@ -32,23 +41,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName: "Updates",
-    title: "Updates | Social Media Network Template",
+    title: "Updates – Social Platform to Connect with Friends & Family | Facebook Alternative",
     description:
-      "Updates is a research-focused social network for students, educators, and professionals.",
+      "Join Updates, the modern social network to connect with friends and family, share updates, photos, videos, join groups, and discover inspiring communities.",
     images: [
       {
         url: "/images/logo.png",
         width: 512,
         height: 512,
-        alt: "Updates",
+        alt: "Updates – Connect with Friends & Family | Facebook Alternative",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Updates | Social Media Network Template",
+    title: "Updates – Social Platform to Connect with Friends & Family | Facebook Alternative",
     description:
-      "Updates is a research-focused social network for students, educators, and professionals.",
+      "Join Updates, the modern social network to connect with friends and family, share updates, photos, videos, join groups, and discover inspiring communities.",
     images: ["/images/logo.png"],
   },
   robots: {
@@ -87,6 +96,62 @@ export default function RootLayout({
         <meta
           name="google-site-verification"
           content="7D5GsLCJIj5u-4aD5whqMuZuQK5y5czs2M-JKQ6Qybk"
+        />
+        {/* Google Schema.org JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": `${siteUrl}/#website`,
+                  "url": siteUrl,
+                  "name": "Updates",
+                  "alternateName": [
+                    "Updates Social",
+                    "Updates Social Platform",
+                    "Updates Network",
+                  ],
+                  "description":
+                    "The modern social platform to connect with friends and family. The open, privacy-friendly Facebook alternative.",
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                      "@type": "EntryPoint",
+                      "urlTemplate": `${siteUrl}/search-result?q={search_term_string}`,
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
+                },
+                {
+                  "@type": "Organization",
+                  "@id": `${siteUrl}/#organization`,
+                  "name": "Updates",
+                  "url": siteUrl,
+                  "logo": {
+                    "@type": "ImageObject",
+                    "url": `${siteUrl}/images/logo.png`,
+                  },
+                  "description":
+                    "Updates is a modern social platform connecting friends, families, and communities with newsfeeds, groups, messaging, and live streaming.",
+                },
+                {
+                  "@type": "SoftwareApplication",
+                  "name": "Updates Social App",
+                  "applicationCategory": "SocialNetworkingApplication",
+                  "operatingSystem": "All",
+                  "url": siteUrl,
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD",
+                  },
+                },
+              ],
+            }),
+          }}
         />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKXRLTXSG5"></script>
         <script

@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import UsefulLinksPageClient from "@/components/widgets/UsefulLinksPageClient";
 
 export const metadata: Metadata = {
-  title: "Platform & Privacy Policy | Updates",
-  description: "Platform & Privacy Policy on the Updates Knowledge Network.",
+  title: "Privacy Policy & Community Guidelines – Safe Social Networking on Updates",
+  description:
+    "Read our Privacy Policy, data protection commitments, and community safety guidelines for the Updates social network.",
+  alternates: {
+    canonical: "/policy",
+  },
 };
 
 export default function PolicyPage() {

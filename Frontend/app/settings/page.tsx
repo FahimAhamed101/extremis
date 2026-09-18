@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import SettingsClient from "@/components/settings/SettingsClient";
 
 export const metadata: Metadata = {
-  title: "Account Settings | Socimo",
-  description: "Manage your Socimo account, notification preferences, privacy, billing and payout methods, and API clients.",
+  title: "Account Settings & Privacy – Updates Social Network",
+  description:
+    "Manage your Updates account, notification preferences, privacy, security, and profile details.",
 };
 
 export default function SettingsPage() {

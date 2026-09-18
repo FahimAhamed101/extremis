@@ -5,8 +5,12 @@ import EventsPageClient from "@/components/events/EventsPageClient";
 import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
-  title: "Events - Discover & Host Academic & Tech Meetups | Socimo",
-  description: "Browse upcoming conferences, workshops, hackathons, and research symposiums. RSVP and connect with attendees.",
+  title: "Events & Meetups – Plan & Attend Gatherings with Friends on Updates",
+  description:
+    "Discover local and virtual events, plan meetups with friends and family, RSVP, and see who is attending on Updates.",
+  alternates: {
+    canonical: "/events",
+  },
 };
 
 export default function EventsPage() {

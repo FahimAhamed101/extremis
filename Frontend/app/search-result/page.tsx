@@ -3,8 +3,12 @@ import type { Metadata } from "next";
 import SearchResultClient from "@/components/search/SearchResultClient";
 
 export const metadata: Metadata = {
-  title: "Search Results | Socimo",
-  description: "Search research publications, community members, academic departments, and discussions on Socimo.",
+  title: "Search Friends, Groups & Posts – Updates Social Network",
+  description:
+    "Search people, friends, family members, community groups, pages, and posts across the Updates social platform.",
+  alternates: {
+    canonical: "/search-result",
+  },
 };
 
 export default function SearchResultPage() {

@@ -1,8 +1,18 @@
+import type { Metadata } from "next";
 import Script from "next/script";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
 import ProfilePageClient from "@/components/profile/ProfilePageClient";
 import AppFooter from "@/components/layout/AppFooter";
+
+export const metadata: Metadata = {
+  title: "My Profile – Updates Social Network",
+  description:
+    "Manage your personal profile on Updates. View your timeline, photos, videos, friends, and community connections.",
+  alternates: {
+    canonical: "/profile",
+  },
+};
 
 export default function ProfilePage() {
   return (

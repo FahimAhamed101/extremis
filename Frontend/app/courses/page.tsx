@@ -6,7 +6,12 @@ import HomeHeader from "@/components/layout/HomeHeader";
 import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
-  title: "Courses",
+  title: "Community Courses & Learning – Updates Social Network",
+  description:
+    "Learn new skills, share knowledge, and explore interactive courses with educators and friends on Updates.",
+  alternates: {
+    canonical: "/courses",
+  },
 };
 
 function resolveCoursesTemplatePath(): string {

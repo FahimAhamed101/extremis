@@ -42,8 +42,12 @@ type Follower = {
 };
 
 export const metadata: Metadata = {
-  title: "Updates | Blog",
-  description: "Read the latest posts, insights and updates on Updates.",
+  title: "Updates Blog – Stories, Tips & Community News | Facebook Alternative",
+  description:
+    "Explore stories, community guides, social networking tips, and the latest platform releases from Updates.",
+  alternates: {
+    canonical: "/blog",
+  },
 };
 
 const sidebarMenu: MenuItem[] = [

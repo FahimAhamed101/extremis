@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import UsefulLinksPageClient from "@/components/widgets/UsefulLinksPageClient";
 
 export const metadata: Metadata = {
-  title: "Updates Gifts & Rewards | Updates",
-  description: "Updates Gifts & Rewards on the Updates Knowledge Network.",
+  title: "Gifts & Badges – Send Virtual Gifts to Friends on Updates",
+  description:
+    "Send virtual gifts, reward friends and creators, and celebrate milestones on the Updates social platform.",
+  alternates: {
+    canonical: "/gifts",
+  },
 };
 
 export default function GiftsPage() {

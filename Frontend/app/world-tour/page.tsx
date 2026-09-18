@@ -5,8 +5,12 @@ import WorldTourPageClient from "@/components/worldtour/WorldTourPageClient";
 import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
-  title: "World Tour - Explore Global Places & Maps | Socimo",
-  description: "Search places on interactive maps, explore global research and innovation hubs, and connect with people worldwide.",
+  title: "World Tour – Explore Global Places & Connect Worldwide on Updates",
+  description:
+    "Explore interactive world maps, discover global travel stories, and connect with international friends and communities on Updates.",
+  alternates: {
+    canonical: "/world-tour",
+  },
 };
 
 export default function WorldTourPage() {

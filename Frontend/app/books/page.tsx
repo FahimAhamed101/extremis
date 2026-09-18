@@ -91,13 +91,13 @@ export default function BooksDirectoryPage() {
           >
             <div>
               <span style={{ fontSize: "12px", fontWeight: "700", color: "#088dcd", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Socimo Academic Library
+                Updates Community Library
               </span>
               <h2 style={{ margin: "4px 0 6px 0", fontSize: "24px", fontWeight: "800", color: "#0f172a" }}>
                 Books &amp; Publications
               </h2>
               <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>
-                Explore peer-reviewed research handbooks, technical publications, and academic guides.
+                Explore publications, literature, guides, and books shared by the community.
               </p>
             </div>
 

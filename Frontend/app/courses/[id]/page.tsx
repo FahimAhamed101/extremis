@@ -10,9 +10,17 @@ interface CoursePageProps {
 export async function generateMetadata({ params }: CoursePageProps): Promise<Metadata> {
   const { id } = await params;
   const course = findCourseItem(id);
+  const title = `${course.title} – Courses on Updates`;
   return {
-    title: `${course.title} | Socimo Courses`,
+    title,
     description: course.description,
+    alternates: {
+      canonical: `/courses/${id}`,
+    },
+    openGraph: {
+      title,
+      description: course.description,
+    },
   };
 }
 

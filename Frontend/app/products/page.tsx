@@ -338,10 +338,10 @@ export default function ProductsPage() {
           >
             <div>
               <h3 style={{ fontSize: "22px", fontWeight: "700", color: "#1f273f", margin: "0 0 4px 0" }}>
-                Socimo Marketplace &amp; Products
+                Updates Marketplace &amp; Products
               </h3>
               <span style={{ fontSize: "13px", color: "#82828e" }}>
-                Browse publications, research books, educational courses, apparel, and hardware gear
+                Browse community products, publications, courses, apparel, and gear
               </span>
             </div>
 

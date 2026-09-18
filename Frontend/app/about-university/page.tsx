@@ -3,8 +3,12 @@ import { Metadata } from "next";
 import UniversityProfileClient from "@/components/university/UniversityProfileClient";
 
 export const metadata: Metadata = {
-  title: "Akdeniz University Profile | Socimo",
-  description: "Explore Akdeniz University faculty, academic departments, researchers, and invite colleagues on Socimo.",
+  title: "University & Campus Communities – Updates Social Network",
+  description:
+    "Explore university faculties, student clubs, campus groups, and connect with classmates and alumni on Updates.",
+  alternates: {
+    canonical: "/about-university",
+  },
 };
 
 export default function AboutUniversityPage() {

@@ -152,18 +152,69 @@ export default function HomeHeader() {
       return total + Number(conversation.unreadCount || 0);
     }, 0);
   }, [chatConversations]);
-  const isHomePage = pathname === "/";
-  const isVideosPage = pathname === "/videos" || pathname === "/videos.html";
-  const isCoursesPage = pathname === "/courses";
-  const isProductsPage = pathname === "/products" || pathname.startsWith("/products/");
-  const isBlogPage = pathname === "/blog";
-  const isGroupsPage = pathname === "/groups";
-  const isFriendsPage = pathname === "/friends";
-  const isEventsPage = pathname === "/events" || pathname.startsWith("/events");
-  const isPagesPage = pathname === "/pages" || pathname.startsWith("/pages");
-  const isNearbyPage = pathname === "/nearby" || pathname.startsWith("/nearby");
-  const isWorldTourPage = pathname === "/world-tour" || pathname.startsWith("/world-tour");
-  const isLiveStreamPage = pathname === "/live-stream" || pathname === "/live-stream.html";
+  function isRouteActive(itemHref: string, currentPath: string): boolean {
+    if (itemHref === "/") {
+      return currentPath === "/" || currentPath === "/index.html" || currentPath === "/feed.html";
+    }
+    const cleanPath = (currentPath || "").split("?")[0].replace(/\.html$/, "").replace(/\/$/, "");
+    const cleanHref = (itemHref || "").split("?")[0].replace(/\.html$/, "").replace(/\/$/, "");
+    return cleanPath === cleanHref || cleanPath.startsWith(`${cleanHref}/`);
+  }
+
+  const isHomePage = isRouteActive("/", pathname);
+  const isVideosPage = isRouteActive("/videos", pathname);
+  const isLiveStreamPage = isRouteActive("/live-stream", pathname);
+  const isCoursesPage = isRouteActive("/courses", pathname);
+  const isProductsPage = isRouteActive("/products", pathname);
+  const isBlogPage = isRouteActive("/blog", pathname);
+  const isGroupsPage = isRouteActive("/groups", pathname);
+  const isFriendsPage = isRouteActive("/friends", pathname);
+  const isEventsPage = isRouteActive("/events", pathname);
+  const isPagesPage = isRouteActive("/pages", pathname);
+  const isNearbyPage = isRouteActive("/nearby", pathname);
+  const isWorldTourPage = isRouteActive("/world-tour", pathname);
+
+  // Ordered list of top shortcut pages
+  const navItems = useMemo(
+    () => [
+      { key: "newsfeed", label: "Newsfeed", href: "/", isActive: isRouteActive("/", pathname) },
+      { key: "videos", label: "Videos", href: "/videos", isActive: isRouteActive("/videos", pathname) },
+      { key: "live", label: "Live", href: "/live-stream", isActive: isRouteActive("/live-stream", pathname) },
+      { key: "courses", label: "Courses", href: "/courses", isActive: isRouteActive("/courses", pathname) },
+      { key: "products", label: "Products", href: "/products", isActive: isRouteActive("/products", pathname) },
+      { key: "blog", label: "Blog", href: "/blog", isActive: isRouteActive("/blog", pathname) },
+      { key: "groups", label: "Groups", href: "/groups", isActive: isRouteActive("/groups", pathname) },
+      { key: "friends", label: "Friends", href: "/friends", isActive: isRouteActive("/friends", pathname) },
+      { key: "events", label: "Events", href: "/events", isActive: isRouteActive("/events", pathname) },
+      { key: "pages", label: "Pages", href: "/pages", isActive: isRouteActive("/pages", pathname) },
+      { key: "nearby", label: "Nearby", href: "/nearby", isActive: isRouteActive("/nearby", pathname) },
+      { key: "world-tour", label: "World Tour", href: "/world-tour", isActive: isRouteActive("/world-tour", pathname) },
+    ],
+    [pathname]
+  );
+
+  const currentNavIndex = useMemo(() => {
+    return navItems.findIndex((item) => item.isActive);
+  }, [navItems]);
+
+  const prevNavIndex = useMemo(() => {
+    if (currentNavIndex === -1) return navItems.length - 1;
+    return (currentNavIndex - 1 + navItems.length) % navItems.length;
+  }, [currentNavIndex, navItems.length]);
+
+  const nextNavIndex = useMemo(() => {
+    if (currentNavIndex === -1) return 0;
+    return (currentNavIndex + 1) % navItems.length;
+  }, [currentNavIndex, navItems.length]);
+
+  const prevItem = navItems[prevNavIndex];
+  const nextItem = navItems[nextNavIndex];
+
+  // Prefetch adjacent routes for instant transitions
+  useEffect(() => {
+    if (prevItem?.href) router.prefetch(prevItem.href);
+    if (nextItem?.href) router.prefetch(nextItem.href);
+  }, [prevItem?.href, nextItem?.href, router]);
 
   const navScrollRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -193,35 +244,45 @@ export default function HomeHeader() {
     };
   }, [checkNavScroll]);
 
+  // Smoothly center the active navigation item whenever pathname changes
   useEffect(() => {
     const el = navScrollRef.current;
     if (!el) return;
     const t = setTimeout(() => {
-      const activeLink = el.querySelector(".link-item > a.active");
+      const activeLink = el.querySelector<HTMLElement>(".link-item > a.active");
       if (activeLink) {
         activeLink.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
       }
       checkNavScroll();
-    }, 150);
+    }, 60);
     return () => clearTimeout(t);
   }, [pathname, checkNavScroll]);
 
-  const handleNavScroll = (direction: "left" | "right") => {
-    const el = navScrollRef.current;
-    if (!el) return;
-    const scrollAmount = 260;
-    if (direction === "left") {
-      if (el.scrollLeft <= 10) {
-        el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+  const handleArrowNavigate = useCallback(
+    (direction: "left" | "right") => {
+      const targetIndex = direction === "right" ? nextNavIndex : prevNavIndex;
+      const targetItem = navItems[targetIndex];
+      if (!targetItem) return;
+
+      // 1. Immediately smooth-scroll the target link item into center view
+      const targetLink = navScrollRef.current?.querySelectorAll<HTMLElement>(".link-item > a")[targetIndex];
+      if (targetLink) {
+        targetLink.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
       }
-    } else {
-      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: scrollAmount, behavior: "smooth" });
-      }
+
+      // 2. Navigate to target page
+      router.push(targetItem.href);
+    },
+    [nextNavIndex, prevNavIndex, navItems, router]
+  );
+
+  const handleNavKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      handleArrowNavigate("left");
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      handleArrowNavigate("right");
     }
   };
 
@@ -650,9 +711,9 @@ export default function HomeHeader() {
                   </Link>
                 </li>
                 <li>
-                  <a href="pay-out.html" title="">
+                  <Link href="/payout" title="Payouts & Earnings">
                     <i className="icofont-price"></i> Payout
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <Link href="/nearby" title="Nearby">
@@ -744,12 +805,17 @@ export default function HomeHeader() {
                   </div>
                 </div>
                 <div className="header-nav-scroll-container">
-                  <button
-                    type="button"
+                  <Link
+                    href={prevItem.href}
                     className="header-nav-scroll-btn btn-prev"
-                    onClick={() => handleNavScroll("left")}
-                    aria-label="Previous menu items"
-                    title="Previous"
+                    aria-label={`Go to previous page: ${prevItem.label}`}
+                    title={`Previous page: ${prevItem.label}`}
+                    onClick={() => {
+                      const targetLink = navScrollRef.current?.querySelectorAll<HTMLElement>(".link-item > a")[prevNavIndex];
+                      if (targetLink) {
+                        targetLink.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+                      }
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -764,7 +830,7 @@ export default function HomeHeader() {
                     >
                       <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
-                  </button>
+                  </Link>
 
                   <div
                     ref={navScrollRef}
@@ -1048,12 +1114,17 @@ export default function HomeHeader() {
                       </div>
                     </div>
 
-                  <button
-                    type="button"
+                  <Link
+                    href={nextItem.href}
                     className="header-nav-scroll-btn btn-next"
-                    onClick={() => handleNavScroll("right")}
-                    aria-label="Next menu items"
-                    title="Next"
+                    aria-label={`Go to next page: ${nextItem.label}`}
+                    title={`Next page: ${nextItem.label}`}
+                    onClick={() => {
+                      const targetLink = navScrollRef.current?.querySelectorAll<HTMLElement>(".link-item > a")[nextNavIndex];
+                      if (targetLink) {
+                        targetLink.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+                      }
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -1068,7 +1139,7 @@ export default function HomeHeader() {
                     >
                       <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
-                  </button>
+                  </Link>
                 </div>
                   <div className="header-user-inf-box">
                   <div className="user-inf">

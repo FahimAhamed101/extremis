@@ -1,11 +1,21 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
 import AppFooter from "@/components/layout/AppFooter";
 import MessagesPageClient from "@/components/messages/MessagesPageClient";
+
+export const metadata: Metadata = {
+  title: "Messages & Real-time Chat – Stay Connected on Updates",
+  description:
+    "Chat in real time, send direct messages to friends and family, and stay connected with your social groups on Updates.",
+  alternates: {
+    canonical: "/messages",
+  },
+};
 
 type SmartLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   href: string;

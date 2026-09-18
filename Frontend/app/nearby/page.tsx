@@ -5,8 +5,12 @@ import NearbyPageClient from "@/components/nearby/NearbyPageClient";
 import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
-  title: "Nearby People & Researchers | Socimo",
-  description: "Find and connect with researchers, students, and professionals near your location on an interactive map.",
+  title: "Discover People Nearby – Connect with Friends & Locals on Updates",
+  description:
+    "Find and connect with friends, family members, and community members near your location on the Updates interactive map.",
+  alternates: {
+    canonical: "/nearby",
+  },
 };
 
 export default function NearbyPage() {

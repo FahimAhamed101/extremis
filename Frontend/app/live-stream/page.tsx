@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import LiveStreamPageClient from "@/components/livestream/LiveStreamPageClient";
 
 export const metadata: Metadata = {
-  title: "Live Stream | Socimo Social Network",
-  description: "Join or broadcast interactive live streams with real-time video, audio, and live chat.",
+  title: "Live Streaming – Broadcast & Watch Live Streams with Friends on Updates",
+  description:
+    "Broadcast live video, interact with friends and family in real time, and watch streams from creators across the Updates community.",
+  alternates: {
+    canonical: "/live-stream",
+  },
 };
 
 export default function LiveStreamPage() {

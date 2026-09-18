@@ -5,8 +5,12 @@ import PagesDirectoryClient from "@/components/pages/PagesDirectoryClient";
 import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
-  title: "Pages - Discover Research Labs & Organizations | Socimo",
-  description: "Explore official pages for research laboratories, university faculties, tech innovators, and academic journals.",
+  title: "Pages – Follow Creators, Businesses & Brands on Updates",
+  description:
+    "Explore and follow official pages for creators, local businesses, public figures, and community organizations on Updates.",
+  alternates: {
+    canonical: "/pages",
+  },
 };
 
 export default function PagesDirectoryPage() {

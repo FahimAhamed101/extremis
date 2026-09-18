@@ -6,7 +6,12 @@ import HomeHeader from "@/components/layout/HomeHeader";
 import AppFooter from "@/components/layout/AppFooter";
 
 export const metadata: Metadata = {
-  title: "Groups",
+  title: "Groups & Communities – Discover Shared Interests on Updates",
+  description:
+    "Join and create community groups on Updates. Connect with friends, family, and people who share your passions, hobbies, and topics.",
+  alternates: {
+    canonical: "/groups",
+  },
 };
 
 function resolveGroupsTemplatePath(): string {

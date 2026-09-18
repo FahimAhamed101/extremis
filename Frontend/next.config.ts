@@ -60,6 +60,18 @@ const nextConfig: NextConfig = {
         destination: "/signup",
       },
       {
+        source: "/pay-out.html",
+        destination: "/payout",
+      },
+      {
+        source: "/payout.html",
+        destination: "/payout",
+      },
+      {
+        source: "/pay-out",
+        destination: "/payout",
+      },
+      {
         source: "/uploads/:path*",
         destination: "http://localhost:4000/uploads/:path*",
       },

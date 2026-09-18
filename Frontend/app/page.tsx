@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import RequireAuth from "@/components/auth/RequireAuth";
 import HomeHeader from "@/components/layout/HomeHeader";
@@ -9,6 +10,22 @@ import SuggestedGroupWidget from "@/components/groups/SuggestedGroupWidget";
 import UsefulLinksWidget from "@/components/widgets/UsefulLinksWidget";
 import WhoToFollowWidget from "@/components/widgets/WhoToFollowWidget";
 import AppFooter from "@/components/layout/AppFooter";
+import FeedbackModal from "@/components/feedback/FeedbackModal";
+
+export const metadata: Metadata = {
+  title: "Updates – Connect with Friends & Family | Facebook Alternative",
+  description:
+    "Join Updates, the open social network to meet friends and family, share photos, videos, and stories, and discover engaging communities without invasive tracking.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Updates – Connect with Friends & Family | Facebook Alternative",
+    description:
+      "Join Updates, the open social network to meet friends and family, share photos, videos, and stories, and discover engaging communities without invasive tracking.",
+    url: "/",
+  },
+};
 
 export default function Home() {
   return (
@@ -396,29 +413,7 @@ export default function Home() {
 		</div>
 	</div>
 
-	<div className="auto-popup">
-		<div className="popup-innner">
-			<div className="popup-head">
-				<h4>We want to hear from you!</h4>
-			</div>
-			<div className="popup-meta">
-				<span>What are you struggling with right now? what we can help you with?</span>
-				<form method="post" className="inquiry-about">
-					<input type="text" placeholder="Your Answer" />
-					<h5>How did you hear about us?</h5>
-					<label><input type="radio" name="hear" /> Facebook</label>
-					<label><input type="radio" name="hear" /> instagram</label>
-					<label><input type="radio" name="hear" /> Google Search</label>
-					<label><input type="radio" name="hear" /> Twitter</label>
-					<label><input type="radio" name="hear" /> Whatsapp</label>
-					<label><input type="radio" name="hear" /> Other</label>
-					<input type="text" placeholder="Writh Other" />
-					<button type="submit" className="primary button">Submit</button>
-					<button className="canceled button outline-primary" type="button">Cancel</button>
-				</form>
-			</div>
-		</div>
-	</div>
+	<FeedbackModal />
 
 	<div className="share-wraper">
 		<div className="share-options">
