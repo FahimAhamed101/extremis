@@ -192,8 +192,10 @@ function buildPersonCard(user, viewerFollowingSet, viewerId) {
     id: userId,
     profileHref: `/profile/${userId}`,
     name: getFullName(publicUser),
+    handle: publicUser.username ? `@${publicUser.username}` : "",
     subtitle: getPersonSubtitle(publicUser),
     image: publicUser.avatarUrl || "/images/resources/user.jpg",
+    location: publicUser.location || "",
     actionLabel: isViewer ? "You" : isFollowing ? "Following" : "Follow",
     isFollowing,
     canFollow: !isViewer,
@@ -416,7 +418,21 @@ async function getDiscoverPeople(req, res, next) {
     const normalizedQuery = String(req.query.q || req.query.search || "").trim();
     const searchQuery = normalizedQuery ? buildUserSearchQuery(normalizedQuery) : {};
 
-    const filter = viewerUserId ? { _id: { $ne: req.user._id }, ...searchQuery } : searchQuery;
+    // Optional location filter used by the mobile "search by location" screen.
+    // Purely additive: when the param is absent the behaviour is unchanged.
+    const normalizedLocation = String(req.query.location || "").trim();
+    const locationQuery = normalizedLocation
+      ? {
+          location: new RegExp(
+            normalizedLocation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            "i"
+          ),
+        }
+      : {};
+
+    const filter = viewerUserId
+      ? { _id: { $ne: req.user._id }, ...searchQuery, ...locationQuery }
+      : { ...searchQuery, ...locationQuery };
 
     const users = await User.find(filter)
       .sort({ createdAt: -1 })

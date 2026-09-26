@@ -59,7 +59,7 @@ export default function PostDetailPageClient({ postId }: PostDetailPageClientPro
         <div className="container">
           <div className="main-wraper">
             <div className="post-detail-header">
-              <h3 className="main-title">Post Details</h3>
+              <h1 className="main-title">Post Details</h1>
               <Link href="/" className="post-detail-inline-link">
                 Back to feed
               </Link>

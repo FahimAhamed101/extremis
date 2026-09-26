@@ -1,5 +1,8 @@
 "use client";
 
+import AdvertismentWidget from "@/components/widgets/AdvertismentWidget";
+import SponsoredWidget from "@/components/widgets/SponsoredWidget";
+
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
@@ -765,43 +768,7 @@ export default function ProfilePageClient() {
                   <div className="col-lg-3">
                     <aside className="sidebar static left">
                       {/* Sponsored */}
-                      <div className="widget">
-                        <span>
-                          <i className="icofont-globe"></i> Sponsored
-                        </span>
-                        <ul className="sponsors-ad">
-                          <li>
-                            <figure>
-                              <img alt="IQ Options" src="/images/resources/sponsor.jpg" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px" }} />
-                            </figure>
-                            <div className="sponsor-meta">
-                              <h5>
-                                <a title="" href="#" onClick={(e) => e.preventDefault()}>
-                                  IQ Options Broker
-                                </a>
-                              </h5>
-                              <a target="_blank" rel="noopener noreferrer" title="" href="https://iqvie.com">
-                                www.iqvie.com
-                              </a>
-                            </div>
-                          </li>
-                          <li>
-                            <figure>
-                              <img alt="BM Fashion" src="/images/resources/sponsor2.jpg" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px" }} />
-                            </figure>
-                            <div className="sponsor-meta">
-                              <h5>
-                                <a title="" href="#" onClick={(e) => e.preventDefault()}>
-                                  BM Fashion Designer
-                                </a>
-                              </h5>
-                              <a target="_blank" rel="noopener noreferrer" title="" href="https://abcd.com">
-                                www.abcd.com
-                              </a>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
+                      <SponsoredWidget />
 
                       {/* Your Groups */}
                       <YourGroupsWidget />
@@ -973,9 +940,9 @@ export default function ProfilePageClient() {
 
                       {/* Profile Metadata & Tabs */}
                       <div className="grp-info about">
-                        <h4>
+                        <h1>
                           {displayName} <span>{handle}</span>
-                        </h4>
+                        </h1>
                         <ul className="joined-info">
                           <li><span>Joined:</span> {profile?.joined || "April 2024"}</li>
                           <li
@@ -1318,16 +1285,7 @@ export default function ProfilePageClient() {
                                   <div className="col-lg-4">
                                     <aside className="sidebar static left">
                                       {/* Advertisement Box */}
-                                      <div className="advertisment-box">
-                                        <h4>
-                                          <i className="icofont-info-circle"></i> Advertisement
-                                        </h4>
-                                        <figure style={{ borderRadius: "8px", overflow: "hidden" }}>
-                                          <a href="#" title="Advertisement" onClick={(e) => e.preventDefault()}>
-                                            <img src="/images/resources/sidebar-info.jpg" alt="Summit" style={{ width: "100%", height: "200px", objectFit: "cover" }} />
-                                          </a>
-                                        </figure>
-                                      </div>
+                                      <AdvertismentWidget customImageStyle={{ width: "100%", height: "200px", objectFit: "cover" }} />
 
                                       {/* Follow People */}
                                       <div className="widget">

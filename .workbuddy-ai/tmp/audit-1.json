@@ -1,0 +1,2000 @@
+{
+ "/ @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [],
+  "smallText": [],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/"
+ },
+ "/ @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [],
+  "smallText": [],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/"
+ },
+ "/ @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [],
+  "smallText": [],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/"
+ },
+ "/login @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/login @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/login @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/signup @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-inline-link",
+    "w": 101,
+    "h": 15
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 69,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "span.auth-location-status-badge.detected",
+    "fs": 11.5
+   },
+   {
+    "el": "span",
+    "fs": 11.5
+   },
+   {
+    "el": "strong",
+    "fs": 11.5
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/signup"
+ },
+ "/signup @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-inline-link",
+    "w": 101,
+    "h": 15
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 69,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "span.auth-location-status-badge.detected",
+    "fs": 11.5
+   },
+   {
+    "el": "span",
+    "fs": 11.5
+   },
+   {
+    "el": "strong",
+    "fs": 11.5
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/signup"
+ },
+ "/signup @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-inline-link",
+    "w": 101,
+    "h": 15
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 69,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "span.auth-location-status-badge.detected",
+    "fs": 11.5
+   },
+   {
+    "el": "span",
+    "fs": 11.5
+   },
+   {
+    "el": "strong",
+    "fs": 11.5
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/signup"
+ },
+ "/about @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/about @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/about @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/videos @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/videos @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/videos @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/products @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   },
+   {
+    "el": "a",
+    "w": 55,
+    "h": 29
+   },
+   {
+    "el": "button",
+    "w": 67,
+    "h": 30
+   },
+   {
+    "el": "a",
+    "w": 58,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 42,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 46,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 40,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 26,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 50,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 44,
+    "h": 17
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "span",
+    "fs": 11
+   },
+   {
+    "el": "a",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/products"
+ },
+ "/products @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   },
+   {
+    "el": "a",
+    "w": 55,
+    "h": 29
+   },
+   {
+    "el": "button",
+    "w": 67,
+    "h": 30
+   },
+   {
+    "el": "a",
+    "w": 58,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 42,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 46,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 40,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 26,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 50,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 44,
+    "h": 17
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "span",
+    "fs": 11
+   },
+   {
+    "el": "a",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/products"
+ },
+ "/products @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   },
+   {
+    "el": "a",
+    "w": 55,
+    "h": 29
+   },
+   {
+    "el": "button",
+    "w": 67,
+    "h": 30
+   },
+   {
+    "el": "a",
+    "w": 58,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 42,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 46,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 40,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 26,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 50,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 44,
+    "h": 17
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "span",
+    "fs": 11
+   },
+   {
+    "el": "a",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/products"
+ },
+ "/courses @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/courses @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/courses @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/events @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/events @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/events @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/groups @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/groups @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/groups @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/books @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   },
+   {
+    "el": "a",
+    "w": 53,
+    "h": 18
+   },
+   {
+    "el": "a",
+    "w": 263,
+    "h": 18
+   },
+   {
+    "el": "a",
+    "w": 58,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 42,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 46,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 40,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 26,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 50,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 44,
+    "h": 17
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "span",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/books"
+ },
+ "/books @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   },
+   {
+    "el": "a",
+    "w": 53,
+    "h": 18
+   },
+   {
+    "el": "a",
+    "w": 263,
+    "h": 18
+   },
+   {
+    "el": "a",
+    "w": 58,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 42,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 46,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 40,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 26,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 50,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 44,
+    "h": 17
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "span",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/books"
+ },
+ "/books @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   },
+   {
+    "el": "a",
+    "w": 53,
+    "h": 18
+   },
+   {
+    "el": "a",
+    "w": 263,
+    "h": 18
+   },
+   {
+    "el": "a",
+    "w": 346,
+    "h": 18
+   },
+   {
+    "el": "a",
+    "w": 58,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 42,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 46,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 40,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 26,
+    "h": 17
+   },
+   {
+    "el": "a",
+    "w": 50,
+    "h": 17
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "span",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/books"
+ },
+ "/blog @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/blog @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/blog @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/help @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/help @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/help @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/settings @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/settings @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/settings @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/messages @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/messages @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/messages @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/profile @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login?from=%2Fprofile"
+ },
+ "/profile @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login?from=%2Fprofile"
+ },
+ "/profile @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login?from=%2Fprofile"
+ },
+ "/nearby @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/nearby @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/nearby @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/live-stream @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar.padding",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "p",
+    "fs": 11
+   },
+   {
+    "el": "div",
+    "fs": 10.5
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/live-stream"
+ },
+ "/live-stream @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar.padding",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "p",
+    "fs": 11
+   },
+   {
+    "el": "div",
+    "fs": 10.5
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/live-stream"
+ },
+ "/live-stream @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [
+   {
+    "el": "nav.sidebar.padding",
+    "amount": 280,
+    "left": -280,
+    "right": -10,
+    "width": 270,
+    "pos": "fixed"
+   }
+  ],
+  "smallTargets": [
+   {
+    "el": "a",
+    "w": 209,
+    "h": 32
+   }
+  ],
+  "smallText": [
+   {
+    "el": "p",
+    "fs": 11.5
+   },
+   {
+    "el": "div",
+    "fs": 11
+   },
+   {
+    "el": "p",
+    "fs": 11
+   },
+   {
+    "el": "div",
+    "fs": 10.5
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/live-stream"
+ },
+ "/advertise @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/advertise @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/advertise @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/career @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/career @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/career @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/search @ iPhoneSE-375": {
+  "viewport": 375,
+  "scrollWidth": 375,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/search @ iPhone14-390": {
+  "viewport": 390,
+  "scrollWidth": 390,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ },
+ "/search @ Android-412": {
+  "viewport": 412,
+  "scrollWidth": 412,
+  "overflowX": 0,
+  "offenders": [],
+  "smallTargets": [
+   {
+    "el": "a.auth-forgot-link",
+    "w": 106,
+    "h": 20
+   },
+   {
+    "el": "button.auth-inline-link",
+    "w": 91,
+    "h": 22
+   }
+  ],
+  "smallText": [
+   {
+    "el": "button.auth-demo-btn",
+    "fs": 11
+   }
+  ],
+  "nonResponsiveImages": [],
+  "longUnbrokenText": [],
+  "finalUrl": "http://localhost:3000/login"
+ }
+}

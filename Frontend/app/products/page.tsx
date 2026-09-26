@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState, useMemo, useEffect, ChangeEvent, FormEvent } from "react";
 import HomeHeader from "@/components/layout/HomeHeader";
 import AppFooter from "@/components/layout/AppFooter";
+import SeoContentSection from "@/components/seo/SeoContentSection";
 
 type Product = {
   id: string;
@@ -673,7 +674,7 @@ export default function ProductsPage() {
                 border: "1px solid #eaeaea",
               }}
             >
-              <i className="icofont-shopping-bag" style={{ fontSize: "48px", color: "#ccc" }}></i>
+              <i className="icofont-bag-alt" style={{ fontSize: "48px", color: "#ccc" }}></i>
               <h4 style={{ marginTop: "15px", color: "#1f273f" }}>No products found</h4>
               <p style={{ color: "#888", fontSize: "13px" }}>
                 Try adjusting your search query or filter, or click &quot;Add Product&quot; to publish a new one!
@@ -691,6 +692,52 @@ export default function ProductsPage() {
         </div>
       </section>
 
+      <SeoContentSection
+        heading="Social marketplace and community shop"
+        intro="Updates brings buying and selling into the same place you already talk to friends and family. Discover items from people you trust, list what you no longer need, and keep every conversation about a purchase in one thread."
+        features={[
+          {
+            title: "Buy from people, not strangers",
+            body: "See who is selling before you commit, and message the seller directly to ask questions.",
+          },
+          {
+            title: "List an item in minutes",
+            body: "Add photos, a price and a short description, then publish to the community marketplace.",
+          },
+          {
+            title: "Local and shipped",
+            body: "Filter by nearby sellers for a quick handover, or buy from further afield with delivery.",
+          },
+          {
+            title: "Save and compare",
+            body: "Save listings to your cart, compare options and come back to them whenever you are ready.",
+          },
+        ]}
+        faqs={[
+          {
+            q: "How do I sell an item on Updates?",
+            a: "Open the marketplace, choose to create a listing, then add photos, a title, a description and your asking price. Your listing appears in the community shop straight away.",
+          },
+          {
+            q: "Is buying on Updates safe?",
+            a: "Always check the seller's profile and reviews, keep conversations inside Updates, and prefer meeting in a public place for local handovers.",
+          },
+          {
+            q: "Can I sell services as well as products?",
+            a: "Yes. The marketplace supports physical goods, digital items and services, as long as the listing follows our content policy.",
+          },
+          {
+            q: "Are there listing fees?",
+            a: "Browsing and basic listings are free. Any promoted placement or payment processing fees are shown before you confirm.",
+          },
+        ]}
+        related={[
+          { href: "/books", label: "Books and media" },
+          { href: "/courses", label: "Online courses" },
+          { href: "/groups", label: "Community groups" },
+          { href: "/help", label: "Help centre" },
+        ]}
+      />
       <AppFooter />
 
       {/* ================= ADD PRODUCT MODAL ================= */}

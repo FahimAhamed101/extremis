@@ -67,7 +67,7 @@ const sidebarMenu: MenuItem[] = [
   {
     title: "Market Place",
     href: "#",
-    iconClass: "icofont-shopping-bag",
+    iconClass: "icofont-bag-alt",
     children: [
       { label: "Books", href: "books.html" },
       { label: "Books Detail", href: "book-detail.html" },

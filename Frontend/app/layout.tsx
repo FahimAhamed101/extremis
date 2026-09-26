@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import FloatingCartButton from "@/components/cart/FloatingCartButton";
 import Providers from "./providers";
@@ -12,14 +12,28 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Updates – Social Platform to Connect with Friends & Family | Facebook Alternative",
-    template: "%s | Updates Social Network",
+    default: "Updates – The Social Media Network | Connect with Friends & Family",
+    template: "%s | Updates – The Social Media Network",
   },
   description:
-    "Updates is the modern social platform to connect and meet your friends and family. Share posts, photos, videos, and stories, join groups, chat in real-time, and discover communities — the open, privacy-friendly Facebook alternative.",
+    "Updates is the modern social media network to connect and meet your friends and family. Share posts, photos, videos, and stories, join groups, chat in real-time, and discover communities — the open, privacy-friendly Facebook alternative.",
   applicationName: "Updates",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Updates",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
   keywords: [
     "Updates",
+    "Updates the social media network",
+    "the social media network",
+    "social media network",
     "social platform like facebook",
     "facebook alternative",
     "social platform to meet friends and family",
@@ -40,25 +54,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Updates",
-    title: "Updates – Social Platform to Connect with Friends & Family | Facebook Alternative",
+    siteName: "Updates – The Social Media Network",
+    title: "Updates – The Social Media Network | Connect with Friends & Family",
     description:
-      "Join Updates, the modern social network to connect with friends and family, share updates, photos, videos, join groups, and discover inspiring communities.",
+      "Join Updates, the modern social media network to connect with friends and family, share updates, photos, videos, join groups, and discover inspiring communities.",
     images: [
       {
-        url: "/images/logo.png",
-        width: 512,
-        height: 512,
-        alt: "Updates – Connect with Friends & Family | Facebook Alternative",
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Updates – The Social Media Network | Connect with Friends & Family",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Updates – Social Platform to Connect with Friends & Family | Facebook Alternative",
+    title: "Updates – The Social Media Network | Connect with Friends & Family",
     description:
-      "Join Updates, the modern social network to connect with friends and family, share updates, photos, videos, join groups, and discover inspiring communities.",
-    images: ["/images/logo.png"],
+      "Join Updates, the modern social media network to connect with friends and family, share updates, photos, videos, join groups, and discover inspiring communities.",
+    images: ["/images/og-image.png"],
   },
   robots: {
     index: true,
@@ -71,6 +85,24 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+};
+
+/**
+ * Mobile viewport. `viewportFit: "cover"` lets the layout extend under the
+ * notch/home-indicator on modern phones (pairs with env(safe-area-inset-*)
+ * in CSS), and zoom is deliberately left enabled for accessibility.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#075985" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+  ],
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -110,6 +142,7 @@ export default function RootLayout({
                   "url": siteUrl,
                   "name": "Updates",
                   "alternateName": [
+                    "Updates The Social Media Network",
                     "Updates Social",
                     "Updates Social Platform",
                     "Updates Network",
@@ -166,10 +199,26 @@ export default function RootLayout({
           }}
         />
         <link rel="icon" href="/images/fav.png" type="image/png" sizes="16x16" />
+        <link rel="icon" href="/images/favicon-32.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        {/* Preload the subset icon font so icon glyphs don't pop in late. */}
+        <link
+          rel="preload"
+          href="/fonts/icofont-subset.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <link rel="stylesheet" href="/css/main.min.css" />
+        {/* Must come after main.min.css: supplies the IcoFont subset that
+            replaced the 525KB bundled icon font. */}
+        <link rel="stylesheet" href="/css/icofont-subset.css" />
         <link rel="stylesheet" href="/css/style.css" />
         <link rel="stylesheet" href="/css/color.css" />
         <link rel="stylesheet" href="/css/responsive.css" />
+        {/* MUST be last: mobile overrides need to beat the legacy stylesheets
+            above, which load after Next's own layout.css in <head>. */}
+        <link rel="stylesheet" href="/css/mobile-app.css" />
       </head>
       <body suppressHydrationWarning>
         <ApiHealthWarmup />

@@ -289,6 +289,23 @@ export default function LiveStreamPageClient() {
       <div className="theme-layout">
         <HomeHeader />
 
+        <div className="container" style={{ paddingTop: "24px" }}>
+          <h1
+            style={{
+              fontSize: "26px",
+              fontWeight: 800,
+              color: "#1f273f",
+              margin: "0 0 6px",
+              lineHeight: 1.25,
+            }}
+          >
+            Live Streaming
+          </h1>
+          <p style={{ fontSize: "15px", color: "#64748b", margin: 0 }}>
+            Broadcast live to your friends, join a room and chat in real time.
+          </p>
+        </div>
+
         <section>
           <div className="gap no-gap">
             <div className="container-fluid no-pad">

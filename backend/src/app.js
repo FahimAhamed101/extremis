@@ -11,6 +11,7 @@ const tourismRoutes = require("./routes/tourismRoutes");
 const storyRoutes = require("./routes/storyRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const sidebarRoutes = require("./routes/sidebarRoutes");
+const adRoutes = require("./routes/adRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -156,6 +157,7 @@ apiRouter.use("/tourism", tourismRoutes);
 apiRouter.use("/stories", storyRoutes);
 apiRouter.use("/events", eventRoutes);
 apiRouter.use("/sidebar", sidebarRoutes);
+apiRouter.use("/ads", adRoutes);
 apiRouter.use("/notifications", require("./routes/notificationRoutes"));
 apiRouter.use("/reels", require("./routes/reelRoutes"));
 apiRouter.use("/search", require("./routes/searchRoutes"));

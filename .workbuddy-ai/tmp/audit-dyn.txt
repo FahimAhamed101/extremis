@@ -1,0 +1,50 @@
+
+=== /post/6aac2ae9315c347c03964e92 ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/0 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/0 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /posts/6aac2ae9315c347c03964e92 ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/0 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/0 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  FAIL  page has an <h1>  (0 h1 element(s))
+
+=== /profile/6aa8442eac41ab9bacae28ba ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/0 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/0 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  FAIL  page has an <h1>  (0 h1 element(s))
+
+=== /courses/1 ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/20 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/7 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /products/1 ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/11 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/4 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /books/1 ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/12 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/4 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+2 CHECK(S) FAILED

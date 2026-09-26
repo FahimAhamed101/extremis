@@ -75,6 +75,23 @@ export default function CoursesPage() {
     <RequireAuth>
       <div className="theme-layout">
         <HomeHeader />
+        <div className="container" style={{ paddingTop: "24px" }}>
+          <h1
+            style={{
+              fontSize: "26px",
+              fontWeight: 800,
+              color: "#1f273f",
+              margin: "0 0 6px",
+              lineHeight: 1.25,
+            }}
+          >
+            Community Courses &amp; Learning
+          </h1>
+          <p style={{ fontSize: "15px", color: "#64748b", margin: 0 }}>
+            Browse free and paid courses shared by the community. Learn new
+            skills, teach what you know and grow together.
+          </p>
+        </div>
         <div dangerouslySetInnerHTML={{ __html: coursesMarkup }} />
         <AppFooter />
       </div>

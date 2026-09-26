@@ -244,7 +244,7 @@ export default function CourseDetailClient({ courseId, initialCourse }: CourseDe
                               </li>
                             </ul>
 
-                            <h4>{course.title}</h4>
+                            <h1>{course.title}</h1>
 
                             <span className="course-price">
                               ${course.price.toFixed(2)}
@@ -433,7 +433,7 @@ export default function CourseDetailClient({ courseId, initialCourse }: CourseDe
                             </div>
 
                             <span style={{ color: "#64748b", marginTop: "12px", display: "inline-block" }}>
-                              <i className="icofont-shield-check" style={{ color: "#10b981", marginRight: "4px" }}></i>
+                              <i className="icofont-shield-alt" style={{ color: "#10b981", marginRight: "4px" }}></i>
                               30 days money back guarantee • Lifetime access
                             </span>
                           </div>

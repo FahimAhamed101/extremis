@@ -46,10 +46,10 @@ export default function UsefulLinksPageClient({ defaultTab, pageTitle }: UsefulL
               </Link>
             </div>
 
-            {/* Layout Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "24px", alignItems: "start" }}>
+            {/* Layout Grid — class-based so it can collapse to one column on phones */}
+            <div className="ul-page-grid">
               {/* Left Sidebar */}
-              <aside>
+              <aside className="ul-page-aside">
                 <UsefulLinksWidget initialTab={defaultTab} />
 
                 <div style={{ backgroundColor: "#fff", padding: "18px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
@@ -103,9 +103,12 @@ export default function UsefulLinksPageClient({ defaultTab, pageTitle }: UsefulL
                   >
                     Updates Platform
                   </span>
-                  <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "800", color: "#0f172a" }}>
+                  {/* h2, not h1 — the crawlable SeoContentSection supplies the
+                      page's single <h1> (this block is auth-gated and returns
+                      nothing for anonymous visitors). */}
+                  <h2 style={{ margin: 0, fontSize: "28px", fontWeight: "800", color: "#0f172a" }}>
                     {pageTitle}
-                  </h1>
+                  </h2>
                 </div>
 
                 {/* Render the embedded tab view */}
@@ -118,7 +121,7 @@ export default function UsefulLinksPageClient({ defaultTab, pageTitle }: UsefulL
                         worldwide, we bridge the gap between preliminary insights and formal publication.
                       </p>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "32px" }}>
+                      <div className="ul-card-grid" style={{ marginBottom: "32px" }}>
                         <div style={statBox}>
                           <h2 style={{ color: "#088dcd", margin: 0, fontSize: "28px", fontWeight: "800" }}>25,000+</h2>
                           <span style={{ fontSize: "13px", color: "#64748b" }}>Active Contributors</span>
@@ -192,7 +195,7 @@ export default function UsefulLinksPageClient({ defaultTab, pageTitle }: UsefulL
                         Partner with Updates to reach over 25,000 highly engaged researchers, graduate scholars, software developers, and academic institutions.
                       </p>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "32px" }}>
+                      <div className="ul-card-grid" style={{ marginBottom: "32px" }}>
                         <div style={adCard}>
                           <h4 style={{ margin: "0 0 8px 0", fontSize: "16px", fontWeight: "700", color: "#1e293b" }}>Sponsored Posts</h4>
                           <p style={{ fontSize: "13px", color: "#64748b" }}>Native feed integration with verified sponsor badge, custom link tracking, and performance analytics.</p>

@@ -1,0 +1,325 @@
+/* ==========================================================================
+   DASHBOARD MOBILE APP EXPERIENCE LAYER
+   --------------------------------------------------------------------------
+   Loaded LAST from app/layout.tsx, after /css/main.min.css, /css/style.css,
+   /css/color.css and /css/responsive.css.
+
+   Why a separate file: globals.css is emitted by Next as `layout.css` and is
+   injected BEFORE the hand-written <link> tags in <head>. Any rule of equal
+   specificity in style.css therefore beat our overrides and they were silently
+   ignored. Loading this file last makes the cascade order correct.
+
+   Everything here is scoped behind media queries, so the desktop dashboard is
+   untouched.
+   ========================================================================== */
+
+:root {
+  /* Minimum comfortable touch target (Apple HIG 44px / Material 48px). */
+  --tap-min: 44px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* --------------------------------------------------------------------------
+   1. Global guards — no accidental sideways scroll, ever.
+   -------------------------------------------------------------------------- */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  /* Kill the 300ms tap delay and the grey flash on Android. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Media never overflows its container. */
+img,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+/* Long words, pasted URLs and long emails must not push the layout wide. */
+h1, h2, h3, h4, h5, h6, p, li, td, th, a, span, div {
+  overflow-wrap: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   2. Bootstrap grid rows use negative margins (-15px / -30px). Inside a phone
+   viewport with no gutter that pushes content past the right edge and it gets
+   clipped. Neutralise the negative margins on small screens.
+   -------------------------------------------------------------------------- */
+@media (max-width: 812px) {
+  .row.merged20,
+  .row.remove-ext,
+  .row.remove-ext-30,
+  .remove-ext,
+  .remove-ext-30 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+  }
+
+  .container,
+  .container-fluid {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    max-width: 100% !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Touch targets. The template ships 26–32px icon buttons, which are below
+   the accessible minimum and hard to hit with a thumb.
+   -------------------------------------------------------------------------- */
+@media (max-width: 812px) {
+  button,
+  .btn,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  /* Icon-only controls keep their compact look but get a real hit area. */
+  .actions-btn .iconbox,
+  .iconbox,
+  .icon-btn,
+  .action-btn {
+    min-width: var(--tap-min);
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Inline text links inside prose stay inline — don't break sentences. */
+  p a,
+  li a,
+  td a {
+    min-height: 0;
+    display: inline;
+    padding: 0;
+  }
+
+  /* Navigation / menu rows. */
+  nav.sidebar a,
+  .menu-slide a,
+  .menu-slide > li > a,
+  .responsive-header a,
+  .drop-menu a {
+    min-height: var(--tap-min);
+    display: flex;
+    align-items: center;
+  }
+
+  /* Dropdown menu items in the compact header. */
+  .drop-menu > li > a {
+    padding: 12px 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Readable type. 11px body copy is a squint on a phone.
+   -------------------------------------------------------------------------- */
+@media (max-width: 812px) {
+  body {
+    font-size: 15px;
+  }
+
+  p,
+  li,
+  .card-text,
+  .desc,
+  .description {
+    font-size: 14px !important;
+    line-height: 1.6;
+  }
+
+  /* Never let form controls render below 16px — iOS auto-zooms the whole page
+     on focus when the input font-size is smaller than 16px. */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  h1 { font-size: 22px !important; line-height: 1.25; }
+  h2 { font-size: 20px !important; line-height: 1.3; }
+  h3 { font-size: 17px !important; line-height: 1.35; }
+  h4 { font-size: 16px !important; }
+  h5 { font-size: 15px !important; }
+
+  /* Page titles in the dashboard header row. */
+  .page-title {
+    font-size: 18px !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Chrome: compact header, off-canvas drawer, safe areas.
+   The template's `.responsive-header` is position:fixed, so it must clear the
+   notch and the panel below it must clear the header.
+   -------------------------------------------------------------------------- */
+@media (max-width: 812px) {
+  .responsive-header {
+    padding-top: var(--safe-top);
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
+    z-index: 1050;
+  }
+
+  /* The sticky desktop topbar is hidden by responsive.css, but guard against
+     it reappearing in landscape widths. */
+  .topbar.stick {
+    padding-top: var(--safe-top);
+  }
+
+  .panel-content {
+    padding-top: calc(64px + var(--safe-top));
+    padding-bottom: calc(24px + var(--safe-bottom));
+    padding-left: max(10px, var(--safe-left));
+    padding-right: max(10px, var(--safe-right));
+  }
+
+  /* Off-canvas drawer: above the fixed header, own scroll container, and never
+     taller than the visible viewport. */
+  nav.sidebar {
+    z-index: 1060;
+    max-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(24px + var(--safe-bottom));
+  }
+
+  /* The compact header's logo and avatar row shouldn't fight for space. */
+  .res-logo {
+    width: auto !important;
+    max-width: 45%;
+  }
+
+  .user-avatar.mobile {
+    width: auto !important;
+    max-width: 55%;
+  }
+
+  /* Floating action buttons must clear the home indicator. */
+  .chat-fab,
+  .floating-cart-btn,
+  .scroll-top {
+    bottom: calc(16px + var(--safe-bottom)) !important;
+  }
+}
+
+/* Lock the page behind an open drawer so the panel doesn't scroll underneath. */
+body.mobile-nav-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   6. Tables. The dashboard is table-heavy (products, events, members, reviews)
+   and those tables are wider than a phone. Let them scroll horizontally inside
+   their own box instead of stretching the page.
+   -------------------------------------------------------------------------- */
+@media (max-width: 812px) {
+  .table-responsive,
+  .table-default,
+  table.table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /* Keep columns from collapsing to unreadable widths. */
+  table.table-default td,
+  table.table-default th {
+    white-space: nowrap;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. Charts. ApexCharts measures its container on mount; if the container is
+   still mid-layout the chart is drawn at the wrong width and overflows.
+   -------------------------------------------------------------------------- */
+@media (max-width: 812px) {
+  .apexcharts-canvas,
+  .apexcharts-svg {
+    max-width: 100% !important;
+  }
+
+  .w-chart-section {
+    margin-top: 0;
+  }
+
+  /* Dashboard stat cards: one per row reads far better than two cramped ones. */
+  .d-widget {
+    margin-bottom: 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Smoothness: reduce expensive effects on small/low-power screens.
+   -------------------------------------------------------------------------- */
+@media (max-width: 812px) {
+  /* Blurred shadows and backdrop filters are the main cause of janky scrolling
+     on mid-range Android. Drop them to a cheap equivalent. */
+  * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .theme-layout,
+  .widget-box,
+  .card,
+  .main-wraper {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+  }
+}
+
+/* Respect the user's reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Landscape phones: don't let a tall fixed header eat the screen. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .responsive-header {
+    min-height: 48px;
+  }
+
+  .panel-content {
+    padding-top: calc(56px + var(--safe-top));
+  }
+}

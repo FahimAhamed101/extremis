@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import HomeHeader from "@/components/layout/HomeHeader";
 import AppFooter from "@/components/layout/AppFooter";
 import { CATALOG_BOOKS, POPULAR_SIDEBAR_BOOKS } from "@/data/marketplaceCatalog";
+import SeoContentSection from "@/components/seo/SeoContentSection";
 import { addToCart } from "@/lib/cart/cartService";
 
 export default function BooksDirectoryPage() {
@@ -337,6 +338,52 @@ export default function BooksDirectoryPage() {
         </div>
       )}
 
+      <SeoContentSection
+        heading="Books, ebooks and study material"
+        intro="Browse a curated catalogue of books, ebooks and academic titles shared by the Updates community. Read reviews from other members, save the ones you want, and check out securely when you are ready."
+        features={[
+          {
+            title: "Curated catalogue",
+            body: "Titles are organised by subject so you can move from a broad topic down to the exact book you need.",
+          },
+          {
+            title: "Community reviews",
+            body: "See how other readers rated a title before you buy, and leave your own review afterwards.",
+          },
+          {
+            title: "Ebooks and print",
+            body: "Choose an instant digital download for study today, or order a physical copy where available.",
+          },
+          {
+            title: "Wishlist and cart",
+            body: "Save titles for later, compare editions and keep everything in one cart until checkout.",
+          },
+        ]}
+        faqs={[
+          {
+            q: "Can I read a sample before buying?",
+            a: "Where the publisher provides one, a preview is available on the book's detail page so you can check the level and style first.",
+          },
+          {
+            q: "Do you sell ebooks as well as printed books?",
+            a: "Yes. Listings are marked as ebook or print, and the delivery method is shown before you confirm your order.",
+          },
+          {
+            q: "How do I find books for my course?",
+            a: "Browse by subject or search by title and author. Course pages also link to the reading list for that course.",
+          },
+          {
+            q: "What is the returns policy?",
+            a: "Physical books can be returned within the window stated on the listing. Digital downloads are generally non-refundable once delivered.",
+          },
+        ]}
+        related={[
+          { href: "/products", label: "Marketplace" },
+          { href: "/courses", label: "Online courses" },
+          { href: "/blog", label: "Blog" },
+          { href: "/help", label: "Help centre" },
+        ]}
+      />
       {/* Full Course Footer */}
       <AppFooter />
     </div>

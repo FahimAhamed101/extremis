@@ -244,9 +244,9 @@ export default function ItemDetailPage({ item, type }: ItemDetailPageProps) {
                               </button>
                             </div>
 
-                            <h4 style={{ marginTop: "10px", fontSize: "22px", fontWeight: "800", color: "#1f273f", lineHeight: 1.3 }}>
+                            <h1 style={{ marginTop: "10px", fontSize: "22px", fontWeight: "800", color: "#1f273f", lineHeight: 1.3 }}>
                               {item.name}
-                            </h4>
+                            </h1>
 
                             <div style={{ margin: "10px 0 14px 0", display: "flex", alignItems: "center", gap: "10px" }}>
                               <span style={{ fontSize: "16px", color: "#64748b" }}>

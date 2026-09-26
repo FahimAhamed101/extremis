@@ -308,7 +308,7 @@ export default function UniversityProfileClient() {
                         />
                       </figure>
                       <div className="uni-name">
-                        <h2
+                        <h1
                           style={{
                             margin: "0 0 6px 0",
                             color: "#fff",
@@ -318,7 +318,7 @@ export default function UniversityProfileClient() {
                           }}
                         >
                           Akdeniz University
-                        </h2>
+                        </h1>
                         <span
                           style={{
                             color: "#94a3b8",

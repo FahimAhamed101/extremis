@@ -1,0 +1,114 @@
+
+=== /cart ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/21 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/7 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /product-cart ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/20 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/6 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /checkout ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/9 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/15 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /product-checkout ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/9 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/15 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /add-new-course ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/14 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/16 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /profile ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/6 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/2 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /course-detail ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/20 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/7 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /product-detail ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/11 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/4 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /book-detail ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/12 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/4 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /login ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/6 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/2 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /signup ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/7 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/10 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /search ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/4 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/4 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /videos ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/14 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/9 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+=== /books ===
+  PASS  no horizontal scroll  (scrollWidth=390 vw=390)
+  PASS  buttons >= 40px tall  (0/17 too small)
+  PASS  body copy >= 12px  (0 elements below 12px)
+  PASS  inputs >= 16px (no iOS zoom)  (0/6 too small)
+  PASS  backdrop-filter disabled on mobile  (backdropFilter=none)
+  PASS  page has an <h1>  (1 h1 element(s))
+
+ALL CHECKS PASSED

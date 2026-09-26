@@ -1,0 +1,109 @@
+▲ Next.js 16.3.3 (webpack)
+- Local:         http://localhost:3100
+- Network:       http://192.168.0.210:3100
+✓ Ready in 2.0s
+✓ Running next.config.ts took 419ms
+
+○ Compiling / ...
+ GET / 200 in 4.6s (next.js: 3.9s, application-code: 740ms)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\cache\webpack\server-development\0.pack.gz_' -> 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\cache\webpack\server-development\0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, write
+ GET / 200 in 108ms (next.js: 9ms, application-code: 99ms)
+ GET /analytics 200 in 1808ms (next.js: 1561ms, application-code: 247ms)
+ GET /advertisements 200 in 1292ms (next.js: 1081ms, application-code: 210ms)
+ GET /blog 200 in 1889ms (next.js: 1751ms, application-code: 138ms)
+ GET /events 200 in 2.3s (next.js: 1917ms, application-code: 350ms)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, write
+○ Compiling /messages ...
+⨯ [Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+⨯ [Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\cache\webpack\server-development\0.pack.gz_' -> 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\cache\webpack\server-development\0.pack.gz'
+⨯ [Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+⨯ [Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+⨯ [Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+[Error: ENOSPC: no space left on device, mkdir 'C:\Users\Admin\Desktop\extremis\updatesdashbaord\.next\dev\static\chunks\app\messages'] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'mkdir',
+  path: 'C:\\Users\\Admin\\Desktop\\extremis\\updatesdashbaord\\.next\\dev\\static\\chunks\\app\\messages'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, write

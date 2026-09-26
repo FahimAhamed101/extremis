@@ -73,6 +73,25 @@ export default function GroupsPage() {
     <RequireAuth>
       <div className="theme-layout">
         <HomeHeader />
+        {/* The template markup below has no heading of its own, so the page had
+            no <h1> at all. Screen readers and search engines both need one. */}
+        <div className="container" style={{ paddingTop: "24px" }}>
+          <h1
+            style={{
+              fontSize: "26px",
+              fontWeight: 800,
+              color: "#1f273f",
+              margin: "0 0 6px",
+              lineHeight: 1.25,
+            }}
+          >
+            Groups &amp; Communities
+          </h1>
+          <p style={{ fontSize: "15px", color: "#64748b", margin: 0 }}>
+            Discover communities, join discussions and connect with people who
+            share your interests.
+          </p>
+        </div>
         <div dangerouslySetInnerHTML={{ __html: groupsMarkup }} />
         <AppFooter />
       </div>

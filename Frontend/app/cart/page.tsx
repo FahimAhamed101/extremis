@@ -153,7 +153,7 @@ export default function ProductCartPage() {
                 <span>/</span>
                 <span style={{ color: "#088dcd", fontWeight: "600" }}>Cart</span>
               </nav>
-              <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "800", color: "#0f172a", display: "flex", alignItems: "center", gap: "10px" }}>
+              <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "800", color: "#0f172a", display: "flex", alignItems: "center", gap: "10px" }}>
                 Shopping Cart
                 <span
                   style={{
@@ -167,7 +167,7 @@ export default function ProductCartPage() {
                 >
                   {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
                 </span>
-              </h2>
+              </h1>
             </div>
 
             <Link

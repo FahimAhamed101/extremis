@@ -6,6 +6,7 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import HomeHeader from "@/components/layout/HomeHeader";
 import AppFooter from "@/components/layout/AppFooter";
+import PageHeading from "@/components/seo/PageHeading";
 
 interface SaleRecord {
   id: string;
@@ -213,6 +214,11 @@ export default function PayoutPageClient() {
   return (
     <div className="theme-layout">
       <HomeHeader />
+
+      <PageHeading
+        title="Creator Payouts"
+        subtitle="Track your earnings, pending balances and withdrawal history."
+      />
 
       <section className="payout-content-section" style={{ padding: "40px 0 60px", background: "#f8fafc" }}>
         <div className="container">

@@ -87,7 +87,7 @@ const sidebarMenu: MenuItem[] = [
   {
     title: "Market Place",
     href: "#",
-    iconClass: "icofont-shopping-bag",
+    iconClass: "icofont-bag-alt",
     children: [
       { label: "Books", href: "books.html" },
       { label: "Books Detail", href: "book-detail.html" },
@@ -285,7 +285,7 @@ export default function BlogPage() {
                   <div id="page-contents" className="row merged20">
                     <div className="col-lg-9">
                       <div className="main-wraper">
-                        <div className="main-title">Blog Posts</div>
+                        <h1 className="main-title" style={{ margin: 0 }}>Blog Posts</h1>
                         {blogPosts.map((post) => (
                           <div className="blog-posts" key={`${post.image}-${post.title}`}>
                             <figure>

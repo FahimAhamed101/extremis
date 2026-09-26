@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState, useMemo, FormEvent, useEffect } from "react";
 import HomeHeader from "@/components/layout/HomeHeader";
 import AppFooter from "@/components/layout/AppFooter";
+import PageHeading from "@/components/seo/PageHeading";
 import { useCreateOrderMutation, useGetMyProfileQuery } from "@/lib/services/authApi";
 import {
   CartItem,
@@ -188,6 +189,11 @@ export default function ProductCheckoutClient() {
   return (
     <div className="theme-layout" style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <HomeHeader />
+
+      <PageHeading
+        title="Secure Checkout"
+        subtitle="Review your order and complete payment safely."
+      />
 
       {/* Main Checkout Section */}
       <section style={{ padding: "30px 0 70px 0" }}>

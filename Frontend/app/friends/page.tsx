@@ -18,6 +18,22 @@ export default function FriendsPage() {
     <RequireAuth>
       <div className="theme-layout">
         <HomeHeader />
+        <div className="container" style={{ paddingTop: "24px" }}>
+          <h1
+            style={{
+              fontSize: "26px",
+              fontWeight: 800,
+              color: "#1f273f",
+              margin: "0 0 6px",
+              lineHeight: 1.25,
+            }}
+          >
+            Friends &amp; Connections
+          </h1>
+          <p style={{ fontSize: "15px", color: "#64748b", margin: 0 }}>
+            Find people you know, manage friend requests and grow your circle.
+          </p>
+        </div>
         <FriendsPageClient />
         <AppFooter />
       </div>

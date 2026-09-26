@@ -11,6 +11,8 @@ import UsefulLinksWidget from "@/components/widgets/UsefulLinksWidget";
 import WhoToFollowWidget from "@/components/widgets/WhoToFollowWidget";
 import AppFooter from "@/components/layout/AppFooter";
 import FeedbackModal from "@/components/feedback/FeedbackModal";
+import AdvertismentWidget from "@/components/widgets/AdvertismentWidget";
+import SponsoredWidget from "@/components/widgets/SponsoredWidget";
 
 export const metadata: Metadata = {
   title: "Updates – Connect with Friends & Family | Facebook Alternative",
@@ -34,6 +36,23 @@ export default function Home() {
 <div className="theme-layout">
 
 	<HomeHeader />
+	{/* The feed design has no visible page title, but the document still needs
+	    exactly one <h1> for assistive tech and for the crawler's outline. */}
+	<h1
+		style={{
+			position: "absolute",
+			width: 1,
+			height: 1,
+			padding: 0,
+			margin: -1,
+			overflow: "hidden",
+			clip: "rect(0, 0, 0, 0)",
+			whiteSpace: "nowrap",
+			border: 0,
+		}}
+	>
+		Updates – Social Feed
+	</h1>
 	<LegacyPostInteractions />
 
 	<nav className="sidebar">
@@ -193,12 +212,7 @@ export default function Home() {
 											<li><i className="icofont-plus-square"></i> <a href="#" title="">Add Payment Method</a><em>20%</em></li>
 										</ul>
 									</div>
-									<div className="advertisment-box">
-										<h4 className=""><i className="icofont-info-circle"></i> advertisment</h4>
-										<figure>
-											<a href="#" title="Advertisment"><img src="/images/resources/ad-widget2.gif" alt="" /></a>
-										</figure>
-									</div>
+									<AdvertismentWidget />
 
 									<div className="widget">
 										<h4 className="widget-title"><i className="icofont-flame-torch"></i> Popular Courses</h4>
@@ -290,25 +304,7 @@ export default function Home() {
 											<img alt="" src="/images/clock.png" />
 										</div>
 									</div>
-									<div className="widget">
-										<span><i className="icofont-globe"></i> Sponsored</span>
-										<ul className="sponsors-ad">
-											<li>
-												<figure><img src="/images/resources/sponsor.jpg" alt="" /></figure>
-												<div className="sponsor-meta">
-													<h5><a href="#" title="">IQ Options Broker</a></h5>
-													<a href="#" title="" target="_blank">www.iqvie.com</a>
-												</div>
-											</li>
-											<li>
-												<figure><img src="/images/resources/sponsor2.jpg" alt="" /></figure>
-												<div className="sponsor-meta">
-													<h5><a href="#" title="">BM Fashion Designer</a></h5>
-													<a href="#" title="" target="_blank">www.abcd.com</a>
-												</div>
-											</li>
-										</ul>
-									</div>
+									<SponsoredWidget />
 									<WhoToFollowWidget />
 								</aside>
 							</div>
@@ -400,7 +396,7 @@ export default function Home() {
 							<option>Research</option>
 						</select>
 						<div className="uploadimage">
-							<i className="icofont-eye-alt-alt"></i>
+							<i className="icofont-eye-alt"></i>
 							<label className="fileContainer">
 								<input type="file" />Upload File
 							</label>
@@ -436,7 +432,7 @@ export default function Home() {
 					<li><a title="" href="#" className="pinterest"><i className="icofont-pinterest"></i></a></li>
 					<li><a title="" href="#" className="youtube"><i className="icofont-youtube"></i></a></li>
 					<li><a title="" href="#" className="dribble"><i className="icofont-dribbble"></i></a></li>
-					<li><a title="" href="#" className="behance"><i className="icofont-behance-original"></i></a></li>
+					<li><a title="" href="#" className="behance"><i className="icofont-behance"></i></a></li>
 				</ul>
 			</div>
 			<div style={{ display: "none" }} className="friends-to">

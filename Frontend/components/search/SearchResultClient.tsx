@@ -99,9 +99,9 @@ export default function SearchResultClient() {
                   <div className="post-subject">
                     <div className="university-tag">
                       <div className="Search-result">
-                        <h4>
+                        <h1>
                           Search Result for <strong>&quot;{rawQuery}&quot;</strong>
-                        </h4>
+                        </h1>
                         <span style={{ fontSize: "14px", color: "#e0f2fe", fontWeight: "500" }}>
                           Found {counts.all} matching results across research articles, people, media, and groups
                         </span>

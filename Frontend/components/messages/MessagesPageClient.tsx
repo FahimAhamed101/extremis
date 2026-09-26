@@ -399,7 +399,7 @@ export default function MessagesPageClient() {
     <>
       <div className="col-lg-8">
         <div className="main-wraper">
-          <h3 className="main-title">Messages</h3>
+          <h1 className="main-title" style={{ fontSize: "22px" }}>Messages</h1>
           <div className="message-box">
             <div className="message-header">
               {headerItems.map((contact) => {

@@ -26,6 +26,34 @@ function isSrvLookupError(error, uri) {
   );
 }
 
+/**
+ * Node's c-ares resolver cannot always resolve an Atlas SRV record on Windows —
+ * `nslookup` resolves it fine, but Node throws querySrv ECONNREFUSED — so
+ * connectDB() fails even though the cluster is perfectly reachable. Derive the
+ * equivalent non-SRV seed list from MONGODB_URI so the server starts unattended
+ * instead of demanding a hand-written MONGODB_LOCAL_URI.
+ */
+function deriveLocalUriFromSrv(srv) {
+  const match = String(srv || "").match(/^mongodb\+srv:\/\/([^@]+)@([^/]+)\/(.*)$/);
+  if (!match) return "";
+
+  const credentials = match[1];
+  const host = match[2];
+  const rest = match[3];
+  const clusterHost = host.split(".")[0]; // cluster0
+  const domain = host.split(".").slice(1).join("."); // 7khaz.mongodb.net
+  // Atlas shard hostnames are <cluster>-shard-00-00/-01/-02, matching the SRV record.
+  const shards = ["00", "01", "02"]
+    .map((n) => `${clusterHost}-shard-00-${n}.${domain}:27017`)
+    .join(",");
+  const dbName = rest.split("?")[0];
+
+  return (
+    `mongodb://${credentials}@${shards}/${dbName}` +
+    "?tls=true&authSource=admin&retryWrites=true&w=majority"
+  );
+}
+
 function createSrvLookupError(error) {
   const message = [
     `MongoDB SRV DNS lookup failed for ${error.hostname || "the Atlas cluster"}.`,
@@ -65,7 +93,7 @@ async function connectDB() {
         // offer a helpful message and attempt an optional local fallback
         // when `MONGODB_LOCAL_URI` is provided in the environment.
         const isSrvError = isSrvLookupError(error, uri);
-        const localUri = process.env.MONGODB_LOCAL_URI;
+        const localUri = process.env.MONGODB_LOCAL_URI || deriveLocalUriFromSrv(uri);
 
         if (isSrvError && localUri) {
           // Try local fallback

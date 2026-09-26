@@ -604,9 +604,9 @@ export default function AddNewCourseClient() {
                   {/* Title & Description */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
                     <div>
-                      <h3 style={{ fontSize: "24px", fontWeight: 800, color: "#0f172a", marginBottom: "6px" }}>
+                      <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#0f172a", marginBottom: "6px" }}>
                         Publish New Course or Book
-                      </h3>
+                      </h1>
                       <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
                         Add an interactive course or academic textbook to the <b>Socimo Marketplace</b> for global scholars.
                       </p>

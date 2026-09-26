@@ -1,0 +1,474 @@
+/* ==========================================================================
+   MOBILE APP EXPERIENCE LAYER
+   --------------------------------------------------------------------------
+   Loaded LAST from app/layout.tsx, after the legacy /css/*.css files.
+
+   Why a separate file: globals.css is emitted by Next as `layout.css` and is
+   injected BEFORE the legacy stylesheets in <head>. Any rule of equal
+   specificity in style.css therefore beat the mobile overrides and they were
+   silently ignored. Loading this file last makes the cascade order correct.
+
+   Everything here is mobile-only and scoped behind media queries, so the
+   desktop layout is untouched.
+   ========================================================================== */
+
+:root {
+  /* Minimum comfortable touch target (Apple HIG 44px / Material 48px). */
+  --tap-min: 44px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* --------------------------------------------------------------------------
+   1. Global guards — no accidental sideways scroll, ever.
+   -------------------------------------------------------------------------- */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  /* Kill the 300ms tap delay and the grey flash on Android. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Momentum scrolling inside any scrollable pane. */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Any element that can scroll sideways should do it smoothly and snap. */
+[class*="scroll-x"],
+.header-shortcuts .menu-caro,
+.stories-list,
+.emoji-list {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+[class*="scroll-x"]::-webkit-scrollbar,
+.header-shortcuts .menu-caro::-webkit-scrollbar,
+.stories-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Media never overflows its container. */
+img,
+video,
+canvas,
+svg,
+iframe,
+table {
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+/* Long words / pasted URLs must not push the layout wide. */
+h1, h2, h3, h4, h5, h6, p, li, td, th, a, span, div {
+  overflow-wrap: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   2. The /help, /policy, /career … two-column shell (280px + 1fr).
+   Below 900px it becomes a single column with the article FIRST — on a phone
+   the sidebar was eating the viewport and clipping the content off-screen.
+   -------------------------------------------------------------------------- */
+.ul-page-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ul-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  /* Content first, sidebar below it. */
+  .ul-page-grid > .ul-page-aside {
+    order: 2;
+  }
+
+  .ul-page-grid > :not(.ul-page-aside) {
+    order: 1;
+  }
+
+  /* The inner 3-up card grids inside these pages are unreadable on a phone. */
+  .ul-card-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Reusable responsive card grid (replaces hardcoded repeat(3, 1fr) inline styles). */
+.ul-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .ul-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Owl carousels (Groups / Courses / Products / Events).
+   The stage is sized by JS at desktop width; on a phone that leaves the card
+   and its avatar badge overlapping. Force one readable card per slide.
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .owl-carousel,
+  .owl-carousel .owl-stage-outer {
+    overflow: hidden !important;
+    width: 100% !important;
+  }
+
+  .owl-carousel .owl-stage {
+    display: flex !important;
+    align-items: stretch;
+  }
+
+  .owl-carousel .owl-item {
+    display: flex;
+    height: auto;
+  }
+
+  .owl-carousel .owl-item > div,
+  .owl-carousel .owl-item > li,
+  .owl-carousel .owl-item > article {
+    width: 100% !important;
+  }
+
+  /* Group cards: stop the avatar badge from sitting on top of the title. */
+  .rec-group,
+  .rec-groupbox,
+  .rec-groupbox figure {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .rec-groupbox figure img,
+  .rec-groupbox img {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: cover;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Bootstrap grid rows use negative margins (-15px / -30px). Inside a phone
+   viewport with no gutter that pushes content past the right edge and it gets
+   clipped. Neutralise the negative margins on small screens.
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .remove-ext-30,
+  .remove-ext,
+  .row.remove-ext-30,
+  .row.remove-ext {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+  }
+
+  .container,
+  .container-fluid {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    max-width: 100% !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Touch targets. The template ships 26–32px buttons and 14px-tall text
+   links; both are below the accessible minimum. Grow them on touch devices.
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  /* Buttons and button-like links get a real hit area. */
+  button,
+  .btn,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  .post-btn,
+  .comment-btn,
+  .share-btn,
+  .like-btn {
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  /* Small icon-only controls (reply, like, share) keep their compact look but
+     get an invisible expanded hit area via padding. */
+  a.reply,
+  .post-meta a,
+  .post-comments a,
+  .action-btn,
+  .icon-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 6px;
+  }
+
+  /* Inline text links inside post bodies stay inline — don't break prose. */
+  p a,
+  li a,
+  .post-text a {
+    min-height: 0;
+    display: inline;
+    padding: 0;
+  }
+
+  /* Navigation / menu rows. */
+  nav.sidebar a,
+  .menu-slide a,
+  .responsive-header a {
+    min-height: var(--tap-min);
+    display: flex;
+    align-items: center;
+  }
+
+  /* Emoji reaction picker + reaction chips: these shipped at ~20px which is
+     well under the 44px minimum and very hard to hit with a thumb. */
+  .post-reaction-emoji-button,
+  .reaction-emoji-button,
+  [class*="post-reaction-emoji"],
+  [class*="reaction-emoji"] {
+    min-width: var(--tap-min);
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    line-height: 1;
+  }
+
+  /* Emoji glyphs themselves shouldn't be oversized by the padding above. */
+  .post-reaction-emoji-button > *,
+  [class*="reaction-emoji"] > * {
+    pointer-events: none;
+  }
+
+  /* Comment / share / save action rows. */
+  .post-meta > li > a,
+  .post-meta > li > span,
+  .post-comments > li > a,
+  .post-comments > li > span {
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Readable type. iOS body copy is 17px; 11px is a squint. Raise the floor
+   for genuine body text while leaving badges/labels alone.
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  body {
+    font-size: 15px;
+  }
+
+  p,
+  li,
+  .post-text,
+  .comment-text,
+  .card-text,
+  .desc,
+  .description {
+    font-size: 14px !important;
+    line-height: 1.6;
+  }
+
+  /* Never let form controls render below 16px — iOS auto-zooms the whole page
+     on focus when the input font-size is smaller than 16px. */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  h1 { font-size: 24px !important; line-height: 1.25; }
+  h2 { font-size: 21px !important; line-height: 1.3; }
+  h3 { font-size: 18px !important; line-height: 1.35; }
+  h4 { font-size: 16px !important; }
+  h5 { font-size: 15px !important; }
+}
+
+/* --------------------------------------------------------------------------
+   7. Chrome: header, drawer and bottom safe area.
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  /* The top shortcut bar sticks under the notch instead of behind it. */
+  .header-shortcuts {
+    padding-top: var(--safe-top);
+  }
+
+  .theme-layout {
+    /* Keep content clear of the home indicator. */
+    padding-bottom: var(--safe-bottom);
+  }
+
+  /* Off-canvas drawer should sit above everything and be scrollable itself. */
+  nav.sidebar {
+    z-index: 1040;
+    max-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Floating cart / chat buttons must clear the home indicator. */
+  .floating-cart-btn,
+  .floating-cart-button,
+  .chat-fab {
+    bottom: calc(16px + var(--safe-bottom)) !important;
+  }
+}
+
+/* Lock the page behind an open drawer so the feed doesn't scroll underneath. */
+body.mobile-nav-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   8. Messages / contact strip. `.message-header` is a fixed-width flex run that
+   overflowed to ~3180px, so every contact name after the first was clipped and
+   the labels collided with each other.
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .message-box .message-header,
+  .message-users,
+  .conversation-strip,
+  .useravatar-list {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding: 10px 8px 12px;
+    scrollbar-width: none;
+  }
+
+  .message-box .message-header::-webkit-scrollbar,
+  .message-users::-webkit-scrollbar,
+  .conversation-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .message-box .message-header .useravatar,
+  .useravatar {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    width: 68px;
+    max-width: 68px;
+    text-align: center;
+  }
+
+  /* Truncate the name to the avatar width instead of letting it overlap the
+     neighbouring contact. */
+  .message-box .message-header .useravatar span,
+  .useravatar span {
+    display: block;
+    width: 100%;
+    max-width: 68px;
+    margin: 6px 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11.5px;
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .useravatar img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Tables and maps — the two remaining sources of wide content.
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Leaflet renders a 700px+ SVG that escaped its wrapper. */
+  .leaflet-container,
+  .map-container,
+  .leaflet-pane,
+  .leaflet-map-pane {
+    max-width: 100% !important;
+    overflow: hidden;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10. Smoothness: reduce expensive effects on small/low-power screens.
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  /* Large blurred shadows and backdrop filters are the main cause of janky
+     scrolling on mid-range Android. Drop them to cheap equivalents. */
+  * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .theme-layout,
+  .post-box,
+  .widget-box,
+  .card {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  /* Promote scroll containers to their own compositor layer. */
+  .owl-stage,
+  .stories-list,
+  .message-users {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+}
+
+/* Respect the user's reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Landscape phones: don't let a tall fixed header eat the screen. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .header-shortcuts .white-bg {
+    min-height: 48px !important;
+  }
+}
